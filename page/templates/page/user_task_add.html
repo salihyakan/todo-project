@@ -1,0 +1,142 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Todo List{% endblock title %}</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- For Font Awesome icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  {% block user_task_add_css %}
+  <link rel="stylesheet" href="{% static 'css/user_task_add.css' %}">
+  {% endblock user_task_add_css %}
+
+</head>
+
+<body>
+
+
+
+  {% block user_task_add_content %}
+
+
+  <!-- CONTENT -->
+  <!-- Main Content -->
+   
+  <div class="main-content">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="day-header">
+          <i class="fas fa-sun"></i>
+          <h2>Günüm</h2>
+        </div>
+        <div class="date">01.01.2025</div>
+      </div>
+
+      <div class="header-right">
+        <button class="sort-btn">
+          <i class="fas fa-sort-amount-down"></i>
+          <span>Sırala</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Task Input Area -->
+    <div class="task-input-container">
+      <div class="task-input" id="taskInput">
+        <i class="fas fa-plus" id="addIcon"></i>
+        <input type="text" placeholder="Oluştur..." id="taskInputField">
+      </div>
+
+      <!-- Sub Panel -->
+      <div class="sub-panel" id="subPanel" style="display: none;">
+        <div class="panel-content">
+          <!-- Task Form Container -->
+          <div class="task-form-container">
+            <div class="task-header">
+              <label class="section-label">
+                <i class="fas fa-heading icon-spacing"></i> <!-- Newly added icon -->
+                Başlık Ekle
+              </label>
+              <input type="text" placeholder="Örneğin: Toplantı notlarını hazırla" class="task-title-input">
+            </div>
+            <div class="description-container">
+              <div class="description-header">
+                <i class="fas fa-align-left"></i>
+                <h4>Açıklama Ekle</h4>
+                <span class="char-counter">0/500</span>
+              </div>
+              <textarea class="task-description" placeholder="Görev detaylarını buraya yaz..."
+                maxlength="500"></textarea>
+            </div>
+          </div>
+
+          <div class="panel-buttons">
+            <div class="sub-buttons-left">
+              <!-- Date Picker Button -->
+              <div class="date-picker-container">
+                <button class="sub-btn calendar-btn" id="dateButton">
+                  <i class="fas fa-calendar-day"></i>
+                  <span>Tarih Seç</span>
+                </button>
+                <input type="date" id="taskDate" class="hidden-date-input">
+              </div>
+
+              <!-- Category Dropdown -->
+              <div class="dropdown-container">
+                <button class="sub-btn category-btn" id="categoryButton">
+                  <i class="fas fa-tag"></i>
+                  <span>Kategori Seç</span>
+                </button>
+                <div class="category-dropdown" id="categoryDropdown">
+                  <div class="category-item" data-value="work">İş</div>
+                  <div class="category-item" data-value="personal">Kişisel</div>
+                  <div class="category-item" data-value="shopping">Alışveriş</div>
+                  <div class="category-item" data-value="study">Eğitim</div>
+                </div>
+              </div>
+
+              <!-- Priority Dropdown -->
+              <div class="dropdown-container">
+                <button class="sub-btn important-btn" id="priorityButton">
+                  <i class="fas fa-exclamation-circle"></i>
+                  <span>Öncelik Seç</span>
+                </button>
+                <div class="priority-dropdown" id="priorityDropdown">
+                  <div class="priority-item high">Yüksek</div>
+                  <div class="priority-item medium">Orta</div>
+                  <div class="priority-item low">Düşük</div>
+                </div>
+              </div>
+            </div>
+            <button class="save-btn">
+              <i class="fas fa-save"></i>
+              <span>Kaydet</span>
+            </button>
+            <!-- ... Other elements ... -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Task List (To be filled later) -->
+    <div class="task-list"></div>
+    <div style="margin-top: 3000px;"></div>
+    <!-- CONTENT END -->
+  </div>
+  {% endblock user_task_add_content %}
+
+
+  {% block user_task_add_js %}
+  <script src="{% static 'js/user_task_add.js' %}"></script>
+  {% endblock user_task_add_js %}
+</body>
+
+</html>

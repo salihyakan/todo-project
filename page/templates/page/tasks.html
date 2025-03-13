@@ -1,0 +1,162 @@
+{% extends 'core/base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YapYap - Görevlerim</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    {% block tasks_css %}
+    <link rel="stylesheet" href="{% static 'css/tasks.css' %}">
+    {% endblock tasks_css %}
+        
+</head>
+
+<body>
+    
+    {% block tasks_content %}
+        
+    
+    <!-- CONTENT -->
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <div class="day-header">
+                    <i class="fas fa-sun"></i>
+                    <h2>Günüm</h2>
+                </div>
+                <div class="date">01.01.2025</div>
+            </div>
+
+            <div class="header-right">
+                <button class="sort-btn">
+                    <i class="fas fa-sort-amount-down"></i>
+                    <span>Sırala</span>
+                </button>
+            </div>
+        </div>
+        <div class="tasks-container">
+            <div class="tasks-header">
+                <h1 class="tasks-title">Görevlerim</h1>
+                <hr class="title-divider">
+            </div>
+            
+            <!-- Task Cards Grid -->
+            <div class="tasks-grid">
+                <!-- Example Task Card 1 -->
+                <div class="task-card">
+                    <div class="card-header">
+                        <label class="task-check">
+                            <input type="checkbox" class="status-checkbox">
+                            <span class="checkmark"></span>
+                        </label>
+                        
+                        <h3 class="task-name">Proje Toplantısı Hazırlığı</h3>
+                        <div class="task-actions">
+                            <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                    <p class="task-desc">Sunum materyallerini tamamla ve agenda hazırla</p>
+                    <div class="task-meta">
+                        <span class="task-date"><i class="fas fa-calendar-day"></i> 15.01.2025</span>
+                        <span class="task-priority high"><i class="fas fa-exclamation-circle"></i> Yüksek</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="upcoming-tasks">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-alt"></i> Yaklaşan Görevler</h2>
+                <a href="#" class="view-all">Tümünü Görüntüle →</a>
+            </div>
+            <div class="tasks-grid upcoming-list">
+                <!-- Example Upcoming Task -->
+                <div class="task-card upcoming-task">
+                    <div class="card-header">
+                        <h3 class="task-name">Müşteri Sunumu Hazırla</h3>
+                        <div class="task-actions">
+                            <span class="task-priority high"><i class="fas fa-exclamation-circle"></i> Yüksek</span>
+                        </div>
+                    </div>
+                    <div class="task-meta">
+                        <span class="task-date"><i class="fas fa-hourglass-half"></i> Son 2 Gün</span>
+                        <div class="task-actions">
+                            <button class="edit-btn"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Other tasks... -->
+            </div>
+        </div>
+        <!-- Edit Task Modal -->
+        <div id="edit-task-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <h2>Görevi Düzenle</h2>
+                <form id="edit-task-form">
+                    <!-- Task Name -->
+                    <div class="form-group">
+                        <label for="edit-task-name">Görev Adı</label>
+                        <input type="text" id="edit-task-name" required>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="edit-task-desc">Açıklama</label>
+                        <textarea id="edit-task-desc" rows="3"></textarea>
+                    </div>
+                    
+                    <!-- Date and Priority Row -->
+                    <div class="form-row">
+                        <!-- Due Date -->
+                        <div class="form-group">
+                            <label for="edit-task-date">Son Tarih</label>
+                            <input type="date" id="edit-task-date" required>
+                        </div>
+                        
+                        <!-- Category Dropdown -->
+                        <div class="form-group">
+                            <label for="edit-task-category">Kategori</label>
+                            <select id="edit-task-category">
+                                <option value="work">İş</option>
+                                <option value="personal">Kişisel</option>
+                                <option value="shopping">Alışveriş</option>
+                                <option value="study">Eğitim</option>
+                                <option value="health">Sağlık</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Priority Buttons -->
+                    <div class="form-group">
+                        <label>Öncelik</label>
+                        <div class="priority-buttons">
+                            <button type="button" class="priority-btn high" data-priority="high">Yüksek</button>
+                            <button type="button" class="priority-btn medium" data-priority="medium">Orta</button>
+                            <button type="button" class="priority-btn low" data-priority="low">Düşük</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="save-btn">Değişiklikleri Kaydet</button>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+    {% endblock tasks_content %}
+    
+
+
+    {% block tasks_js %}
+    <script src="{% static 'js/tasks.js' %}"></script>
+    {% endblock tasks_js %}    
+</body>
+
+</html>

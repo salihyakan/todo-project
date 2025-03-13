@@ -1,0 +1,151 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAPYAP - Üretkenliğin Yeni Adresi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/home_page.css' %}">
+
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">YAPYAP</div>
+        <div class="nav-buttons">
+            <a href="#" class="btn btn-login">
+                <i class="fas fa-sign-in-alt"></i>
+                Giriş Yap
+            </a>
+            <a href="#" class="btn btn-register">
+                <i class="fas fa-user-plus"></i>
+                Kayıt Ol
+            </a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <h1>Geleceğini Planla, Bugün Yap!</h1>
+        <p>Üretkenliğinizi maksimuma çıkaracak akıllı çözüm</p>
+        <div class="hero-cta">
+            <button class="cta-button">Hemen Başla <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <h2 class="features-h2" style="text-align: center;">Neden YAPYAP?</h2>
+
+        <div class="feature-buttons">
+            <button class="feature-btn active" data-card="1">
+                <i class="fas fa-rocket"></i>
+                Hızlı Başlangıç
+            </button>
+            <button class="feature-btn" data-card="2">
+                <i class="fas fa-users"></i>
+                Takım Yönetimi
+            </button>
+            <button class="feature-btn" data-card="3">
+                <i class="fas fa-chart-line"></i>
+                İstatistikler
+            </button>
+            <button class="feature-btn" data-card="4">
+                <i class="fas fa-shield-alt"></i>
+                Kolay Kullanım
+            </button>
+        </div>
+
+        <div class="cards-container">
+            <!-- Cards will be loaded with JS -->
+        </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <section class="task-carousel">
+        <div class="carousel-header">
+            <h2 class="carousel-title">Geleceğini Planla, Bugün Yap!</h2>
+            <p class="carousel-subtitle">YAPYAP ile görevlerini kolayca organize et</p>
+        </div>
+
+        <div class="carousel-container">
+            <button class="nav-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+
+            <div class="carousel">
+                <!-- Example Card 1 -->
+                <div class="task-card">
+                    <div class="card-image" style="background-color: #a8e6cf; background-image: url('media/carousel-card4.png')">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Su İçme Hatırlatıcısı</h3>
+                        <p class="card-description">Gün boyunca düzenli su tüketimini takip et ve sağlıklı kal!</p>
+                        <button class="start-btn"><i class="fas fa-play"></i>Başla</button>
+                    </div>
+                </div>
+                <div class="task-card">
+                    <div class="card-image"
+                        style="background-color: #ffaaa5; background-image: url('media/carousel-card2.png')">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Egzersiz Programı</h3>
+                        <p class="card-description">Kişiselleştirilmiş antrenman planını takip et</p>
+                        <button class="start-btn"><i class="fas fa-play"></i>Başla</button>
+                    </div>
+                </div>
+                <div class="task-card">
+                    <div class="card-image"
+                        style="background-color: #d4a5a5; background-image: url('media/carousel-card3.png')">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Proje Geliştirme</h3>
+                        <p class="card-description">Adım adım notlarını al ve projeni yönet</p>
+                        <button class="start-btn"><i class="fas fa-play"></i>Başla</button>
+                    </div>
+                </div>
+                <div class="task-card">
+                    <div class="card-image"
+                        style="background-color: #D0E8C5; background-image: url('media/carousel-card1.png')">
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">Kitap Okuma</h3>
+                        <p class="card-description">Her gün düzenli okuma alışkanlığı kazan, okuduğun kitapları takip et</p>
+                        <button class="start-btn"><i class="fas fa-play"></i>Başla</button>
+                    </div>
+                </div>
+            </div>
+    </section>
+
+    <div style="margin: 150px;"></div>
+
+    <!-- Footer -->
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">YAPYAP</div>
+                <p class="brand-description">
+                    İş yaşamını ve özel hayatını YapYap ile düzen içinde yürüten<br>
+                    milyonlarca insanın arasına katıl
+                </p>
+            </div>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2024 YAPYAP. Tüm hakları saklıdır.
+        </div>
+    </footer>
+
+    <script src="{% static 'js/home_page.js' %}"></script>
+</body>
+
+</html>
