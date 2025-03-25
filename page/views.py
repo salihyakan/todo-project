@@ -1,10 +1,12 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, redirect
+
 
 # Create your views here.
 
-def home_page_view(request):
+def home_view(request):
     context =  {}
-    return render(request, 'page/home_page.html', context)
+    return render(request, 'page/home.html', context)
 
 
 def calendar_view(request):
@@ -17,12 +19,12 @@ def tasks_view(request):
     return render(request, 'page/tasks.html', context)
 
 
-def user_home_page_view(request):
+def home_page_view(request):
     context = {}
-    return render(request, 'page/user_home_page.html', context)
+    return render(request, 'page/home_page.html', context)
 
 
-def user_task_add_view(request):
+def task_add_view(request):
     context = {}
-    return render(request, 'page/user_task_add.html', context)
+    return render(request, 'page/task_add.html', context)
 

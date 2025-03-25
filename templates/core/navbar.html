@@ -1,0 +1,36 @@
+<!-- navbar.html -->
+<nav class="nav-main">
+    <a href="{% url 'home_view' %}" class="nav-logo-container">
+        <div class="nav-logo">YAPYAP</div>
+    </a>
+
+    {% if request.user.is_authenticated %}
+    <div class="nav-profile">
+        <a class="nav-profile-content">
+            <img src="" class="nav-avatar">
+            <span class="nav-username">{{ user.username }}</span>
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="nav-actions">
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'page:tasks_view' %}" class="nav-task-btn">
+            <span>Görevlerim</span>
+        </a>
+        <a href="{% url 'user_profile:logout_view' %}" class="nav-action-btn nav-logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Çıkış Yap</span>
+        </a>
+        {% else %}
+        <a href="{% url 'user_profile:login_view' %}" class="nav-action-btn nav-signin">
+            <i class="fas fa-sign-in-alt"></i>
+            <span>Giriş Yap</span>
+        </a>
+        <a href="{% url 'user_profile:register_view' %}" class="nav-action-btn nav-signup">
+            <i class="fas fa-user-plus"></i>
+            <span>Kayıt Ol</span>
+        </a>
+        {% endif %}
+    </div>
+</nav>

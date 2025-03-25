@@ -9,60 +9,64 @@
     <title>YapYap - {% block title %}{% endblock title %}</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
-    
+
     <!--  -->
-    {% block user_home_page_css %}     
+    {% block user_home_page_css %}
     {% endblock user_home_page_css %}
-    
+
     <!--  -->
-    {% block user_task_add_css %}   
+    {% block user_task_add_css %}
     {% endblock user_task_add_css %}
-    
+
     <!--  -->
     {% block tasks_css %}
     {% endblock tasks_css %}
-    
+
     <!--  -->
     {% block calendar_css %}
     {% endblock calendar_css %}
 
-    
-    
+
+
 </head>
 
 <body>
-    
+
+    {% include 'core/messages.html' %}
     {% include 'core/sidebar.html' %}
-    
+
     <!--  -->
-    {% block user_home_page_content %}      
-    {% endblock user_home_page_content %}          
-    
+    {% block user_home_page_content %}
+    {% endblock user_home_page_content %}
+
     <!--  -->
     {% block user_task_add_content %}
-    {% endblock user_task_add_content %}          
-    
+    {% endblock user_task_add_content %}
+
     <!--  -->
     {% block tasks_content %}
     {% endblock tasks_content %}
-    
+
     <!--  -->
-    {% block calendar_content %}  
+    {% block calendar_content %}
     {% endblock calendar_content %}
-    
-    
+
+
+
+
+
+
     <!--  -->
-    {% block user_task_add_js %}    
+    {% block user_task_add_js %}
     {% endblock user_task_add_js %}
 
     <!--  -->
-    {% block tasks_js %}    
+    {% block tasks_js %}
     {% endblock tasks_js %}
 
     <!--  -->
-    {% block calendar_js %} 
+    {% block calendar_js %}
     {% endblock calendar_js %}
-        
 </body>
 
 </html>

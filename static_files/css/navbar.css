@@ -1,0 +1,217 @@
+/* navbar.css */
+/* Ana Container */
+.nav-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background: #fff;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    z-index: 1001;
+    height: 80px;
+    /* Sabit yükseklik belirleme */
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #2d3436;
+}
+
+/* Logo Stili */
+.nav-logo {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    font-size: 1.8rem;
+    color: #ff6b81;
+    flex-shrink: 0;
+}
+
+.nav-main a {
+    text-decoration: none;
+    font-family: inherit;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+/* Logo Container */
+.nav-logo-container {
+    text-decoration: none !important;
+    color: inherit;
+    /* Varsayılan renk kalıtsal olsun */
+}
+
+.nav-logo-container:hover {
+    text-decoration: none !important;
+}
+
+/* Sağ Taraf Container */
+.nav-actions {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-left: auto;
+}
+
+/* Genel Buton Stili */
+.nav-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none;
+    cursor: pointer;
+}
+
+/* Özel Butonlar */
+.nav-signin {
+    /* Mevcut stiller */
+    background: linear-gradient(135deg, #70e1f5 0%, #ffd194 100%);
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(113, 225, 245, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-signin:hover {
+    background: linear-gradient(135deg, #5ecde0 0%, #ffc180 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(113, 225, 245, 0.4);
+}
+
+.nav-signup {
+    /* Mevcut stiller */
+    background: transparent;
+    border: 2px solid #ff6b81;
+    color: #ff6b81;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-signup:hover {
+    background: #ff6b81;
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 107, 129, 0.3);
+    transform: translateY(-2px);
+    border-color: transparent;
+}
+
+.nav-logout {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%);
+    color: white;
+    box-shadow: 0 4px 6px rgba(255, 107, 107, 0.3);
+}
+
+/* Görevlerim Butonu */
+.nav-task-btn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 700;
+    color: #2d3436;
+    text-decoration: none;
+    margin-right: 1rem;
+}
+
+/* Profil Alanı */
+.nav-profile {
+    position: relative;
+    margin-left: 2rem;
+    padding-left: 2rem;
+}
+
+.nav-profile::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 3em;
+    width: 2px;
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            #ddd 30%,
+            #ddd 70%,
+            transparent 100%);
+}
+
+.nav-profile-content {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.4rem 0.8rem;
+}
+
+.nav-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #70e1f5;
+}
+
+.nav-username {
+    font-weight: 500;
+    color: #2d3436;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+    .nav-main {
+        padding: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .nav-actions {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 1rem;
+    }
+
+    .nav-action-btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .nav-task-btn span,
+    .nav-username {
+        display: none;
+    }
+
+    .nav-avatar {
+        width: 35px;
+        height: 35px;
+    }
+
+    .nav-action-btn span {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .nav-logo {
+        font-size: 1.5rem;
+    }
+
+    .nav-action-btn {
+        padding: 0.5rem 0.8rem;
+    }
+
+    .nav-profile {
+        margin-left: 1rem;
+        padding-left: 1rem;
+    }
+
+    .nav-profile::before {
+        display: none;
+    }
+}

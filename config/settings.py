@@ -40,6 +40,7 @@ BASE_APPS = [
 
 MY_APPS = [
     'page',
+    'user_profile',
 ]
 
 THIRD_PARTY_APPS = [
@@ -128,10 +129,14 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
 STATICFILES_DIRS = [
     BASE_DIR / "static_files",
 ]
+
+
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = BASE_DIR / 'media_files'
 
 
 # Default primary key field type
