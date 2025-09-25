@@ -1,0 +1,190 @@
+{% extends 'core/base.html' %}
+{% load static analytics_tags %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Real-time Data Indicator -->
+    <div class="alert alert-info alert-dismissible fade show">
+        <span id="realtime-indicator">
+            <i class="fas fa-sync-alt fa-spin"></i> Veriler anlık güncelleniyor
+        </span>
+        <small class="text-muted float-end">Son güncelleme: {{ stats.last_update|default:"Şimdi" }}</small>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Verimlilik Skoru</h6>
+                    <div class="gauge" id="productivity-gauge" 
+                         data-value="{{ productivity_score }}"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Tamamlanan Görevler</h6>
+                    <h2 class="text-success">{{ stats.completed }}</h2>
+                    <small class="text-muted">Toplamın %{{ stats.completed|div:stats.total|mul:100|floatformat:1 }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Bekleyen Görevler</h6>
+                    <h2 class="text-warning">{{ stats.pending }}</h2>
+                    <small class="text-muted">{{ stats.overdue }} gecikmiş</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Günlük Ortalama</h6>
+                    <h2>{{ stats.completed|div:7|floatformat:1 }}</h2>
+                    <small class="text-muted">Son 7 gün</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Charts -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#" data-chart="completion">Tamamlama</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" data-chart="timeline">Zaman Çizelgesi</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div id="dynamic-chart-container">
+                        <img src="data:image/png;base64,{{ completion_chart }}" 
+                             alt="Dynamic Chart" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    Haftalık Aktivite Haritası
+                </div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ heatmap_chart }}" 
+                         alt="Aktivite Haritası" class="img-fluid">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Weekly Trends -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header">
+            Haftalık Performans Trendleri
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Gün</th>
+                            <th>Oluşturulan</th>
+                            <th>Tamamlanan</th>
+                            <th>Verimlilik</th>
+                            <th style="width:30%">İlerleme</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day in weekly_trends %}
+                        <tr>
+                            <td>{{ day.day_name }}</td>
+                            <td>{{ day.created }}</td>
+                            <td>{{ day.completed }}</td>
+                            <td>{{ day.efficiency|floatformat:1 }}%</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" 
+                                         role="progressbar" 
+                                         style="width: {{ day.efficiency }}%"
+                                         aria-valuenow="{{ day.efficiency }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Gauge.js for productivity score -->
+<script src="https://cdn.jsdelivr.net/npm/gauge-chart@1.2.2/dist/bundle.min.js"></script>
+<script>
+// Real-time updates
+const eventSource = new EventSource("/analytics/updates/");
+eventSource.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    if(data.update) {
+        document.getElementById('realtime-indicator').innerHTML = 
+            '<i class="fas fa-check-circle text-success"></i> Veriler güncellendi';
+        setTimeout(() => {
+            location.reload();
+        }, 2000);
+    }
+};
+
+// Dynamic chart switching
+document.querySelectorAll('[data-chart]').forEach(tab => {
+    tab.addEventListener('click', function(e) {
+        e.preventDefault();
+        const chartType = this.getAttribute('data-chart');
+        const container = document.getElementById('dynamic-chart-container');
+        
+        // Show loading
+        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+        
+        // Fetch chart data
+        fetch(`/analytics/chart/${chartType}/`)
+            .then(response => response.json())
+            .then(data => {
+                container.innerHTML = `<img src="data:image/png;base64,${data.chart}" 
+                                      alt="${chartType} chart" class="img-fluid">`;
+            });
+    });
+});
+
+// Initialize productivity gauge
+GaugeChart.gaugeChart(
+    document.getElementById('productivity-gauge'), 
+    200,
+    {
+        max: 100,
+        value: {{ productivity_score }},
+        greenColor: "#4CAF50",
+        yellowColor: "#FFC107",
+        redColor: "#F44336",
+        currentValueText: "{{ productivity_score }}",
+        levelColorsGradient: false
+    }
+);
+</script>
+{% endblock %}

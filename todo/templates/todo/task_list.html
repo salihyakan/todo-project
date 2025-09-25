@@ -1,0 +1,213 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Görevlerim</h1>
+        <div>
+            <a href="{% url 'todo:category_list' %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-tags me-1"></i> Kategoriler
+            </a>
+            <a href="{% url 'todo:task_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> Yeni Görev
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtreleme Paneli -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">Filtrele ve Sırala</h5>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Kategori</label>
+                    <select name="category" class="form-select">
+                        <option value="">Tüm Kategoriler</option>
+                        {% for cat in request.user.todo_categories.all %}
+                        <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                            {{ cat.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Durum</label>
+                    <select name="status" class="form-select">
+                        <option value="">Tüm Durumlar</option>
+                        {% for value, display in status_choices %}
+                        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Öncelik</label>
+                    <select name="priority" class="form-select">
+                        <option value="">Tüm Öncelikler</option>
+                        {% for value, display in priority_choices %}
+                        <option value="{{ value }}" {% if current_priority == value %}selected{% endif %}>
+                            {{ display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label">Sırala</label>
+                    <select name="sort" class="form-select">
+                        <option value="-due_date" {% if current_sort == '-due_date' %}selected{% endif %}>Teslim Tarihi (Yakın)</option>
+                        <option value="due_date" {% if current_sort == 'due_date' %}selected{% endif %}>Teslim Tarihi (Uzak)</option>
+                        <option value="-priority" {% if current_sort == '-priority' %}selected{% endif %}>Öncelik (Yüksek)</option>
+                        <option value="priority" {% if current_sort == 'priority' %}selected{% endif %}>Öncelik (Düşük)</option>
+                        <option value="-created_at" {% if current_sort == '-created_at' %}selected{% endif %}>Yeni Eklenenler</option>
+                        <option value="created_at" {% if current_sort == 'created_at' %}selected{% endif %}>Eski Eklenenler</option>
+                    </select>
+                </div>
+                
+                <div class="col-md-8">
+                    <label class="form-label">Arama</label>
+                    <input type="text" name="search" class="form-control" 
+                           placeholder="Görev adı veya açıklamada ara..." value="{{ current_search }}">
+                </div>
+                
+                <div class="col-md-4 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100">Uygula</button>
+                    {% if has_filters %}
+                    <a href="{% url 'todo:task_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times"></i> Temizle
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Görev Listesi -->
+    {% if page_obj %}
+    <div class="row">
+        {% for task in page_obj %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-{% if task.priority == 'H' %}danger{% elif task.priority == 'M' %}warning{% else %}info{% endif %}">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <a href="{% url 'todo:task_detail' task.pk %}" class="text-decoration-none">
+                            {{ task.title }}
+                        </a>
+                    </h5>
+                    <span class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}primary{% else %}secondary{% endif %}">
+                        {{ task.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="card-body">
+                    <p class="card-text">{{ task.description|truncatechars:100 }}</p>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <strong>Öncelik:</strong>
+                            <span class="badge bg-{% if task.priority == 'H' %}danger{% elif task.priority == 'M' %}warning{% else %}info{% endif %}">
+                                {{ task.get_priority_display }}
+                            </span>
+                        </div>
+                        <div>
+                            <strong>Teslim:</strong>
+                            <span>{{ task.due_date|date:"d M Y H:i" }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if task.category %}
+                    <div class="mb-3">
+                        <strong>Kategori:</strong>
+                        <span class="badge" style="background-color: {{ task.category.color }};">
+                            {{ task.category.name }}
+                        </span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="progress mb-3" style="height: 8px;">
+                        {% if task.status == 'completed' %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                        {% elif task.status == 'in_progress' %}
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 50%"></div>
+                        {% else %}
+                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 10%"></div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent d-flex justify-content-between">
+                    <small class="text-muted">{{ task.created_at|date:"d M Y" }}</small>
+                    <div>
+                        <a href="{% url 'todo:task_update' task.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'todo:task_delete' task.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Sayfalama -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Sayfalar">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    &laquo; İlk
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Önceki
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    {{ num }}
+                </a>
+            </li>
+            {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Sonraki
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Son &raquo;
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    
+    {% else %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-3"></i>
+        <h4>Görev bulunamadı</h4>
+        <p class="mb-0">Yeni görev eklemek için "Yeni Görev" butonuna tıklayın</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

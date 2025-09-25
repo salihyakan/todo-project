@@ -1,0 +1,89 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .form-header {
+        border-radius: 10px 10px 0 0;
+    }
+    .priority-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white form-header">
+            <h3 class="mb-0">
+                {% if note %}Not Düzenle{% else %}Yeni Not Oluştur{% endif %}
+            </h3>
+        </div>
+        <div class="card-body form-container">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label">Başlık</label>
+                    <input type="text" class="form-control" name="title" value="{{ note.title|default:'' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Kategori</label>
+                    <select class="form-select" name="category">
+                        <option value="">Kategori seçin</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" 
+                            {% if note.category and note.category.id == category.id %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">İçerik</label>
+                    <textarea class="form-control" name="content" rows="8" required>{{ note.content|default:'' }}</textarea>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Öncelik</label>
+                        <select class="form-select" name="priority">
+                            <option value="L" {% if note.priority == 'L' %}selected{% endif %}>Düşük</option>
+                            <option value="M" {% if not note or note.priority == 'M' %}selected{% endif %}>Orta</option>
+                            <option value="H" {% if note.priority == 'H' %}selected{% endif %}>Yüksek</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">İlişkili Tarih</label>
+                        <input type="datetime-local" class="form-control" name="related_date" 
+                               value="{{ note.related_date|date:'Y-m-d\TH:i'|default:'' }}">
+                    </div>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="is_pinned" id="is_pinned"
+                           {% if note.is_pinned %}checked{% endif %}>
+                    <label class="form-check-label" for="is_pinned">Notu sabitle</label>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    {% if note %}
+                    <a href="{% url 'notes:note_delete' note.pk %}" class="btn btn-danger ms-2">
+                        <i class="fas fa-trash me-1"></i> Sil
+                    </a>
+                    {% endif %}
+                    <a href="{% if note %}{% url 'notes:note_detail' note.pk %}{% else %}{% url 'notes:note_list' %}{% endif %}" 
+                       class="btn btn-secondary">Vazgeç</a>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

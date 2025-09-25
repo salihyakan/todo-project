@@ -1,0 +1,23 @@
+/* Bildirim stilleri */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 0.6rem;
+}
+
+.dropdown-item.unread {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+/* Animasyonlu bildirim */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.new-notification {
+    animation: pulse 0.5s ease-in-out;
+}

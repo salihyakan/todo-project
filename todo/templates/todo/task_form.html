@@ -1,0 +1,89 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        {% if task %}Görevi Düzenle{% else %}Yeni Görev Oluştur{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">Başlık*</label>
+                            {{ form.title }}
+                            <small class="text-muted">Görevin kısa açıklaması</small>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.due_date.id_for_label }}" class="form-label">Bitiş Tarihi</label>
+                                {{ form.due_date }}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">Öncelik</label>
+                                {{ form.priority }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">Durum</label>
+                            {{ form.status }}
+                            {% if task and task.is_completed %}
+                            <small class="text-muted">Tamamlanma Tarihi: {{ task.completed_at|date:"d.m.Y H:i"
+                                }}</small>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Kategori</label>
+                            {{ form.category }}
+                            <small class="text-muted">Mevcut kategorilerden seçin</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.new_category.id_for_label }}" class="form-label">Yeni Kategori</label>
+                            {{ form.new_category }}
+                            <small class="text-muted">Veya yeni bir kategori adı yazın</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Açıklama</label>
+                            {{ form.description }}
+                            <small class="text-muted">Görevle ilgili detaylı bilgiler</small>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% if task %}{% url 'todo:task_detail' task.pk %}{% else %}{% url 'todo:task_list' %}{% endif %}"
+                                class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

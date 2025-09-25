@@ -1,0 +1,66 @@
+{% extends "core/base.html" %}
+{% block title %}Etkinlik Detayı{% endblock %}
+{% block content %}
+<div class="container my-4">
+    <a href="{% url 'dashboard:calendar' %}" class="btn btn-outline-success mb-3">
+        <i class="bi bi-arrow-left"></i> Takvime Dön
+    </a>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <span class="badge {% if event.event_type == 'reminder' %}bg-danger{% else %}bg-success{% endif %} px-3 py-2 fs-5 mb-3 d-inline-block">
+                {{ event.get_event_type_display }}
+            </span>
+            <h2 class="mb-3">{{ event.title }}</h2>
+            <hr>
+            <p class="mb-3 text-secondary fs-5">{{ event.description|default:"Açıklama yok." }}</p>
+            <div class="mb-3">
+                <i class="bi bi-calendar-event text-success me-2"></i>
+                <strong>Başlangıç:</strong>
+                {{ event.start_date|date:"d M Y H:i" }}
+            </div>
+            {% if event.end_date %}
+            <div class="mb-3">
+                <i class="bi bi-calendar-event text-danger me-2"></i>
+                <strong>Bitiş:</strong>
+                {{ event.end_date|date:"d M Y H:i" }}
+            </div>
+            {% endif %}
+            
+            <!-- Hatırlatıcı bilgisi -->
+            {% if event.reminder %}
+            <div class="mb-3">
+                <i class="bi bi-alarm text-primary me-2"></i>
+                <strong>Hatırlatıcı:</strong>
+                {{ event.get_reminder_display }} ({{ event.reminder_time|date:"d M Y H:i" }})
+                {% if event.reminder_sent %}
+                <span class="badge bg-success ms-2">Gönderildi</span>
+                {% else %}
+                <span class="badge bg-warning ms-2">Bekliyor</span>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- İlgili görev/not bağlantısı -->
+            {% if event.related_task %}
+            <div class="mb-3">
+                <i class="bi bi-list-task text-info me-2"></i>
+                <strong>İlgili Görev:</strong>
+                <a href="{% url 'todo:task_detail' event.related_task.id %}">
+                    {{ event.related_task.title }}
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if event.related_note %}
+            <div class="mb-3">
+                <i class="bi bi-sticky text-warning me-2"></i>
+                <strong>İlgili Not:</strong>
+                <a href="{% url 'notes:note_detail' event.related_note.id %}">
+                    {{ event.related_note.title }}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

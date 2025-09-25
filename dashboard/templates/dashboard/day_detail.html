@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+{% block title %}{{ date|date:"d M Y" }} Detay{% endblock %}
+{% block content %}
+<div class="container my-4">
+    <a href="{% url 'dashboard:calendar' %}" class="btn btn-outline-success mb-3">
+        <i class="bi bi-arrow-left"></i> Takvime Dön
+    </a>
+    
+    <h2 class="mb-4">{{ date|date:"d M Y" }} için Etkinlikler ve Hatırlatıcılar</h2>
+    
+    <div class="list-group">
+        {% for event in events %}
+        <a href="{% url 'dashboard:event_detail' event.id %}" class="list-group-item list-group-item-action">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">
+                    <span class="badge {% if event.event_type == 'reminder' %}bg-danger{% else %}bg-success{% endif %} me-2">
+                        {{ event.get_event_type_display }}
+                    </span>
+                    {{ event.title }}
+                </h5>
+                <small>{{ event.start_date|date:"H:i" }}{% if event.end_date %} - {{ event.end_date|date:"H:i" }}{% endif %}</small>
+            </div>
+            <p class="mb-1">{{ event.description|truncatechars:100 }}</p>
+            
+            {% if event.reminder %}
+            <small class="text-muted">
+                <i class="bi bi-alarm me-1"></i>
+                Hatırlatıcı: {{ event.get_reminder_display }}
+                ({{ event.reminder_time|date:"d M Y H:i" }})
+            </small>
+            {% endif %}
+        </a>
+        {% empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            Bu tarih için etkinlik veya hatırlatıcı bulunmamaktadır.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

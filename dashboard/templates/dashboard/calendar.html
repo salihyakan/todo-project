@@ -1,0 +1,509 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load tz %}
+
+{% block title %}Takvim{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/@fullcalendar/bootstrap5@6.1.8/main.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/main.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  #calendar {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    min-height: 600px;
+  }
+
+  .fc-toolbar-title {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: 600;
+  }
+
+  .fc-header-toolbar {
+    margin-bottom: 1rem !important;
+  }
+
+  .fc-header-toolbar .fc-toolbar-chunk {
+    gap: 1rem !important;
+  }
+
+  .fc-button {
+    border-radius: 4px !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #212529 !important;
+    margin: 0 2px !important;
+  }
+
+  .fc-button:hover {
+    background-color: #e9ecef !important;
+  }
+
+  .fc-button-primary {
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+  }
+
+  .fc-button-primary:not(:disabled):hover {
+    background-color: #5a6268 !important;
+    border-color: #545b62 !important;
+  }
+
+  .fc-header-toolbar .fc-toolbar-chunk:last-child {
+    gap: 0.8rem !important;
+  }
+
+  .fc-col-header-cell {
+    border-bottom: 1px solid #dee2e6 !important;
+    background: #f8f9fa !important;
+  }
+
+  .fc-col-header-cell-cushion {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    padding: 8px 4px !important;
+  }
+
+  .fc-daygrid-day-number {
+    font-size: 0.9rem;
+    color: #212529;
+    padding: 4px;
+    text-decoration: none !important;
+  }
+
+  .fc-daygrid-day-frame {
+    min-height: 80px;
+    position: relative;
+  }
+
+  .fc-daygrid-day-top {
+    border-bottom: none !important;
+  }
+
+  .fc-daygrid-week-number,
+  .fc-timegrid-axis-cushion {
+    display: none !important;
+  }
+
+  .fc-daygrid-day-frame .day-action-icons {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    z-index: 3;
+    display: flex;
+    gap: 4px;
+  }
+
+  .fc-daygrid-day-frame .day-action-icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    border: 1px solid #dee2e6;
+    color: #495057 !important;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+
+  .fc-daygrid-day-frame .day-action-icons a:hover {
+    background: #e9ecef;
+    color: #212529 !important;
+  }
+
+  .fc-event {
+    border: 1px solid transparent !important;
+    color: #212529 !important;
+    font-size: 0.85rem;
+    padding: 2px 4px;
+    margin: 1px 0;
+    cursor: pointer;
+    font-weight: 400 !important;
+    display: flex !important;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .fc-event:hover {
+    opacity: 0.9;
+  }
+
+  .fc-event-main {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .fc-event-title-container {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .fc-event-title {
+    font-weight: 400 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+  }
+
+  .fc-event-time {
+    font-weight: 400 !important;
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+
+  .fc-event-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .fc-day-today {
+    background-color: #f8f9fa !important;
+  }
+
+  .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    font-weight: 600;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <h2 class="mb-4"><i class="far fa-calendar-alt me-2"></i> Takvim</h2>
+  <div id="calendar"></div>
+</div>
+
+<!-- Etkinlik/Hatırlatıcı Ekle Modalı -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="eventForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventModalLabel">Yeni Etkinlik/Hatırlatıcı Ekle</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="eventTitle" class="form-label">Başlık</label>
+            <input type="text" class="form-control" id="eventTitle" name="title" required maxlength="50">
+            <small class="text-muted">Maksimum 50 karakter</small>
+          </div>
+          <div class="mb-3">
+            <label for="eventType" class="form-label">Tür</label>
+            <select class="form-select" id="eventType" name="event_type" required>
+              <option value="event">Etkinlik</option>
+              <option value="reminder">Hatırlatıcı</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="eventDate" class="form-label">Tarih</label>
+            <input type="date" class="form-control" id="eventDate" name="start_date" required>
+          </div>
+          <div class="mb-3">
+            <label for="eventTime" class="form-label">Saat</label>
+            <input type="time" class="form-control" id="eventTime" name="start_time" required>
+          </div>
+          <div class="mb-3">
+            <label for="eventDesc" class="form-label">Açıklama</label>
+            <textarea class="form-control" id="eventDesc" name="description" rows="3"></textarea>
+          </div>
+          <!-- Hatırlatıcı seçeneği -->
+          <div class="mb-3">
+            <label for="eventReminder" class="form-label">Hatırlatıcı</label>
+            <select class="form-select" id="eventReminder" name="reminder">
+              <option value="">Hatırlatıcı yok</option>
+              <option value="5">5 dakika önce</option>
+              <option value="15">15 dakika önce</option>
+              <option value="30">30 dakika önce</option>
+              <option value="60">1 saat önce</option>
+              <option value="1440">1 gün önce</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+          <button type="submit" class="btn btn-primary">Kaydet</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.18/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.18/locales/tr.global.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    // Türkiye saat dilimi ayarı
+    const turkiyeTimeZone = 'Europe/Istanbul';
+
+    window.calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'tr',
+      timeZone: turkiyeTimeZone,  // Zaman dilimi düzeltildi
+      themeSystem: 'standard',
+      headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+      },
+      buttonText: {
+        today: 'Bugün',
+        month: 'Ay',
+        week: 'Hafta',
+        day: 'Gün'
+      },
+      weekNumbers: false,
+      dayMaxEvents: true,
+      editable: true,
+      selectable: true,
+      events: {
+        url: "{% url 'dashboard:calendar_events' %}",
+        method: 'GET',
+        failure: function () {
+          console.error('Etkinlikler yüklenirken hata oluştu');
+        },
+        extraParams: {
+          timezone: turkiyeTimeZone
+        }
+      },
+      eventContent: function (arg) {
+        // Zamanı Türkiye saat diliminde formatla
+        let timeText = '';
+        if (arg.event.start) {
+          // Zaman dilimi düzeltildi: toLocaleString kullanıldı
+          timeText = arg.event.start.toLocaleTimeString('tr-TR', {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: turkiyeTimeZone
+          });
+        }
+
+        // Etkinlik içeriğini oluştur
+        const eventEl = document.createElement('div');
+        eventEl.className = 'fc-event-main';
+
+        // Madde imleci ekle
+        const dotEl = document.createElement('span');
+        dotEl.className = 'fc-event-dot';
+        eventEl.appendChild(dotEl);
+
+        // Zaman bilgisi
+        if (timeText) {
+          const timeEl = document.createElement('span');
+          timeEl.className = 'fc-event-time';
+          timeEl.textContent = timeText;
+          eventEl.appendChild(timeEl);
+        }
+
+        // Başlık container'ı
+        const titleContainer = document.createElement('div');
+        titleContainer.className = 'fc-event-title-container';
+
+        // Başlık
+        const titleEl = document.createElement('span');
+        titleEl.className = 'fc-event-title';
+        titleEl.textContent = arg.event.title;
+        titleContainer.appendChild(titleEl);
+
+        eventEl.appendChild(titleContainer);
+
+        return { domNodes: [eventEl] };
+      },
+      dateClick: function (info) {
+        var today = new Date();
+        today.setHours(0, 0, 0, 0);
+        var clicked = info.date;
+        clicked.setHours(0, 0, 0, 0);
+
+        if (clicked >= today) {
+          document.getElementById('eventDate').value = info.dateStr;
+          document.getElementById('eventTime').value = "09:00";
+          var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+          eventModal.show();
+        }
+      },
+      eventClick: function (info) {
+        window.location.href = "/dashboard/calendar/event/" + info.event.id + "/";
+      },
+      eventDidMount: function (info) {
+        // Etkinlik renklerini ayarla
+        const dotEl = info.el.querySelector('.fc-event-dot');
+        if (info.event.extendedProps.type === "reminder") {
+          info.el.style.backgroundColor = '#f8d7da';
+          info.el.style.borderColor = '#f5c6cb';
+          if (dotEl) dotEl.style.backgroundColor = '#dc3545';
+        } else if (info.event.extendedProps.type === "event") {
+          info.el.style.backgroundColor = '#d1e7ff';
+          info.el.style.borderColor = '#b6d4fe';
+          if (dotEl) dotEl.style.backgroundColor = '#0d6efd';
+        } else if (info.event.extendedProps.type === "note") {
+          info.el.style.backgroundColor = '#fff3cd';
+          info.el.style.borderColor = '#ffecb5';
+          if (dotEl) dotEl.style.backgroundColor = '#ffc107';
+        } else if (info.event.extendedProps.type === "task") {
+          info.el.style.backgroundColor = '#cfe2ff';
+          info.el.style.borderColor = '#b6d4fe';
+          if (dotEl) dotEl.style.backgroundColor = '#0d6efd';
+        }
+      },
+      dayCellDidMount: function (arg) {
+        var dayFrame = arg.el.querySelector('.fc-daygrid-day-frame');
+        if (!dayFrame) return;
+
+        var date = arg.date;
+        var year = date.getFullYear();
+        var month = date.getMonth() + 1;
+        var day = date.getDate();
+
+        var icons = document.createElement('div');
+        icons.className = 'day-action-icons';
+
+        var eye = document.createElement('a');
+        eye.title = "Gün Detayı";
+        eye.innerHTML = '<i class="fas fa-eye"></i>';
+        eye.onclick = function (e) {
+          e.stopPropagation();
+          window.location.href = "/dashboard/calendar/" + year + "/" + month + "/" + day + "/";
+        };
+
+        icons.appendChild(eye);
+        dayFrame.appendChild(icons);
+      }
+    });
+
+    window.calendar.render();
+
+    // Etkinlik formu submit işlemi
+    document.getElementById('eventForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var form = e.target;
+      var start_date = form.start_date.value;
+      var start_time = form.start_time.value;
+      var start_datetime = start_date + "T" + start_time;
+
+      // Hatırlatıcı bilgisini al
+      var reminder = form.reminder.value;
+
+      var data = {
+        title: form.title.value,
+        event_type: form.event_type.value,
+        start_date: start_datetime,
+        description: form.description.value,
+        reminder: reminder,
+        timezone: turkiyeTimeZone  // Zaman dilimi bilgisi eklendi
+      };
+
+      fetch("{% url 'dashboard:create_calendar_event' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify(data)
+      })
+        .then(response => response.json())
+        .then(result => {
+          if (result.status === "success") {
+            // Modal'ı kapat
+            var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+            eventModal.hide();
+
+            // Formu sıfırla
+            form.reset();
+
+            // Yeni etkinliği hemen takvime ekle
+            const calendarApi = window.calendar.getApi();
+
+            // Zaman dilimi düzeltildi: Yerel zaman kullanıldı
+            calendarApi.addEvent({
+              id: result.event_id,
+              title: data.title,
+              start: result.start_date_local,  // Düzeltildi: start_date -> start_date_local
+              color: getEventColor(data.event_type),
+              extendedProps: {
+                type: data.event_type,
+                description: data.description,
+                url: result.event_url
+              }
+            });
+
+            // Başarı mesajı göster
+            showToast('success', result.message);
+
+            // 1 saniye sonra etkinlik detay sayfasına yönlendir
+            setTimeout(() => {
+              window.location.href = result.event_url;
+            }, 1000);
+          } else {
+            showToast('error', 'Hata: ' + result.message);
+          }
+        })
+        .catch((error) => {
+          showToast('error', 'Bir hata oluştu: ' + error);
+        });
+    });
+
+    // Etkinlik türüne göre renk döndür
+    function getEventColor(eventType) {
+      const colors = {
+        'reminder': '#dc3545',
+        'event': '#28a745',
+        'note': '#ffc107',
+        'task': '#3788d8'
+      };
+      return colors[eventType] || '#6c757d';
+    }
+
+    // Toast bildirim fonksiyonu
+    function showToast(type, message) {
+      const toastContainer = document.createElement('div');
+      toastContainer.innerHTML = `
+        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+          <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Kapat"></button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(toastContainer);
+      const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
+      toast.show();
+
+      // Toast otomatik kapanma
+      setTimeout(() => {
+        toast.dispose();
+        toastContainer.remove();
+      }, 5000);
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                {% with badge_color=badge.badge_type.color|default:'#6c757d' %}
+                <div class="card-header text-center py-3"
+                     style="background: linear-gradient(135deg, {{ badge_color }}, #343a40); color: white;">
+                    <i class="{{ badge.badge_type.icon|default:'fas fa-medal' }} fa-2x mb-2"></i>
+                    <h1 class="mb-0 h5">{{ badge.name }}</h1>
+                    <p class="mb-0 small">
+                        {{ badge.badge_type.name|default:"Özel" }} Rozeti
+                    </p>
+                </div>
+                {% endwith %}
+                
+                <div class="card-body text-center py-3">
+                    <div class="mb-3">
+                        <div class="badge-icon-large d-inline-block" 
+                             style="color: {{ badge.badge_type.color|default:'#6c757d' }};">
+                            <i class="{{ badge.badge_type.icon|default:'fas fa-medal' }} fa-2x"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h3 class="h6">Açıklama</h3>
+                        <p class="mb-0">{{ badge.description }}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h3 class="h6">Kazanma Kriterleri</h3>
+                        <div class="d-flex justify-content-center">
+                            <ul class="list-group text-start w-100">
+                                {% for criterion in criteria_list %}
+                                <li class="list-group-item d-flex py-2">
+                                    <i class="fas fa-check-circle text-success me-3 mt-1"></i>
+                                    <span>{{ criterion }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-around mb-3">
+                        <div class="text-center p-2 bg-light rounded">
+                            <div class="fw-bold">{{ earned_count }}</div>
+                            <p class="text-muted mb-0 small">Kazanan Kullanıcı</p>
+                        </div>
+                        
+                        {% if user_has_badge %}
+                        <div class="text-center p-2 bg-success text-white rounded">
+                            <div class="fw-bold">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <p class="mb-0 small">Bu rozete sahipsiniz</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 col-md-6 mx-auto">
+                        <a href="{% url 'user_profile:badge_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-2"></i> Tüm Rozetlere Dön
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if similar_badges %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3 class="h6 text-center mb-3">Benzer Rozetler</h3>
+            <div class="row justify-content-center">
+                {% for badge in similar_badges %}
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-2">
+                    <a href="{% url 'user_profile:badge_detail' badge.slug %}" 
+                       class="text-decoration-none">
+                        <div class="card h-100 shadow-sm">
+                            {% with badge_color=badge.badge_type.color|default:'#6c757d' %}
+                            <div class="card-header text-center py-2"
+                                 style="background-color: {{ badge_color }}; color: white;">
+                                <i class="{{ badge.badge_type.icon|default:'fas fa-medal' }}"></i>
+                            </div>
+                            {% endwith %}
+                            <div class="card-body text-center p-2">
+                                <h6 class="card-title fw-bold small">{{ badge.name|truncatechars:12 }}</h6>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

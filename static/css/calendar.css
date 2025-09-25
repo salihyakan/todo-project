@@ -1,0 +1,76 @@
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+}
+
+.fc-event {
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    border: none !important;
+    margin-bottom: 2px;
+}
+
+.fc-event-task {
+    background-color: #3788d8;
+    border-color: #3788d8;
+}
+
+.fc-event-note {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.fc-event-reminder {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.fc-event-event {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.fc-toolbar-title {
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.fc-button {
+    padding: 0.4em 0.65em !important;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+    color: #212529 !important;
+}
+
+.fc-button-active {
+    background-color: #e9ecef !important;
+}
+
+.fc-daygrid-event {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+
+/* Responsive ayarlar */
+@media (max-width: 768px) {
+    .fc-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .fc-toolbar-title {
+        font-size: 1.2em;
+        margin-bottom: 10px;
+    }
+    
+    .fc-button {
+        padding: 0.3em 0.5em !important;
+        font-size: 0.9em;
+    }
+}

@@ -1,0 +1,60 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .confirmation-card {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .category-preview {
+        border-left: 5px solid {{ category.color }};
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow confirmation-card">
+        <div class="card-header bg-danger text-white">
+            <h3 class="mb-0">Kategori Sil</h3>
+        </div>
+        <div class="card-body">
+            <div class="text-center mb-4">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <h4>"{{ category.name }}" kategorisini silmek istediğinize emin misiniz?</h4>
+                <p class="text-muted">
+                    Bu kategoriye ait {{ category.note_set.count }} not bulunmaktadır. 
+                    Kategori silindiğinde bu notlar kategorisiz olarak kalacaktır.
+                </p>
+            </div>
+            
+            <div class="card mb-4 category-preview">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-circle fa-2x me-3" style="color: {{ category.color }}"></i>
+                        <div>
+                            <h5 class="card-title mb-0">{{ category.name }}</h5>
+                            <p class="text-muted mb-0">Renk: {{ category.color }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'notes:category_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i> Vazgeç
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i> Sil
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

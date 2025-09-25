@@ -1,0 +1,193 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Sol sütun - profil bilgileri -->
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-body text-center">
+                    <img src="{{ user.profile.profile_picture.url }}" 
+                         alt="{{ user.username }}" 
+                         class="rounded-circle mb-3" 
+                         width="150" 
+                         height="150">
+                    <h4>{{ user.username }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+
+                    {% if user.profile.location %}
+                    <p><i class="fas fa-map-marker-alt me-1"></i> {{ user.profile.location }}</p>
+                    {% endif %}
+
+                    {% if user.profile.website %}
+                    <p><i class="fas fa-globe me-1"></i> 
+                       <a href="{{ user.profile.website }}" target="_blank">{{ user.profile.website }}</a>
+                    </p>
+                    {% endif %}
+
+                    <div class="mt-4">
+                        <h5>Rozetler</h5>
+                        <div class="d-flex flex-wrap justify-content-center">
+                            {% for user_badge in badges|slice:":4" %}
+                            <div class="badge-item m-2" data-bs-toggle="tooltip" 
+                                 title="{{ user_badge.badge.name }} - {{ user_badge.badge.description }}">
+                                <i class="{{ user_badge.badge.badge_type.icon|default:'fas fa-medal' }} fa-2x" 
+                                   style="color: {{ user_badge.badge.badge_type.color|default:'#6c757d' }};"></i>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">Henüz rozet kazanmadınız</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ sütun - profil düzenleme formu -->
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h3 class="mb-0">Profil Bilgileri</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <fieldset class="mb-4">
+                            <legend class="border-bottom mb-3">Kullanıcı Bilgileri</legend>
+                            <div class="mb-3">
+                                {{ user_form.username.label_tag }}
+                                {{ user_form.username }}
+                                {% if user_form.username.errors %}
+                                    <div class="text-danger">{{ user_form.username.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                {{ user_form.email.label_tag }}
+                                {{ user_form.email }}
+                                {% if user_form.email.errors %}
+                                    <div class="text-danger">{{ user_form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="mb-4">
+                            <legend class="border-bottom mb-3">Profil Bilgileri</legend>
+                            <div class="mb-3">
+                                {{ profile_form.profile_picture.label_tag }}
+                                {{ profile_form.profile_picture }}
+                                {% if profile_form.profile_picture.errors %}
+                                    <div class="text-danger">{{ profile_form.profile_picture.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                {{ profile_form.bio.label_tag }}
+                                {{ profile_form.bio }}
+                                {% if profile_form.bio.errors %}
+                                    <div class="text-danger">{{ profile_form.bio.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                {{ profile_form.location.label_tag }}
+                                {{ profile_form.location }}
+                                {% if profile_form.location.errors %}
+                                    <div class="text-danger">{{ profile_form.location.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                {{ profile_form.birth_date.label_tag }}
+                                {{ profile_form.birth_date }}
+                                {% if profile_form.birth_date.errors %}
+                                    <div class="text-danger">{{ profile_form.birth_date.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                {{ profile_form.website.label_tag }}
+                                {{ profile_form.website }}
+                                {% if profile_form.website.errors %}
+                                    <div class="text-danger">{{ profile_form.website.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="mb-4">
+                            <legend class="border-bottom mb-3">Üretkenlik Ayarları</legend>
+                            <div class="mb-3">
+                                {{ profile_form.pomodoro_duration.label_tag }}
+                                <div class="input-group">
+                                    {{ profile_form.pomodoro_duration }}
+                                    <span class="input-group-text">dakika</span>
+                                </div>
+                                {% if profile_form.pomodoro_duration.errors %}
+                                    <div class="text-danger">{{ profile_form.pomodoro_duration.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="mb-3">
+                                {{ profile_form.daily_goal.label_tag }}
+                                <div class="input-group">
+                                    {{ profile_form.daily_goal }}
+                                    <span class="input-group-text">görev/gün</span>
+                                </div>
+                                {% if profile_form.daily_goal.errors %}
+                                    <div class="text-danger">{{ profile_form.daily_goal.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </fieldset>
+
+                        <button type="submit" class="btn btn-info w-100">Güncelle</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card mt-4 shadow">
+                <div class="card-header d-flex justify-content-between align-items-center bg-warning text-dark">
+                    <h3 class="mb-0">Rozetlerim</h3>
+                    <a href="{% url 'user_profile:badge_list' %}" class="btn btn-sm btn-outline-dark">
+                        Tümünü Gör <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if badges %}
+                    <div class="row">
+                        {% for user_badge in badges|slice:":4" %}
+                        <div class="col-md-3 col-6 text-center mb-3">
+                            <a href="{% url 'user_profile:badge_detail' user_badge.badge.slug %}"
+                                class="text-decoration-none text-dark">
+                                <div class="badge-icon" data-bs-toggle="tooltip" 
+                                     title="{{ user_badge.badge.name }} - {{ user_badge.badge.description }}">
+                                    <i class="{{ user_badge.badge.badge_type.icon|default:'fas fa-medal' }} fa-2x"
+                                        style="color: {{ user_badge.badge.badge_type.color|default:'#6c757d' }};"></i>
+                                    <div class="mt-2 small">{{ user_badge.badge.name|truncatechars:15 }}</div>
+                                </div>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-medal fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Henüz rozet kazanmadınız. Görevlerinizi tamamlayın ve notlar oluşturun!</p>
+                        <a href="{% url 'todo:task_list' %}" class="btn btn-outline-warning">
+                            Görevlere Gözat
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Tooltip etkinleştirme
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+});
+</script>
+{% endblock %}

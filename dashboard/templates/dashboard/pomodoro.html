@@ -1,0 +1,834 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gelişmiş Pomodoro Zamanlayıcı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4e73df;
+            --success: #1cc88a;
+            --warning: #f6c23e;
+            --danger: #e74a3b;
+            --secondary: #858796;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            padding-top: 20px;
+        }
+
+        .pomodoro-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .navigation-buttons {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-decoration: none !important;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card {
+            background: transparent;
+            border: none;
+            color: white;
+        }
+
+        .card-header {
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+            font-size: 1.5rem;
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .pomodoro-timer {
+            font-size: 5rem;
+            font-weight: 700;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 1.5rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--success);
+            border-radius: 10px;
+            transition: width 1s linear;
+        }
+
+        .btn-pomodoro {
+            padding: 0.8rem 1.5rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            min-width: 150px;
+            margin: 0.5rem;
+        }
+
+        .btn-pomodoro:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-pomodoro:active {
+            transform: translateY(1px);
+        }
+
+        #start-pomodoro {
+            background: var(--success);
+        }
+
+        #pause-pomodoro {
+            background: var(--warning);
+            color: #333;
+        }
+
+        #reset-pomodoro {
+            background: var(--danger);
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            font-size: 1.1rem;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .stats-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .motivation-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: center;
+            font-style: italic;
+            font-size: 1.2rem;
+            border-left: 4px solid var(--success);
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
+        .work-item {
+            border-left: 4px solid var(--success);
+        }
+
+        .break-item {
+            border-left: 4px solid var(--primary);
+        }
+
+        .session-counter {
+            display: inline-block;
+            background: var(--warning);
+            color: #333;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .phase-indicator {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .work-phase {
+            background: var(--success);
+        }
+
+        .break-phase {
+            background: var(--primary);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .history-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .history-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .history-content::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .collapse-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .session-control {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .session-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px 15px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .session-progress {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .session-progress-bar {
+            height: 100%;
+            background: var(--warning);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateX(120%);
+            transition: transform 0.4s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 768px) {
+            .pomodoro-timer {
+                font-size: 3.5rem;
+            }
+
+            .btn-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-pomodoro {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .stat-number {
+                font-size: 2rem;
+            }
+
+            .session-control {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Bildirim -->
+    <div class="notification" id="notification">
+        <i class="fas fa-bell"></i>
+        <span id="notification-text">Bildirim içeriği</span>
+    </div>
+
+    <div class="container py-4">
+        <div class="pomodoro-container">
+            <!-- Navigasyon butonları -->
+            <div class="navigation-buttons">
+                <a href="#" class="nav-btn" id="home-btn" title="Ana Sayfa">
+                    <i class="fas fa-home"></i>
+                </a>
+                <a href="#" class="nav-btn" id="profile-btn" title="Profil">
+                    <i class="fas fa-user"></i>
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-header text-center">
+                    <i class="fas fa-clock me-2"></i>Gelişmiş Pomodoro Zamanlayıcı
+                </div>
+                <div class="card-body">
+                    <!-- Faz gösterge -->
+                    <div class="text-center mb-3">
+                        <h2 id="phase-display">
+                            Çalışma Zamanı
+                            <span class="phase-indicator work-phase">Çalışma</span>
+                        </h2>
+                    </div>
+
+                    <!-- Zaman gösterge -->
+                    <div class="pomodoro-timer text-center" id="timer">
+                        25:00
+                    </div>
+
+                    <!-- İlerleme çubuğu -->
+                    <div class="progress-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 100%"></div>
+                    </div>
+
+                    <!-- Oturum kontrolü -->
+                    <div class="session-control">
+                        <div class="form-group">
+                            <label for="session-count">
+                                <i class="fas fa-tasks me-2"></i>Toplam Oturum Sayısı
+                            </label>
+                            <input type="number" class="form-control" id="session-count" min="1" max="20" value="4">
+                        </div>
+
+                        <div class="session-info">
+                            <div>
+                                <span>Tamamlanan: </span>
+                                <span id="completed-sessions">0</span>
+                            </div>
+                            <div>
+                                <span>Kalan: </span>
+                                <span id="remaining-sessions">4</span>
+                            </div>
+                        </div>
+
+                        <div class="session-progress">
+                            <div class="session-progress-bar" id="session-progress-bar"></div>
+                        </div>
+                    </div>
+
+                    <!-- Motivasyon kartı -->
+                    <div class="motivation-card" id="motivation-message">
+                        "Konsantrasyon, başarının anahtarıdır. Şimdi odaklanma zamanı!"
+                    </div>
+
+                    <!-- İstatistikler -->
+                    <div class="stats-container">
+                        <div class="row">
+                            <div class="col-md-4 stat-item">
+                                <div class="stat-number" id="completed-pomodoros">{{ redis_stats.completed }}</div>
+                                <div class="stat-label">Tamamlanan</div>
+                            </div>
+                            <div class="col-md-4 stat-item">
+                                <div class="stat-number" id="total-focus-time">{{ redis_stats.focus_time }}</div>
+                                <div class="stat-label">Odak Süresi</div>
+                            </div>
+                            <div class="col-md-4 stat-item">
+                                <div class="stat-number" id="total-break-time">{{ redis_stats.break_time }}</div>
+                                <div class="stat-label">Mola Süresi</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kontrol butonları -->
+                    <div class="d-flex justify-content-center flex-wrap btn-container">
+                        <button id="start-pomodoro" class="btn btn-pomodoro">
+                            <i class="fas fa-play me-2"></i> Başlat
+                        </button>
+                        <button id="pause-pomodoro" class="btn btn-pomodoro">
+                            <i class="fas fa-pause me-2"></i> Duraklat
+                        </button>
+                        <button id="reset-pomodoro" class="btn btn-pomodoro">
+                            <i class="fas fa-redo me-2"></i> Sıfırla
+                        </button>
+                    </div>
+
+                    <!-- Süre ayarları -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="work-duration">
+                                    <i class="fas fa-briefcase me-2"></i>Çalışma Süresi (dk)
+                                </label>
+                                <input type="number" class="form-control" id="work-duration" value="25" min="1"
+                                    max="60">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="break-duration">
+                                    <i class="fas fa-coffee me-2"></i>Mola Süresi (dk)
+                                </label>
+                                <input type="number" class="form-control" id="break-duration" value="5" min="1"
+                                    max="30">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pomodoro geçmişi -->
+                    <div class="mt-4">
+                        <div class="history-header" data-bs-toggle="collapse" href="#historyCollapse" role="button">
+                            <h5><i class="fas fa-history me-2"></i>Son Oturumlar</h5>
+                            <i class="fas fa-chevron-down collapse-icon"></i>
+                        </div>
+                        <div class="collapse show" id="historyCollapse">
+                            <div class="history-content" id="pomodoro-history">
+                                {% for session in redis_history %}
+                                <div class="history-item {% if session.type == 'work' %}work-item{% else %}break-item{% endif %}">
+                                    <div>
+                                        <span class="session-counter">{{ forloop.revcounter }}</span>
+                                        <strong>{% if session.type == 'work' %}Çalışma Oturumu{% else %}Mola{% endif %}</strong>
+                                    </div>
+                                    <span>{{ session.duration }} dakika</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // DOM Elementleri
+        const timerDisplay = document.getElementById('timer');
+        const progressBar = document.getElementById('progress-bar');
+        const phaseDisplay = document.getElementById('phase-display');
+        const motivationMessage = document.getElementById('motivation-message');
+        const startBtn = document.getElementById('start-pomodoro');
+        const pauseBtn = document.getElementById('pause-pomodoro');
+        const resetBtn = document.getElementById('reset-pomodoro');
+        const workDurationInput = document.getElementById('work-duration');
+        const breakDurationInput = document.getElementById('break-duration');
+        const pomodoroHistory = document.getElementById('pomodoro-history');
+        const completedPomodoros = document.getElementById('completed-pomodoros');
+        const totalFocusTime = document.getElementById('total-focus-time');
+        const totalBreakTime = document.getElementById('total-break-time');
+        const homeBtn = document.getElementById('home-btn');
+        const profileBtn = document.getElementById('profile-btn');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        const sessionCountInput = document.getElementById('session-count');
+        const completedSessionsElement = document.getElementById('completed-sessions');
+        const remainingSessionsElement = document.getElementById('remaining-sessions');
+        const sessionProgressBar = document.getElementById('session-progress-bar');
+
+        // Motivasyon mesajları
+        const workMessages = [
+            "Konsantrasyon, başarının anahtarıdır. Şimdi odaklanma zamanı!",
+            "Her dakika değerli, iyi kullan!",
+            "Hedeflerine bir adım daha yaklaşıyorsun.",
+            "Mükemmel iş çıkarıyorsun, devam et!",
+            "Zorluklar seni daha güçlü yapar. Pes etme!"
+        ];
+
+        const breakMessages = [
+            "Mola zamanı! Zihnini dinlendir.",
+            "Gözlerini dinlendirmeyi unutma.",
+            "Kısa bir mola, daha iyi odaklanmana yardımcı olur.",
+            "Ayağa kalk ve biraz hareket et.",
+            "Derin bir nefes al ve rahatla."
+        ];
+
+        // Değişkenler
+        let workTime = 25 * 60; // 25 dakika (saniye cinsinden)
+        let breakTime = 5 * 60; // 5 dakika (saniye cinsinden)
+        let timeLeft = workTime;
+        let timerInterval = null;
+        let isRunning = false;
+        let isWorkPhase = true;
+        let completedSessions = 0;
+        let totalFocusMinutes = {{ redis_stats.focus_time }};
+        let totalBreakMinutes = {{ redis_stats.break_time }};
+        let totalSessions = 4;
+        let currentSession = 1;
+        let history = [];
+
+        // CSRF token almak için yardımcı fonksiyon
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Pomodoro oturumunu Redis'e kaydet
+        function savePomodoroSession(sessionType, duration) {
+            fetch('/dashboard/save-pomodoro-session/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    type: sessionType,
+                    duration: duration
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    console.log('Pomodoro oturumu Redis\'e kaydedildi');
+                }
+            });
+        }
+
+        // Zamanı formatla (ss:ss)
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const secs = (seconds % 60).toString().padStart(2, '0');
+            return `${mins}:${secs}`;
+        }
+
+        // İlerleme çubuğunu güncelle
+        function updateProgressBar() {
+            const totalTime = isWorkPhase ? workTime : breakTime;
+            const percentage = (timeLeft / totalTime) * 100;
+            progressBar.style.width = `${percentage}%`;
+
+            // Faz durumuna göre renk değiştir
+            progressBar.style.background = isWorkPhase ? '#1cc88a' : '#4e73df';
+        }
+
+        // Oturum ilerlemesini güncelle
+        function updateSessionProgress() {
+            const progress = (completedSessions / totalSessions) * 100;
+            sessionProgressBar.style.width = `${progress}%`;
+            completedSessionsElement.textContent = completedSessions;
+            remainingSessionsElement.textContent = totalSessions - completedSessions;
+        }
+
+        // Bildirim göster
+        function showNotification(text, type = 'info') {
+            notificationText.textContent = text;
+            notification.classList.add('show');
+
+            // 3 saniye sonra bildirimi gizle
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Motivasyon mesajını güncelle
+        function updateMotivationMessage() {
+            const messages = isWorkPhase ? workMessages : breakMessages;
+            const randomIndex = Math.floor(Math.random() * messages.length);
+            motivationMessage.textContent = `"${messages[randomIndex]}"`;
+        }
+
+        // Faz göstergesini güncelle
+        function updatePhaseDisplay() {
+            if (isWorkPhase) {
+                phaseDisplay.innerHTML = `Çalışma Zamanı (Oturum ${currentSession}/${totalSessions}) <span class="phase-indicator work-phase">Çalışma</span>`;
+            } else {
+                phaseDisplay.innerHTML = `Mola Zamanı (Oturum ${currentSession}/${totalSessions}) <span class="phase-indicator break-phase">Mola</span>`;
+            }
+        }
+
+        // İstatistikleri güncelle
+        function updateStats() {
+            completedPomodoros.textContent = completedSessions;
+            totalFocusTime.textContent = totalFocusMinutes;
+            totalBreakTime.textContent = totalBreakMinutes;
+        }
+
+        // Zamanlayıcıyı başlat
+        function startTimer() {
+            if (isRunning) return;
+
+            isRunning = true;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = formatTime(timeLeft);
+                updateProgressBar();
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+
+                    if (isWorkPhase) {
+                        // Çalışma oturumu tamamlandı
+                        showNotification(`Oturum ${currentSession} tamamlandı! Mola zamanı.`);
+                        totalFocusMinutes += parseInt(workDurationInput.value);
+                        
+                        // Redis'e çalışma oturumunu kaydet
+                        savePomodoroSession('work', parseInt(workDurationInput.value));
+
+                        // Mola fazına geç
+                        isWorkPhase = false;
+                        timeLeft = breakTime;
+                    } else {
+                        // Mola tamamlandı
+                        showNotification(`Mola bitti! Yeni çalışma oturumu başlıyor.`);
+                        totalBreakMinutes += parseInt(breakDurationInput.value);
+                        
+                        // Redis'e mola oturumunu kaydet
+                        savePomodoroSession('break', parseInt(breakDurationInput.value));
+
+                        // Çalışma fazına geç
+                        isWorkPhase = true;
+                        timeLeft = workTime;
+
+                        // Oturumu tamamla
+                        completedSessions++;
+
+                        // Tüm oturumlar tamamlandı mı?
+                        if (completedSessions >= totalSessions) {
+                            showNotification('Tüm oturumlar tamamlandı! Tebrikler!');
+                            isRunning = false;
+                            updateSessionProgress();
+                            updateStats();
+                            return;
+                        }
+
+                        // Yeni oturum başlat
+                        currentSession++;
+                    }
+
+                    updatePhaseDisplay();
+                    updateMotivationMessage();
+                    updateStats();
+                    updateSessionProgress();
+                    startTimer();
+                }
+            }, 1000);
+        }
+
+        // Zamanlayıcıyı duraklat
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            showNotification('Zamanlayıcı duraklatıldı');
+        }
+
+        // Zamanlayıcıyı sıfırla
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            isWorkPhase = true;
+            workTime = parseInt(workDurationInput.value) * 60;
+            breakTime = parseInt(breakDurationInput.value) * 60;
+            timeLeft = workTime;
+            timerDisplay.textContent = formatTime(timeLeft);
+            updatePhaseDisplay();
+            updateProgressBar();
+            updateMotivationMessage();
+            showNotification('Zamanlayıcı sıfırlandı');
+
+            // Oturumları sıfırla
+            completedSessions = 0;
+            currentSession = 1;
+            updateSessionProgress();
+            updateStats();
+        }
+
+        // Input değişikliklerini dinle
+        workDurationInput.addEventListener('change', function () {
+            if (!isRunning) {
+                workTime = parseInt(this.value) * 60;
+                if (isWorkPhase) {
+                    timeLeft = workTime;
+                    timerDisplay.textContent = formatTime(timeLeft);
+                    updateProgressBar();
+                }
+            }
+        });
+
+        breakDurationInput.addEventListener('change', function () {
+            if (!isRunning) {
+                breakTime = parseInt(this.value) * 60;
+                if (!isWorkPhase) {
+                    timeLeft = breakTime;
+                    timerDisplay.textContent = formatTime(timeLeft);
+                    updateProgressBar();
+                }
+            }
+        });
+
+        // Oturum sayısı değişikliğini dinle
+        sessionCountInput.addEventListener('change', function () {
+            totalSessions = parseInt(this.value);
+            if (totalSessions < 1) totalSessions = 1;
+            if (totalSessions > 20) totalSessions = 20;
+
+            // Güncel oturum sayısı toplamı aşmasın
+            if (currentSession > totalSessions) {
+                currentSession = totalSessions;
+            }
+
+            // Tamamlanan oturum sayısı toplamı aşmasın
+            if (completedSessions > totalSessions) {
+                completedSessions = totalSessions;
+            }
+
+            updatePhaseDisplay();
+            updateSessionProgress();
+        });
+
+        // Buton eventleri
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Navigasyon butonları
+        homeBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showNotification('Ana sayfaya yönlendiriliyorsunuz...');
+            window.location.href = "{% url 'dashboard:home' %}";
+        });
+
+        profileBtn.addEventListener('click', function (e) {
+            e.preventDefault();
+            showNotification('Profil sayfasına yönlendiriliyorsunuz...');
+            window.location.href = "{% url 'user_profile:profile' %}";
+        });
+
+        // Başlangıçta güncellemeler
+        updateProgressBar();
+        updateMotivationMessage();
+        updatePhaseDisplay();
+        updateSessionProgress();
+    </script>
+</body>
+
+</html>

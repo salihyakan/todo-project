@@ -1,0 +1,110 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .note-header {
+        border-radius: 10px 10px 0 0;
+        border: none;
+    }
+    .note-priority {
+        font-size: 0.9rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+    }
+    .note-content {
+        line-height: 1.8;
+        font-size: 1.05rem;
+    }
+    .note-meta {
+        background-color: #f8f9fa;
+        border-radius: 0 0 10px 10px;
+        padding: 20px;
+    }
+    .note-actions .btn {
+        min-width: 100px;
+    }
+    .back-btn {
+        transition: all 0.3s;
+    }
+    .back-btn:hover {
+        transform: translateX(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow-sm border-0">
+        <!-- Not Başlık Alanı -->
+        <div class="card-header note-header {% if note.category %}text-white{% else %}bg-light{% endif %}" 
+             {% if note.category %}style="background-color: {{ note.category.color }};"{% endif %}>
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h1 class="h3 mb-1">{{ note.title }}</h1>
+                    {% if note.category %}
+                    <span class="badge bg-white text-dark bg-opacity-75">
+                        {{ note.category.name }}
+                    </span>
+                    {% endif %}
+                </div>
+                <div>
+                    {% if note.is_pinned %}
+                    <span class="badge bg-warning bg-opacity-25 text-dark me-2">
+                        <i class="fas fa-thumbtack me-1"></i>Sabitlenmiş
+                    </span>
+                    {% endif %}
+                    <span class="note-priority bg-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %} bg-opacity-10 text-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %}">
+                        Öncelik: {{ note.get_priority_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Not İçeriği -->
+        <div class="card-body py-4">
+            <div class="note-content mb-4">
+                {{ note.content|linebreaks }}
+            </div>
+        </div>
+        
+        <!-- Not Meta Bilgileri -->
+        <div class="note-meta">
+            <div class="row">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <p class="mb-1"><strong><i class="far fa-calendar-plus me-2"></i>Oluşturulma Tarihi:</strong></p>
+                    <p class="text-muted">{{ note.created_at|date:"d M Y H:i" }}</p>
+                    
+                    <p class="mb-1 mt-3"><strong><i class="fas fa-sync me-2"></i>Son Güncelleme:</strong></p>
+                    <p class="text-muted">{{ note.updated_at|date:"d M Y H:i" }}</p>
+                </div>
+                <div class="col-md-6">
+                    {% if note.related_date %}
+                    <p class="mb-1"><strong><i class="far fa-calendar-check me-2"></i>İlişkili Tarih:</strong></p>
+                    <p class="text-muted">{{ note.related_date|date:"d M Y H:i" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Not Aksiyon Butonları -->
+        <div class="card-footer bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <a href="{% url 'notes:note_list' %}" class="btn btn-outline-secondary back-btn">
+                    <i class="fas fa-arrow-left me-1"></i> Listeye Dön
+                </a>
+                <div class="mt-2 mt-md-0 note-actions">
+                    <a href="{% url 'notes:note_update' note.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i> Düzenle
+                    </a>
+                    <a href="{% url 'notes:note_delete' note.pk %}" class="btn btn-danger ms-2">
+                        <i class="fas fa-trash me-1"></i> Sil
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

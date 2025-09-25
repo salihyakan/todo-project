@@ -1,0 +1,328 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .note-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 100%;
+        border: none;
+    }
+    .note-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .note-content {
+        max-height: 150px;
+        overflow: hidden;
+        position: relative;
+    }
+    .note-content:after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: linear-gradient(to bottom, transparent, white);
+    }
+    .category-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 12px;
+    }
+    .sidebar-card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .list-group-item {
+        border: none;
+        border-radius: 0;
+        border-left: 4px solid transparent;
+    }
+    .list-group-item.active {
+        background-color: #f8f9fa;
+        color: #0d6efd;
+        border-left-color: #0d6efd;
+        font-weight: 500;
+    }
+    .pinned-indicator {
+        color: #ffc107;
+        font-size: 0.9rem;
+    }
+    .priority-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    .search-form {
+        position: relative;
+    }
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #6c757d;
+    }
+    .header-section {
+        margin-bottom: 1.5rem;
+    }
+    .title-section {
+        margin-bottom: 0.5rem;
+    }
+    .category-header-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    .category-header-btn:hover {
+        color: #0d6efd;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sol Kenar Çubuğu (Kategoriler) -->
+        <div class="col-lg-3 col-md-4">
+            <div class="card shadow sidebar-card mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <button class="category-header-btn text-white" onclick="window.location.href='{% url 'notes:category_list' %}'">
+                            <h5 class="mb-0"><i class="fas fa-folder me-2"></i>Kategoriler</h5>
+                        </button>
+                        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#categoryCreateModal">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'notes:note_list' %}" 
+                       class="list-group-item list-group-item-action {% if not current_category and not is_pinned %}active{% endif %}">
+                        <i class="fas fa-file-alt me-2"></i>Tüm Notlar
+                    </a>
+                    <a href="{% url 'notes:note_list' %}?pinned=true" 
+                       class="list-group-item list-group-item-action {% if is_pinned == 'true' %}active{% endif %}">
+                        <i class="fas fa-thumbtack pinned-indicator me-2"></i>Sabitlenmişler
+                    </a>
+                    {% for category in categories %}
+                    <a href="{% url 'notes:note_list' %}?category={{ category.slug }}" 
+                       class="list-group-item list-group-item-action {% if current_category == category.slug %}active{% endif %}"
+                       style="border-left-color: {{ category.color }};">
+                        <i class="fas fa-circle me-2" style="color: {{ category.color }}"></i>{{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ana İçerik Alanı -->
+        <div class="col-lg-9 col-md-8">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 header-section">
+                <div class="d-flex flex-column flex-md-row gap-2 w-100 w-md-auto">
+                    <button class="search-btn" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <form class="search-form w-100 me-md-2 mb-2 mb-md-0" method="GET" action="{% url 'notes:note_list' %}">
+                        <input class="form-control ps-4" type="search" placeholder="Notlarda ara..." 
+                        name="q" value="{{ query }}">
+                    </form>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteCreateModal">
+                        <i class="fas fa-plus me-1"></i>Yeni Not
+                    </button>
+                </div>
+            </div>
+            <h1 class="h2 mb-3 mb-3 text-center title-section"><i class="fas fa-sticky-note me-2"></i>Notlarım</h1>
+
+            {% if notes %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+                {% for note in notes %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm note-card">
+                        {% if note.category %}
+                        <div class="card-header py-2" style="background-color: {{ note.category.color }}; color: white;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-medium">{{ note.category.name }}</span>
+                                {% if note.is_pinned %}
+                                <span class="badge bg-warning bg-opacity-25 text-dark">
+                                    <i class="fas fa-thumbtack"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="card-header py-2 bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-medium text-muted">Kategorisiz</span>
+                                {% if note.is_pinned %}
+                                <span class="badge bg-warning bg-opacity-25 text-dark">
+                                    <i class="fas fa-thumbtack"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h5 class="card-title mb-0">
+                                    {{ note.title|truncatechars:30 }}
+                                </h5>
+                                <span class="priority-badge bg-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %} bg-opacity-10 text-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %}">
+                                    {{ note.get_priority_display }}
+                                </span>
+                            </div>
+                            <div class="note-content mb-3">
+                                {{ note.content|linebreaks|truncatechars_html:150 }}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="far fa-clock me-1"></i>{{ note.updated_at|date:"d M Y H:i" }}
+                                </small>
+                                <div>
+                                    <a href="{% url 'notes:note_update' note.pk %}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'notes:note_detail' note.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-sticky-note fa-4x text-muted mb-4"></i>
+                    <h3 class="h5">Henüz hiç notunuz yok</h3>
+                    <p class="text-muted mb-4">Yeni bir not oluşturmak için sağ üstteki butonu kullanın</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteCreateModal">
+                        <i class="fas fa-plus me-1"></i>İlk Notunu Oluştur
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Yeni Not Modal -->
+<div class="modal fade" id="noteCreateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Yeni Not Oluştur</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'notes:note_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Başlık</label>
+                        <input type="text" class="form-control" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategori</label>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" name="category">
+                                <option value="">Kategori seçin</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İçerik</label>
+                        <textarea class="form-control" name="content" rows="6" required></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Öncelik</label>
+                            <select class="form-select" name="priority">
+                                <option value="L">Düşük</option>
+                                <option value="M" selected>Orta</option>
+                                <option value="H">Yüksek</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">İlişkili Tarih</label>
+                            <input type="datetime-local" class="form-control" name="related_date">
+                        </div>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_pinned" id="is_pinned">
+                        <label class="form-check-label" for="is_pinned">Notu sabitle</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary">Notu Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Yeni Kategori Modal -->
+<div class="modal fade" id="categoryCreateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-folder-plus me-2"></i>Yeni Kategori Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'notes:category_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Kategori Adı</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Renk</label>
+                        <input type="color" class="form-control form-control-color" name="color" value="#6f42c1" title="Renk seçin">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <button type="submit" class="btn btn-primary">Kategori Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form gönderiminden sonra modalı kapat
+    document.getElementById('noteCreateModal').addEventListener('hidden.bs.modal', function() {
+        // Not listesini yenile
+        window.location.reload();
+    });
+    
+    document.getElementById('categoryCreateModal').addEventListener('hidden.bs.modal', function() {
+        // Kategori listesini yenile
+        window.location.reload();
+    });
+});
+</script>
+{% endblock %}

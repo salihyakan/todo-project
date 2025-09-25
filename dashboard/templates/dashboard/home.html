@@ -1,0 +1,242 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load dashboard_filters %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sol Sidebar (Güncellenmiş) -->
+        <div class="col-md-3">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white py-2">
+                    <h6 class="mb-0">Hızlı Erişim</h6>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'todo:task_create' %}" class="list-group-item list-group-item-action py-2">
+                        <i class="fas fa-plus-circle me-2"></i>Yeni Görev
+                    </a>
+                    <a href="{% url 'dashboard:pomodoro' %}" class="list-group-item list-group-item-action py-2">
+                        <i class="fas fa-clock me-2"></i>Pomodoro
+                    </a>
+                    <a href="{% url 'notes:note_list' %}" class="list-group-item list-group-item-action py-2">
+                        <i class="fas fa-sticky-note me-2"></i>Notlarım
+                    </a>
+                    <a href="{% url 'dashboard:calendar' %}" class="list-group-item list-group-item-action py-2">
+                        <i class="fas fa-calendar-alt me-2"></i>Takvim
+                    </a>
+                </div>
+            </div>
+
+            <!-- İstatistikler ve Detaylı Raporlar Bölümü -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white py-2">
+                    <h6 class="mb-0">İlerleme Durumu</h6>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <div class="progress-circle mb-3 mx-auto" style="width: 120px; height: 120px;" data-progress="{{ completion_rate }}">
+                        <span class="progress-value">{{ completion_rate }}%</span>
+                    </div>
+                    <h6 class="mb-3">Görev Tamamlama Oranı</h6>
+                    
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Tamamlanan:</span>
+                        <strong>{{ completed_tasks_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>Bekleyen:</span>
+                        <strong>{{ pending_tasks_count }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between small">
+                        <span>Geciken:</span>
+                        <strong>{{ overdue_tasks_count }}</strong>
+                    </div>
+                    
+                    <a href="{% url 'analytics:dashboard' %}" class="btn btn-sm btn-primary mt-3 w-100">
+                        <i class="fas fa-chart-bar me-1"></i> Detaylı Raporlar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Günlük Hedef Bölümü -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark py-2">
+                    <h6 class="mb-0">Günlük Hedef</h6>
+                </div>
+                <div class="card-body p-3 text-center">
+                    <div class="progress mb-2" style="height: 20px;">
+                        {% if goal_percentage > 0 %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ goal_percentage }}%"
+                            aria-valuenow="{{ goal_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ goal_progress }}/{{ daily_goal }}
+                        </div>
+                        {% else %}
+                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%" aria-valuemin="0"
+                            aria-valuemax="100">
+                            Henüz görev yok
+                        </div>
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">Tamamlanan Görevler</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ana İçerik (Orta Kısım) -->
+        <div class="col-md-6">
+            <!-- Orta kısım içeriği buraya gelecek -->
+            <!-- Bugünün Görevleri ve Son Görevler bölümleri -->
+            <!-- Bu kısım orijinal halinde kalacak -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Bugünün Görevleri</h5>
+                </div>
+                <div class="card-body">
+                    {% if todays_tasks %}
+                    <div class="list-group">
+                        {% for task in todays_tasks %}
+                        <a href="{% url 'todo:task_detail' task.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ task.title }}</h6>
+                                <small
+                                    class="text-{% if task.priority == 'H' %}danger{% elif task.priority == 'M' %}warning{% else %}info{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </small>
+                            </div>
+                            <small>{{ task.due_date|date:"H:i" }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        Bugün için göreviniz bulunmamaktadır. Yeni görev ekleyin!
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">Son Görevler</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_tasks %}
+                    <ul class="list-group list-group-flush">
+                        {% for task in recent_tasks %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'todo:task_detail' task.pk %}">{{ task.title }}</a>
+                                <small class="d-block text-muted">{{ task.created_at|timesince }} önce</small>
+                            </div>
+                            <span
+                                class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}primary{% else %}secondary{% endif %}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        Henüz göreviniz bulunmamaktadır.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ Sidebar (Eski Hali) -->
+        <div class="col-md-3">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">İstatistikler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="text-center">
+                            <div class="display-6">{{ stats.tasks_completed }}</div>
+                            <small class="text-muted">Tamamlanan Görev</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="display-6">{{ stats.pomodoros_completed }}</div>
+                            <small class="text-muted">Pomodoro</small>
+                        </div>
+                        <div class="text-center">
+                            <div class="display-6">{{ stats.notes_created }}</div>
+                            <small class="text-muted">Not</small>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        <div class="bg-light p-3 rounded">
+                            <i class="fas fa-fire fa-2x text-danger"></i>
+                            <h5 class="mt-2">{{ stats.current_streak }} Gün</h5>
+                            <p class="mb-0">Devam Eden Seri</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Son Notlar Bölümü -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Son Notlar</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_notes %}
+                    <ul class="list-group list-group-flush">
+                        {% for note in recent_notes %}
+                        <li class="list-group-item">
+                            <a href="{% url 'notes:note_detail' note.pk %}">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>{{ note.title }}</strong>
+                                        <div class="text-muted small">{{ note.content|truncatechars:50 }}</div>
+                                    </div>
+                                    <span
+                                        class="badge bg-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %}">
+                                        {{ note.get_priority_display }}
+                                    </span>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        Henüz notunuz bulunmamaktadır.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'notes:note_list' %}" class="btn btn-sm btn-info">
+                        Tüm Notları Görüntüle <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .progress-circle {
+        border-radius: 50%;
+        background: conic-gradient(#4caf50 calc(var(--progress) * 1%), #e0e0e0 0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+    .progress-value {
+        font-size: 1.25rem;
+        font-weight: bold;
+        color: #333;
+    }
+    .card-header {
+        padding: 0.5rem 1rem;
+    }
+    .list-group-item {
+        padding: 0.5rem 1rem;
+    }
+    .badge {
+        font-size: 0.75em;
+    }
+</style>
+{% endblock %}

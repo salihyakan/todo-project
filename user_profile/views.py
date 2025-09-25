@@ -1,84 +1,298 @@
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+import json
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from .models import Profile
-from slugify import slugify
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.urls import reverse
+from .forms import UserUpdateForm, ProfileUpdateForm, LoginForm, RegistrationForm
+from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView 
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm 
+from .models import Profile, Badge, BadgeType, Notification, UserBadge
+from django.http import JsonResponse
+from django.utils import timezone
+from datetime import timedelta
+from django.shortcuts import get_object_or_404
+from django.db.models import Count, Q
 
 
-
-def login_view(request): 
+def user_login(request):
     if request.user.is_authenticated:
-        messages.info(request, f'{request.user.username } Daha önce giriş yapmışsın')
-        return redirect('home_view')
-    
-    context = {}
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        return redirect('dashboard:home')
 
-        if len (username) < 6 or len(password) < 6:
-            messages.warning(request, f'Kullanıcı adı ve şifre en az 6 karakter olmalıdır')
-            return redirect('user_profile:login_view')
-        
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
+    form = LoginForm(request, data=request.POST or None)
+
+    if request.method == 'POST':
+        if form.is_valid():
+            user = form.get_user()
             login(request, user)
-            messages.info(request, f'{request.user.username } Başarıyla giriş yaptınız')
-            return redirect('home_view')
-    return render(request, "user_profile/login.html", context)
+            messages.success(request, 'Başarıyla giriş yaptınız!')
+            return redirect('dashboard:home')
+        # Hatalar otomatik olarak form.non_field_errors ile gösterilecek
+
+    return render(request, 'user_profile/login.html', {'form': form})
+
+def register(request):
+    # Kullanıcı zaten giriş yapmışsa ana sayfaya yönlendir
+    if request.user.is_authenticated:
+        return redirect('dashboard:home')
+    
+    form = RegistrationForm(request.POST or None)
+    
+    if request.method == 'POST' and form.is_valid():
+        user = form.save()
+        login(request, user)  # Kayıt sonrası otomatik giriş
+        messages.success(request, 'Hesabınız başarıyla oluşturuldu!')
+        return redirect('dashboard:home')
+    
+    return render(request, 'user_profile/register.html', {'form': form})
 
 
-def logout_view(request):
-    messages.info(request, f'{request.user.username } Oturum kapatıldı')
+@login_required
+def user_logout(request):
     logout(request)
-    return redirect("home_view")
+    messages.info(request, 'Başarıyla çıkış yaptınız.')
+    return redirect('dashboard:home')
 
+@login_required
+def profile(request):
+    # Kullanıcının profilini al
+    profile = request.user.profile
+    
+    # DÜZELTME: user_profile üzerinden filtreleme
+    badges = UserBadge.objects.filter(user_profile=profile).select_related('badge')
 
-def register_view(request):
-    context = {}
-    if request.method == "POST":
-        post_info = request.POST
-        username = post_info.get("username")
-        password = post_info.get("password")
-        password_confirm = post_info.get("password_confirm")
-        email = post_info.get("email")
-        email_confirm = post_info.get("email_confirm")
-
-        if len(username) < 6 or len(password) < 6 or len(email) < 6:
-            messages.warning(request, f'Bilgiler en az 6 karakter olmalıdır')
-            return redirect('user_profile:register_view')
-
-        if email != email_confirm:
-            messages.warning(request, f'Lütfen E-mail Bilgisini Doğru Girin')
-            return redirect('user_profile:register_view')
-
-        if password != password_confirm:
-            messages.warning(request, f'Lütfen Şifreyi Doğru Girin')
-            return redirect('user_profile:register_view')
-
-        user, created = User.objects.get_or_create(username=email)
-        if not created:
-            user_login = authenticate(request, username=username, password=password)
-            if user is not None:
-                messages.success(request, f'{username} Daha önce kayıt olmuşusunuz. Ana Sayfaya yönlendirildiniz')
-                login(request, user_login)
-                return redirect('home_view')
-            messages.warning(request, f'{username} Kullanıcı adı zaten sistemde kayıtlı. Login sayfasına yönlendiriliyorsunuz')
-            return redirect('user_profile:login_view')
+    # DÜZELTME: user_profile üzerinden görüldü işaretleme
+    UserBadge.objects.filter(
+        user_profile=profile, 
+        is_seen=False
+    ).update(is_seen=True)
+    
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(
+            request.POST, 
+            request.FILES, 
+            instance=profile
+        )
         
-        user.email = email
-        user.username = username
-        user.set_password(password)
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Profiliniz başarıyla güncellendi!')
+            return redirect('user_profile:profile')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=profile)
 
-        profile, profile_created = Profile.objects.get_or_create(user=user)
-        profile.slug = slugify(username)
-        user.save()
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+        'profile': profile,
+        'badges': badges,
+    }
+    
+    return render(request, 'user_profile/profile.html', context)
 
-        messages.success(request, f'{username} Başarıyla kayıt oldunuz.')
-        user_login = authenticate(request, username=username, password=password)
-        login(request, user_login)
-        return redirect('home_view')
+class CustomPasswordResetView(PasswordResetView):
+    form_class = PasswordResetForm
+    template_name = 'user_profile/password_reset.html'
+    email_template_name = 'user_profile/password_reset_email.html'
+    success_url = '/profile/password_reset/done/'
+
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'user_profile/password_reset_done.html'
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = SetPasswordForm
+    template_name = 'user_profile/password_reset_confirm.html'
+    success_url = '/profile/password_reset/complete/'
+
+class CustomPasswordResetCompleteView(PasswordResetCompleteView):
+    template_name = 'user_profile/password_reset_complete.html'
+
+@login_required
+def update_pomodoro(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            duration = int(data.get('duration'))
+            if 5 <= duration <= 60:
+                profile = request.user.profile
+                profile.pomodoro_duration = duration
+                profile.save()
+                return JsonResponse({'success': True})
+        except (ValueError, TypeError):
+            pass
+    return JsonResponse({'success': False}, status=400)
 
 
-    return render(request, "user_profile/register.html", context)
+@login_required
+def badge_list(request):
+    if not request.user.is_authenticated:
+        return redirect('user_profile:login')
+    
+    profile = request.user.profile
+    badge_types = BadgeType.objects.annotate(
+        total_badges=Count('badges'),
+        earned_count=Count('badges__user_badges', filter=Q(badges__user_badges__user_profile=profile))
+    )
+    
+    # Tüm rozetleri ve kullanıcının kazandıklarını getir
+    all_badges = Badge.objects.all()
+    earned_badges_ids = UserBadge.objects.filter(
+        user_profile=profile
+    ).values_list('badge_id', flat=True)
+    
+    # Kazanılan ve kazanılmayan rozetleri ayır
+    earned_badges = []
+    unearned_badges = []
+    
+    for badge in all_badges:
+        if badge.id in earned_badges_ids:
+            badge.earned = True
+            earned_badges.append(badge)
+        else:
+            badge.earned = False
+            unearned_badges.append(badge)
+    
+    # Rozet türlerine göre grupla
+    badge_types_with_badges = []
+    for badge_type in badge_types:
+        type_badges = {
+            'earned': [b for b in earned_badges if b.badge_type_id == badge_type.id],
+            'unearned': [b for b in unearned_badges if b.badge_type_id == badge_type.id]
+        }
+        badge_types_with_badges.append({
+            'type': badge_type,
+            'badges': type_badges,
+            'earned_count': len(type_badges['earned']),
+            'total_count': badge_type.total_badges
+        })
+    
+    # İlerleme yüzdesini hesapla
+    progress_percentage = len(earned_badges) / all_badges.count() * 100 if all_badges.count() > 0 else 0
+    
+    context = {
+        'badge_types': badge_types_with_badges,
+        'earned_badges_count': len(earned_badges),
+        'total_badges': all_badges.count(),
+        'earned_badges': earned_badges,
+        'unearned_badges': unearned_badges,
+        'progress_percentage': progress_percentage
+    }
+    return render(request, 'user_profile/badge_list.html', context)
+
+@login_required
+def badge_detail(request, slug):
+    badge = get_object_or_404(Badge, slug=slug)
+    profile = request.user.profile
+    
+    # Kullanıcının bu rozeti kazanıp kazanmadığını kontrol et
+    earned = UserBadge.objects.filter(
+        user_profile=profile,
+        badge=badge
+    ).exists()
+    
+    # Bu rozet türündeki diğer rozetler
+    similar_badges = Badge.objects.filter(
+        badge_type=badge.badge_type
+    ).exclude(id=badge.id)[:4]
+    
+    # Bu rozeti kazanan kullanıcı sayısı
+    earned_count = UserBadge.objects.filter(badge=badge).count()
+    
+    # Kriterleri düzgün formatla
+    criteria_list = []
+    for key, value in badge.criteria.items():
+        criteria_list.append(f"{key.replace('_', ' ').title()}: {value}")
+    
+    context = {
+        'badge': badge,
+        'user_has_badge': earned,
+        'similar_badges': similar_badges,
+        'earned_count': earned_count,
+        'criteria_list': criteria_list
+    }
+    return render(request, 'user_profile/badge_detail.html', context)
+
+@login_required
+def notifications_view(request):
+    # Get unread notifications
+    unread_notifications = Notification.objects.filter(
+        user=request.user, 
+        is_read=False
+    ).order_by('-created_at')
+    
+    # Get all notifications (last 30 days)
+    all_notifications = Notification.objects.filter(
+        user=request.user,
+        created_at__gte=timezone.now()-timedelta(days=30)
+    ).order_by('-created_at')
+    
+    # Mark badge notifications as seen when page is loaded
+    UserBadge.objects.filter(
+        user_profile=request.user.profile,
+        is_seen=False
+    ).update(is_seen=True)
+    
+    return render(request, 'user_profile/notifications.html', {
+        'unread_notifications': unread_notifications,
+        'all_notifications': all_notifications
+    })
+
+@login_required
+def mark_notification_as_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'success'})
+    
+    return redirect('user_profile:notifications')
+
+@login_required
+def mark_all_notifications_read(request):
+    Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({'status': 'success'})
+    
+    return redirect('user_profile:notifications')
+
+@login_required
+def check_new_notifications(request):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        last_notification_id = request.GET.get('last_id', 0)
+        
+        # Son bildirimden sonra yeni bildirim var mı?
+        has_new = Notification.objects.filter(
+            user=request.user,
+            id__gt=last_notification_id
+        ).exists()
+        
+        unread_count = Notification.objects.filter(
+            user=request.user,
+            is_read=False
+        ).count()
+        
+        return JsonResponse({
+            'has_new': has_new,
+            'unread_count': unread_count
+        })
+    return JsonResponse({'error': 'Geçersiz istek'}, status=400)
+
+@login_required
+def update_pomodoro(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            duration = int(data.get('duration'))
+            if 5 <= duration <= 60:
+                profile = request.user.profile
+                profile.pomodoro_duration = duration
+                profile.save()
+                return JsonResponse({'success': True})
+        except (ValueError, TypeError):
+            pass
+    return JsonResponse({'success': False}, status=400)

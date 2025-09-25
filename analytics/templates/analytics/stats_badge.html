@@ -1,0 +1,19 @@
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">Görev İstatistikleri</h5>
+        <div class="d-flex justify-content-between">
+            <div class="text-center">
+                <h6>Tamamlanan</h6>
+                <span class="badge bg-success">{{ stats.completed }}</span>
+            </div>
+            <div class="text-center">
+                <h6>Bekleyen</h6>
+                <span class="badge bg-warning text-dark">{{ stats.pending }}</span>
+            </div>
+            <div class="text-center">
+                <h6>Toplam</h6>
+                <span class="badge bg-primary">{{ stats.completed|add:stats.pending }}</span>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,113 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Bildirimler</h2>
+        <button id="mark-all-read" class="btn btn-sm btn-outline-secondary">
+            Tümünü Okundu Olarak İşaretle
+        </button>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            Bildirimler
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for notification in unread_notifications %}
+            <li class="list-group-item list-group-item-info">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}" 
+                           class="mark-as-read" 
+                           data-id="{{ notification.id }}">
+                            {{ notification.message }}
+                        </a>
+                    </div>
+                    <small>{{ notification.created_at|timesince }} önce</small>
+                </div>
+            </li>
+            {% endfor %}
+            
+            {% for notification in all_notifications %}
+            {% if notification.is_read %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}">
+                            {{ notification.message }}
+                        </a>
+                    </div>
+                    <small>{{ notification.created_at|timesince }} önce</small>
+                </div>
+            </li>
+            {% endif %}
+            {% empty %}
+            <li class="list-group-item">Hiç bildiriminiz yok.</li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Tek bildirimi okundu olarak işaretle
+    document.querySelectorAll('.mark-as-read').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const notificationId = this.getAttribute('data-id');
+            
+            fetch(`{% url 'user_profile:mark_notification_as_read' 0 %}`.replace('0', notificationId), {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.status === 'success') {
+                    // Navbar'daki bildirim sayısını güncelle
+                    const countBadge = document.getElementById('notification-count');
+                    if (countBadge) {
+                        const currentCount = parseInt(countBadge.textContent);
+                        countBadge.textContent = currentCount > 1 ? currentCount - 1 : '';
+                        if (currentCount <= 1) countBadge.classList.add('d-none');
+                    }
+                    
+                    window.location.href = this.getAttribute('href');
+                }
+            });
+        });
+    });
+    
+    // Tüm bildirimleri okundu olarak işaretle
+    document.getElementById('mark-all-read').addEventListener('click', function() {
+        fetch("{% url 'user_profile:mark_all_notifications_read' %}", {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.status === 'success') {
+                // Navbar'daki bildirim sayısını güncelle
+                const countBadge = document.getElementById('notification-count');
+                if (countBadge) {
+                    countBadge.textContent = '';
+                    countBadge.classList.add('d-none');
+                }
+                
+                // Bildirimleri yenile
+                location.reload();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
