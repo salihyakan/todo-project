@@ -4,26 +4,28 @@ from django.contrib.auth.models import User
 from .models import Profile
 from django.core.exceptions import ValidationError
 
-
-class LoginForm(AuthenticationForm):
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={
+class EmailAuthenticationForm(AuthenticationForm):
+    username = forms.EmailField(
+        widget=forms.EmailInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Kullanıcı Adı',
+            'placeholder': 'E-posta adresiniz',
             'autofocus': True
         })
     )
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Şifre'
+            'placeholder': 'Şifreniz'
         })
     )
     
     error_messages = {
-        'invalid_login': "Geçersiz kullanıcı adı veya şifre.",
+        'invalid_login': "Geçersiz e-posta adresi veya şifre.",
         'inactive': "Bu hesap aktif değil.",
     }
+
+class LoginForm(EmailAuthenticationForm):
+    pass
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(
@@ -83,14 +85,44 @@ class UserUpdateForm(forms.ModelForm):
         }
 
 class ProfileUpdateForm(forms.ModelForm):
+    # Profil resmi alanını özelleştir - "Currently" yazısını kaldır
+    profile_picture = forms.ImageField(
+        label='Profil Resmi',
+        required=False,
+        widget=forms.FileInput(attrs={
+            'class': 'form-control',
+            'accept': 'image/*'
+        })
+    )
+    
     class Meta:
         model = Profile
-        fields = ['profile_picture', 'bio', 'location', 'birth_date', 'website', 'pomodoro_duration', 'daily_goal']
+        fields = ['profile_picture', 'bio', 'website', 'pomodoro_duration', 'daily_goal']
         widgets = {
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'location': forms.TextInput(attrs={'class': 'form-control'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'website': forms.URLInput(attrs={'class': 'form-control'}),
-            'pomodoro_duration': forms.NumberInput(attrs={'class': 'form-control'}),
-            'daily_goal': forms.NumberInput(attrs={'class': 'form-control'}),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 3,
+                'placeholder': 'Kendinizden kısaca bahsedin...'
+            }),
+            'website': forms.URLInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'https://ornek.com'
+            }),
+            'pomodoro_duration': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 5,
+                'max': 60
+            }),
+            'daily_goal': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 1,
+                'max': 20
+            }),
+        }
+        labels = {
+            'profile_picture': 'Profil Resmi',
+            'bio': 'Hakkımda',
+            'website': 'Web Sitesi',
+            'pomodoro_duration': 'Pomodoro Süresi',
+            'daily_goal': 'Günlük Hedef',
         }

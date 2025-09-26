@@ -2,112 +2,398 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Bildirimler</h2>
-        <button id="mark-all-read" class="btn btn-sm btn-outline-secondary">
-            Tümünü Okundu Olarak İşaretle
-        </button>
-    </div>
-    
-    <div class="card mb-4">
-        <div class="card-header bg-primary text-white">
-            Bildirimler
-        </div>
-        <ul class="list-group list-group-flush">
-            {% for notification in unread_notifications %}
-            <li class="list-group-item list-group-item-info">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <a href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}" 
-                           class="mark-as-read" 
-                           data-id="{{ notification.id }}">
-                            {{ notification.message }}
-                        </a>
-                    </div>
-                    <small>{{ notification.created_at|timesince }} önce</small>
+<div class="container-fluid mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 mb-0 text-primary">Bildirimler</h2>
+                {% if unread_notifications %}
+                <button id="mark-all-read" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-check-double me-1"></i> Tümünü Okundu Olarak İşaretle
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Okunmamış Bildirimler -->
+            {% if unread_notifications %}
+            <div class="card shadow-sm mb-4 border-primary" id="unread-notifications-card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Yeni Bildirimler</span>
+                    <span class="badge bg-light text-primary rounded-pill" id="unread-count-badge">
+                        {{ unread_notifications|length }}
+                    </span>
                 </div>
-            </li>
-            {% endfor %}
-            
-            {% for notification in all_notifications %}
-            {% if notification.is_read %}
-            <li class="list-group-item">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <a href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}">
-                            {{ notification.message }}
-                        </a>
+                <div class="list-group list-group-flush">
+                    {% for notification in unread_notifications %}
+                    <div
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-start p-3 notification-item unread">
+                        <div class="ms-2 me-auto">
+                            <div class="fw-bold mb-1">
+                                <a href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}"
+                                    class="mark-as-read text-decoration-none text-dark stretched-link"
+                                    data-id="{{ notification.id }}">
+                                    <i class="fas fa-bell me-2 text-primary"></i>{{ notification.message }}
+                                </a>
+                            </div>
+                            <small class="text-muted">{{ notification.created_at|timesince }} önce</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">Yeni</span>
                     </div>
-                    <small>{{ notification.created_at|timesince }} önce</small>
+                    {% endfor %}
                 </div>
-            </li>
+            </div>
             {% endif %}
-            {% empty %}
-            <li class="list-group-item">Hiç bildiriminiz yok.</li>
-            {% endfor %}
-        </ul>
+
+            <!-- Okunmuş Bildirimler -->
+            <div class="card shadow-sm" id="history-notifications-card">
+                <div class="card-header bg-light text-dark d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">Geçmiş Bildirimler</span>
+                    {% if all_notifications %}
+                    <button id="clear-history" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash me-1"></i> Geçmişi Temizle
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="list-group list-group-flush" id="history-list">
+                    {% for notification in all_notifications %}
+                    {% if notification.is_read %}
+                    <div
+                        class="list-group-item d-flex justify-content-between align-items-start p-3 notification-item read">
+                        <div class="ms-2 me-auto">
+                            <div class="mb-1">
+                                <a href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}"
+                                    class="text-decoration-none text-muted">
+                                    <i class="far fa-bell me-2 text-secondary"></i>{{ notification.message }}
+                                </a>
+                            </div>
+                            <small class="text-muted">{{ notification.created_at|timesince }} önce</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="list-group-item text-center py-5" id="empty-history-message">
+                        <i class="far fa-bell fa-3x text-muted mb-3"></i>
+                        <p class="text-muted mb-0">Hiç bildiriminiz yok.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Kart gizleme/gösterme için geçiş efekti */
+    #unread-notifications-card {
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Geçiş efektleri için */
+    .notification-item {
+        transition: all 0.3s ease-in-out;
+    }
+
+    .notification-item {
+        transition: all 0.2s ease;
+        border-left: 4px solid transparent;
+    }
+
+    .notification-item:hover {
+        background-color: #f8f9fa;
+        transform: translateY(-1px);
+    }
+
+    .notification-item.unread {
+        border-left-color: #0d6efd;
+        background-color: #f0f8ff;
+    }
+
+    .notification-item.read {
+        opacity: 0.8;
+    }
+
+    .stretched-link::after {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        content: "";
+    }
+
+    /* Toast mesajları için */
+    .alert {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border: none;
+    }
+
+    /* Geçmişi temizle butonu için */
+    .btn-outline-danger:hover {
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+    }
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Tek bildirimi okundu olarak işaretle
-    document.querySelectorAll('.mark-as-read').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const notificationId = this.getAttribute('data-id');
-            
-            fetch(`{% url 'user_profile:mark_notification_as_read' 0 %}`.replace('0', notificationId), {
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tek bildirimi okundu olarak işaretle
+        document.querySelectorAll('.mark-as-read').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const notificationId = this.getAttribute('data-id');
+                const notificationItem = this.closest('.notification-item');
+
+                fetch(`{% url 'user_profile:mark_notification_as_read' 0 %}`.replace('0', notificationId), {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Yeni bildirim sayacını güncelle
+                            updateUnreadCount(-1);
+
+                            // Bildirimi okundu olarak işaretle ve geçmişe taşı
+                            moveNotificationToHistory(notificationItem);
+
+                            // Yönlendirme
+                            const url = this.getAttribute('href');
+                            if (url && url !== '#') {
+                                window.location.href = url;
+                            }
+                        }
+                    });
+            });
+        });
+
+        // Tüm bildirimleri okundu olarak işaretle
+        document.getElementById('mark-all-read')?.addEventListener('click', function () {
+            const unreadCount = document.querySelectorAll('.notification-item.unread').length;
+
+            if (unreadCount === 0) return;
+
+            fetch("{% url 'user_profile:mark_all_notifications_read' %}", {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': '{{ csrf_token }}'
                 }
             })
-            .then(response => response.json())
-            .then(data => {
-                if(data.status === 'success') {
-                    // Navbar'daki bildirim sayısını güncelle
-                    const countBadge = document.getElementById('notification-count');
-                    if (countBadge) {
-                        const currentCount = parseInt(countBadge.textContent);
-                        countBadge.textContent = currentCount > 1 ? currentCount - 1 : '';
-                        if (currentCount <= 1) countBadge.classList.add('d-none');
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Yeni bildirim sayacını sıfırla
+                        updateUnreadCount(-unreadCount);
+
+                        // Tüm okunmamış bildirimleri geçmişe taşı
+                        moveAllNotificationsToHistory();
+
+                        // Tümünü okundu yap butonunu gizle
+                        this.style.display = 'none';
                     }
-                    
-                    window.location.href = this.getAttribute('href');
-                }
-            });
+                });
         });
-    });
-    
-    // Tüm bildirimleri okundu olarak işaretle
-    document.getElementById('mark-all-read').addEventListener('click', function() {
-        fetch("{% url 'user_profile:mark_all_notifications_read' %}", {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': '{{ csrf_token }}'
+
+        // Geçmişi temizle butonu
+        document.getElementById('clear-history')?.addEventListener('click', function () {
+            if (confirm('Geçmiş bildirimleriniz kalıcı olarak silinecek. Emin misiniz?')) {
+                fetch("{% url 'user_profile:clear_history_notifications' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Geçmiş bildirimleri listeden kaldır
+                            const historyList = document.getElementById('history-list');
+                            if (historyList) {
+                                // Boş mesajı göster
+                                historyList.innerHTML = `
+                            <div class="list-group-item text-center py-5">
+                                <i class="far fa-bell fa-3x text-muted mb-3"></i>
+                                <p class="text-muted mb-0">Geçmiş bildiriminiz yok.</p>
+                            </div>
+                        `;
+                            }
+
+                            // Butonu gizle
+                            this.style.display = 'none';
+
+                            // Başarı mesajı göster
+                            showToast('success', `${data.deleted_count} bildirim silindi.`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Hata:', error);
+                        showToast('error', 'Bir hata oluştu. Lütfen tekrar deneyin.');
+                    });
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if(data.status === 'success') {
-                // Navbar'daki bildirim sayısını güncelle
-                const countBadge = document.getElementById('notification-count');
-                if (countBadge) {
+        });
+
+        // Yeni bildirimler başlığındaki sayacı güncelle
+        function updateUnreadCount(change) {
+            const unreadBadge = document.getElementById('unread-count-badge');
+            if (unreadBadge) {
+                const currentCount = parseInt(unreadBadge.textContent) || 0;
+                const newCount = Math.max(0, currentCount + change);
+
+                unreadBadge.textContent = newCount;
+
+                if (newCount === 0) {
+                    // Eğer sayı 0 ise, okunmamış bildirimler kartını gizle
+                    const unreadCard = document.getElementById('unread-notifications-card');
+                    if (unreadCard) {
+                        unreadCard.style.display = 'none';
+                    }
+                    // Butonu gizle
+                    const markAllBtn = document.getElementById('mark-all-read');
+                    if (markAllBtn) {
+                        markAllBtn.style.display = 'none';
+                    }
+                }
+            }
+
+            // Navbar'daki bildirim sayısını da güncelle
+            updateNavbarNotificationCount(change);
+        }
+
+        // Navbar bildirim sayısını güncelle
+        function updateNavbarNotificationCount(change) {
+            const countBadge = document.getElementById('notification-count');
+            if (countBadge) {
+                const currentCount = parseInt(countBadge.textContent) || 0;
+                const newCount = Math.max(0, currentCount + change);
+
+                if (newCount > 0) {
+                    countBadge.textContent = newCount;
+                    countBadge.classList.remove('d-none');
+                } else {
                     countBadge.textContent = '';
                     countBadge.classList.add('d-none');
                 }
-                
-                // Bildirimleri yenile
-                location.reload();
             }
-        });
+        }
+
+        // Tek bildirimi geçmişe taşı
+        function moveNotificationToHistory(notificationItem) {
+            // Stil değişiklikleri
+            notificationItem.classList.remove('unread', 'list-group-item-info');
+            notificationItem.classList.add('read');
+
+            // "Yeni" badge'ini kaldır
+            const newBadge = notificationItem.querySelector('.badge.bg-primary');
+            if (newBadge) newBadge.remove();
+
+            // İkonu değiştir (zil ikonu -> normal zil)
+            const icon = notificationItem.querySelector('.fas.fa-bell');
+            if (icon) {
+                icon.className = 'far fa-bell me-2 text-secondary';
+            }
+
+            // Link rengini değiştir
+            const link = notificationItem.querySelector('a');
+            if (link) {
+                link.classList.remove('text-dark', 'mark-as-read');
+                link.classList.add('text-muted');
+                link.removeAttribute('data-id');
+            }
+
+            // Geçmiş bildirimler listesine taşı
+            const historyList = document.getElementById('history-list');
+            if (historyList) {
+                // Boş mesajı kaldır
+                const emptyMessage = document.getElementById('empty-history-message');
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+
+                // Yeni bildirimi geçmiş listesinin en üstüne ekle
+                const firstHistoryItem = historyList.querySelector('.notification-item');
+                if (firstHistoryItem) {
+                    historyList.insertBefore(notificationItem, firstHistoryItem);
+                } else {
+                    historyList.appendChild(notificationItem);
+                }
+            }
+        }
+
+        // Tüm bildirimleri geçmişe taşı
+        function moveAllNotificationsToHistory() {
+            const unreadNotifications = document.querySelectorAll('.notification-item.unread');
+            const historyList = document.getElementById('history-list');
+
+            if (unreadNotifications.length > 0 && historyList) {
+                // Boş mesajı kaldır
+                const emptyMessage = document.getElementById('empty-history-message');
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+
+                unreadNotifications.forEach(notificationItem => {
+                    // Stil değişiklikleri
+                    notificationItem.classList.remove('unread', 'list-group-item-info');
+                    notificationItem.classList.add('read');
+
+                    // "Yeni" badge'ini kaldır
+                    const newBadge = notificationItem.querySelector('.badge.bg-primary');
+                    if (newBadge) newBadge.remove();
+
+                    // İkonu değiştir
+                    const icon = notificationItem.querySelector('.fas.fa-bell');
+                    if (icon) {
+                        icon.className = 'far fa-bell me-2 text-secondary';
+                    }
+
+                    // Link rengini değiştir
+                    const link = notificationItem.querySelector('a');
+                    if (link) {
+                        link.classList.remove('text-dark', 'mark-as-read');
+                        link.classList.add('text-muted');
+                        link.removeAttribute('data-id');
+                    }
+
+                    // Geçmiş listesine taşı
+                    const firstHistoryItem = historyList.querySelector('.notification-item');
+                    if (firstHistoryItem) {
+                        historyList.insertBefore(notificationItem, firstHistoryItem);
+                    } else {
+                        historyList.appendChild(notificationItem);
+                    }
+                });
+            }
+        }
+
+        // Toast mesajı göster
+        function showToast(type, message) {
+            // Basit bir toast implementasyonu
+            const toast = document.createElement('div');
+            toast.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+            toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+            document.body.appendChild(toast);
+
+            // 5 saniye sonra otomatik kaldır
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 5000);
+        }
     });
-});
 </script>
 {% endblock %}

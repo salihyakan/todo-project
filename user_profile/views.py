@@ -3,9 +3,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from .forms import UserUpdateForm, ProfileUpdateForm, LoginForm, RegistrationForm
-from django.contrib.auth.views import PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView 
+from django.contrib.auth.views import PasswordChangeView, PasswordChangeDoneView, PasswordResetView, PasswordResetDoneView, PasswordResetConfirmView, PasswordResetCompleteView 
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm 
 from .models import Profile, Badge, BadgeType, Notification, UserBadge
 from django.http import JsonResponse
@@ -23,26 +23,72 @@ def user_login(request):
 
     if request.method == 'POST':
         if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, 'Başarıyla giriş yaptınız!')
-            return redirect('dashboard:home')
-        # Hatalar otomatik olarak form.non_field_errors ile gösterilecek
+            username = form.cleaned_data.get('username')  # Bu artık email
+            password = form.cleaned_data.get('password')
+            
+            # Email backend'i kullanarak authenticate et
+            user = authenticate(
+                request, 
+                username=username, 
+                password=password,
+                backend='user_profile.backends.EmailBackend'
+            )
+            
+            if user is not None:
+                login(request, user, backend='user_profile.backends.EmailBackend')
+                messages.success(request, 'Başarıyla giriş yaptınız!')
+                
+                # next parametresini kontrol et
+                next_url = request.GET.get('next')
+                if next_url:
+                    return redirect(next_url)
+                return redirect('dashboard:home')
+            else:
+                messages.error(request, 'Geçersiz e-posta veya şifre.')
+        else:
+            # Form hatalarını mesaj olarak göster
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
 
     return render(request, 'user_profile/login.html', {'form': form})
 
 def register(request):
-    # Kullanıcı zaten giriş yapmışsa ana sayfaya yönlendir
     if request.user.is_authenticated:
         return redirect('dashboard:home')
     
     form = RegistrationForm(request.POST or None)
     
-    if request.method == 'POST' and form.is_valid():
-        user = form.save()
-        login(request, user)  # Kayıt sonrası otomatik giriş
-        messages.success(request, 'Hesabınız başarıyla oluşturuldu!')
-        return redirect('dashboard:home')
+    if request.method == 'POST':
+        if form.is_valid():
+            user = form.save()
+            
+            # Backend belirterek kullanıcıyı authenticate et
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            
+            # Email backend'i kullanarak authenticate et
+            user = authenticate(
+                request, 
+                username=form.cleaned_data.get('email'),  # Email ile authenticate
+                password=password,
+                backend='user_profile.backends.EmailBackend'
+            )
+            
+            if user is not None:
+                # Backend belirterek login yap
+                login(request, user, backend='user_profile.backends.EmailBackend')
+                messages.success(request, 'Hesabınız başarıyla oluşturuldu! Hoş geldiniz!')
+                return redirect('dashboard:home')
+            else:
+                # Authenticate başarısız olursa, kullanıcıyı login sayfasına yönlendir
+                messages.success(request, 'Hesabınız başarıyla oluşturuldu! Lütfen giriş yapın.')
+                return redirect('user_profile:login')
+        else:
+            # Form hatalarını göster
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
     
     return render(request, 'user_profile/register.html', {'form': form})
 
@@ -93,11 +139,60 @@ def profile(request):
     
     return render(request, 'user_profile/profile.html', context)
 
+login_required
+def profile_view(request):
+    """Profil görüntüleme sayfası"""
+    profile = request.user.profile
+    badges = UserBadge.objects.filter(user_profile=profile).select_related('badge')
+    
+    context = {
+        'profile': profile,
+        'badges': badges,
+    }
+    return render(request, 'user_profile/profile.html', context)
+
+@login_required
+def profile_edit(request):
+    """Profil düzenleme sayfası"""
+    profile = request.user.profile
+    
+    if request.method == 'POST':
+        user_form = UserUpdateForm(request.POST, instance=request.user)
+        profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+        
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+            messages.success(request, 'Profiliniz başarıyla güncellendi!')
+            return redirect('user_profile:profile')
+    else:
+        user_form = UserUpdateForm(instance=request.user)
+        profile_form = ProfileUpdateForm(instance=profile)
+
+    context = {
+        'user_form': user_form,
+        'profile_form': profile_form,
+    }
+    return render(request, 'user_profile/profile_edit.html', context)
+
+class CustomPasswordChangeView(PasswordChangeView):
+    template_name = 'user_profile/password_change.html'
+    success_url = reverse_lazy('user_profile:password_change_done')
+
+class CustomPasswordChangeDoneView(PasswordChangeDoneView):
+    template_name = 'user_profile/password_change_done.html'
+
 class CustomPasswordResetView(PasswordResetView):
     form_class = PasswordResetForm
     template_name = 'user_profile/password_reset.html'
     email_template_name = 'user_profile/password_reset_email.html'
-    success_url = '/profile/password_reset/done/'
+    subject_template_name = 'user_profile/password_reset_subject.txt'
+    success_url = reverse_lazy('user_profile:password_reset_done')  # DÜZELTİLDİ
+    
+    def form_valid(self, form):
+        # Email'in konsola yazdırıldığını kontrol etmek için
+        print("Password reset formu geçerli, email gönderiliyor...")
+        return super().form_valid(form)
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):
     template_name = 'user_profile/password_reset_done.html'
@@ -105,7 +200,7 @@ class CustomPasswordResetDoneView(PasswordResetDoneView):
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SetPasswordForm
     template_name = 'user_profile/password_reset_confirm.html'
-    success_url = '/profile/password_reset/complete/'
+    success_url = reverse_lazy('user_profile:password_reset_complete')  # DÜZELTİLDİ
 
 class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'user_profile/password_reset_complete.html'
@@ -229,6 +324,10 @@ def notifications_view(request):
         created_at__gte=timezone.now()-timedelta(days=30)
     ).order_by('-created_at')
     
+    # Debug için konsola yazdır
+    print(f"Okunmamış bildirim sayısı: {unread_notifications.count()}")
+    print(f"Tüm bildirim sayısı: {all_notifications.count()}")
+    
     # Mark badge notifications as seen when page is loaded
     UserBadge.objects.filter(
         user_profile=request.user.profile,
@@ -239,6 +338,26 @@ def notifications_view(request):
         'unread_notifications': unread_notifications,
         'all_notifications': all_notifications
     })
+
+@login_required
+def clear_history_notifications(request):
+    if request.method == 'POST':
+        # Kullanıcının okunmuş bildirimlerini sil
+        deleted_count, _ = Notification.objects.filter(
+            user=request.user,
+            is_read=True
+        ).delete()
+        
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success', 
+                'deleted_count': deleted_count
+            })
+        
+        messages.success(request, f'{deleted_count} bildirim silindi.')
+        return redirect('user_profile:notifications')
+    
+    return JsonResponse({'status': 'error'}, status=400)
 
 @login_required
 def mark_notification_as_read(request, notification_id):

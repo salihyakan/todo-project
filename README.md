@@ -126,6 +126,7 @@ TODO
 └─ user_profile
    ├─ admin.py
    ├─ apps.py
+   ├─ backends.py
    ├─ context_processors.py
    ├─ forms.py
    ├─ migrations
@@ -140,7 +141,16 @@ TODO
    │     ├─ badge_list.html
    │     ├─ login.html
    │     ├─ notifications.html
+   │     ├─ password_change.html
+   │     ├─ password_change_done.html
+   │     ├─ password_reset.html
+   │     ├─ password_reset_complete.html
+   │     ├─ password_reset_confirm.html
+   │     ├─ password_reset_done.html
+   │     ├─ password_reset_email.html
+   │     ├─ password_reset_subject.txt
    │     ├─ profile.html
+   │     ├─ profile_edit.html
    │     └─ register.html
    ├─ templatetags
    │  └─ badge_utils.py

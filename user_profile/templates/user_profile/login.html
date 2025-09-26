@@ -2,58 +2,97 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0 text-center">Giriş Yap</h4>
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h3 class="mb-0"><i class="fas fa-sign-in-alt me-2"></i>Giriş Yap</h3>
                 </div>
-                <div class="card-body">
-                    <form method="post" novalidate>
+                <div class="card-body p-4 p-md-5">
+                    <form method="post" novalidate class="needs-validation">
                         {% csrf_token %}
+                        
                         {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
                                 {% for error in form.non_field_errors %}
-                                    <p>{{ error }}</p>
+                                    {{ error }}
                                 {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                             </div>
                         {% endif %}
-                        <div class="mb-3">
-                            <label for="id_username" class="form-label">Kullanıcı Adı</label>
-                            <input type="text" name="username" id="id_username" 
-                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                                   value="{{ form.username.value|default_if_none:'' }}"
-                                   required>
+                        
+                        <div class="mb-4">
+                            <label for="id_username" class="form-label fw-semibold">
+                                <i class="fas fa-envelope me-2 text-primary"></i>E-posta Adresiniz
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-at text-muted"></i>
+                                </span>
+                                <input type="email" name="username" id="id_username" 
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                                       value="{{ form.username.value|default_if_none:'' }}"
+                                       placeholder="ornek@email.com"
+                                       required
+                                       autocomplete="email">
+                            </div>
                             {% if form.username.errors %}
-                                <div class="invalid-feedback">
+                                <div class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
                                     {% for error in form.username.errors %}
                                         {{ error }}
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="mb-3">
-                            <label for="id_password" class="form-label">Şifre</label>
-                            <input type="password" name="password" id="id_password" 
-                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
-                                   required>
+                        
+                        <div class="mb-4">
+                            <label for="id_password" class="form-label fw-semibold">
+                                <i class="fas fa-lock me-2 text-primary"></i>Şifre
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-key text-muted"></i>
+                                </span>
+                                <input type="password" name="password" id="id_password" 
+                                       class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                                       placeholder="Şifrenizi girin"
+                                       required
+                                       autocomplete="current-password">
+                                <button type="button" class="btn btn-outline-secondary toggle-password" 
+                                        data-target="id_password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
                             {% if form.password.errors %}
-                                <div class="invalid-feedback">
+                                <div class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
                                     {% for error in form.password.errors %}
                                         {{ error }}
                                     {% endfor %}
                                 </div>
                             {% endif %}
                         </div>
-                        <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg py-2 fw-semibold">
                                 <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
                             </button>
                         </div>
-                        <div class="text-center">
-                            <p class="mb-1">Hesabınız yok mu? <a href="{% url 'user_profile:register' %}">Kayıt Olun</a></p>
-                            <p><a href="{% url 'user_profile:password_reset' %}">Şifremi Unuttum</a></p>
+                        
+                        <div class="text-center mb-3">
+                            <a href="{% url 'user_profile:password_reset' %}" class="text-decoration-none">
+                                <i class="fas fa-question-circle me-1"></i>Şifremi Unuttum
+                            </a>
+                        </div>
+                        
+                        <div class="text-center pt-3 border-top">
+                            <p class="mb-0 text-muted">Hesabınız yok mu?</p>
+                            <a href="{% url 'user_profile:register' %}" class="btn btn-outline-success mt-2">
+                                <i class="fas fa-user-plus me-2"></i>Yeni Hesap Oluştur
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -63,9 +102,103 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.input-group-text {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus + .input-group-text,
+.form-control:focus ~ .input-group-text {
+    border-color: #86b7fe;
+    background-color: #e7f1ff;
+}
+
+.toggle-password {
+    border-left: none;
+}
+
+.toggle-password:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container.mt-4 {
+        margin-top: 1rem !important;
+    }
+    
+    .card-body {
+        padding: 2rem !important;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Şifre göster/gizle
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const target = document.getElementById(this.getAttribute('data-target'));
+            const icon = this.querySelector('i');
+            
+            if (target.type === 'password') {
+                target.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                target.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+    
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+    
+    // Auto-focus email field
     document.getElementById('id_username').focus();
 });
 </script>

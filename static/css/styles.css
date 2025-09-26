@@ -260,3 +260,134 @@ footer a:hover {
     font-weight: bold;
     color: #333;
 }
+
+/* Genel Mobil Stilleri */
+@media (max-width: 768px) {
+    body {
+        padding-top: 56px;
+        font-size: 14px;
+    }
+    
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    h1, h2, h3, h4 {
+        font-size: 1.5rem;
+    }
+    
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    /* Login/Register kartları için */
+    .card {
+        margin-bottom: 15px;
+        border-radius: 10px;
+    }
+    
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    /* Form elemanları */
+    .form-control, .form-select {
+        font-size: 0.875rem;
+        padding: 0.75rem;
+    }
+    
+    .input-group-text {
+        padding: 0.75rem;
+    }
+}
+
+/* Çok küçük ekranlar için */
+@media (max-width: 576px) {
+    body {
+        font-size: 13px;
+    }
+    
+    .btn {
+        padding: 0.5rem 1rem;
+    }
+    
+    .navbar-brand {
+        font-size: 1rem;
+    }
+    
+    .card-body {
+        padding: 1rem !important;
+    }
+    
+    h3 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Login/Register özel stilleri */
+.login-register-card {
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+/* Form validation stilleri */
+.was-validated .form-control:valid {
+    border-color: #198754;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 3.6.4.4.4-.4'/%3e%3cpath d='M6 7v2'/%3e%3c/svg%3e");
+}
+
+/* Buton hover efektleri */
+.btn {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Input group stilleri */
+.input-group:focus-within .input-group-text {
+    border-color: #86b7fe;
+    background-color: #e7f1ff;
+}
+
+/* Şifre gücü göstergesi */
+.password-strength .progress {
+    height: 6px;
+    border-radius: 3px;
+}
+
+/* Navbar mobil ayarları */
+.navbar-toggler {
+    border: none;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Footer responsive */
+@media (max-width: 768px) {
+    footer .row > div {
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+}
+
+/* Alert mesajları */
+.alert {
+    border-radius: 8px;
+    border: none;
+}
+
+.alert-dismissible .btn-close {
+    padding: 0.75rem;
+}

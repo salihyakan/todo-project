@@ -1,0 +1,302 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0"><i class="fas fa-user-edit me-2"></i>Profili Düzenle</h4>
+                        <a href="{% url 'user_profile:profile' %}" class="btn btn-sm btn-light">
+                            <i class="fas fa-arrow-left me-1"></i>Geri Dön
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Profil Resmi ve Kullanıcı Bilgileri -->
+                        <div class="row mb-4">
+                            <div class="col-md-4 text-center">
+                                <div class="mb-4">
+                                    <img src="{{ user.profile.profile_picture.url }}" 
+                                         alt="Mevcut profil resmi" 
+                                         class="rounded-circle current-profile-image mb-3"
+                                         width="140" 
+                                         height="140"
+                                         style="object-fit: cover; border: 4px solid #e9ecef;">
+                                    
+                                    <div class="mb-3">
+                                        <label for="id_profile_picture" class="form-label fw-semibold">Yeni Resim Seç</label>
+                                        <input type="file" name="profile_picture" 
+                                               class="form-control" id="id_profile_picture" 
+                                               accept="image/*">
+                                        {% if profile_form.profile_picture.errors %}
+                                            <div class="invalid-feedback d-block">
+                                                {{ profile_form.profile_picture.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-8">
+                                <h5 class="border-bottom pb-2 mb-3 text-primary">
+                                    <i class="fas fa-user me-2"></i>Kullanıcı Bilgileri
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label for="id_username" class="form-label fw-semibold">Kullanıcı Adı</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-user text-muted"></i>
+                                        </span>
+                                        <input type="text" name="username" class="form-control" 
+                                               id="id_username" value="{{ user_form.username.value }}" 
+                                               required>
+                                    </div>
+                                    {% if user_form.username.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ user_form.username.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="id_email" class="form-label fw-semibold">E-posta Adresi</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-envelope text-muted"></i>
+                                        </span>
+                                        <input type="email" name="email" class="form-control" 
+                                               id="id_email" value="{{ user_form.email.value }}" 
+                                               required>
+                                    </div>
+                                    {% if user_form.email.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ user_form.email.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Profil Bilgileri -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-primary">
+                                <i class="fas fa-info-circle me-2"></i>Profil Bilgileri
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="id_bio" class="form-label fw-semibold">Hakkımda</label>
+                                <textarea name="bio" class="form-control" id="id_bio" 
+                                          rows="3" placeholder="Kendinizden kısaca bahsedin...">{{ profile_form.bio.value|default:'' }}</textarea>
+                                <div class="form-text">Kendinizden kısaca bahsedin (isteğe bağlı).</div>
+                                {% if profile_form.bio.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ profile_form.bio.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="id_website" class="form-label fw-semibold">Web Sitesi</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-globe text-muted"></i>
+                                    </span>
+                                    <input type="url" name="website" class="form-control" 
+                                           id="id_website" value="{{ profile_form.website.value|default:'' }}" 
+                                           placeholder="https://ornek.com">
+                                </div>
+                                <div class="form-text">Kişisel web siteniz veya blogunuz (isteğe bağlı).</div>
+                                {% if profile_form.website.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ profile_form.website.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Üretkenlik Ayarları -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-primary">
+                                <i class="fas fa-cogs me-2"></i>Üretkenlik Ayarları
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label for="id_pomodoro_duration" class="form-label fw-semibold">Pomodoro Süresi</label>
+                                    <div class="input-group">
+                                        <input type="number" name="pomodoro_duration" class="form-control" 
+                                               id="id_pomodoro_duration" value="{{ profile_form.pomodoro_duration.value }}" 
+                                               min="5" max="60" required>
+                                        <span class="input-group-text bg-light">dakika</span>
+                                    </div>
+                                    <div class="form-text">Bir pomodoro seansının süresi.</div>
+                                    {% if profile_form.pomodoro_duration.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ profile_form.pomodoro_duration.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="id_daily_goal" class="form-label fw-semibold">Günlük Hedef</label>
+                                    <div class="input-group">
+                                        <input type="number" name="daily_goal" class="form-control" 
+                                               id="id_daily_goal" value="{{ profile_form.daily_goal.value }}" 
+                                               min="1" max="20" required>
+                                        <span class="input-group-text bg-light">görev/gün</span>
+                                    </div>
+                                    <div class="form-text">Günlük tamamlamayı hedeflediğiniz görev sayısı.</div>
+                                    {% if profile_form.daily_goal.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {{ profile_form.daily_goal.errors.0 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- İşlem Butonları -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% url 'user_profile:profile' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>Değişiklikleri Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.current-profile-image {
+    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.current-profile-image:hover {
+    transform: scale(1.05);
+}
+
+.form-control:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+    background: linear-gradient(135deg, #357abd 0%, #2a5f9a 100%);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%) !important;
+    border-bottom: none;
+}
+
+/* Pastel tonlar için renk paleti */
+:root {
+    --pastel-blue: #a0c4ff;
+    --pastel-green: #b5e48c;
+    --pastel-orange: #ffd6a5;
+    --pastel-purple: #c8b6ff;
+    --pastel-pink: #ffadad;
+    --pastel-main: #4a90e2;
+}
+
+.bg-pastel-primary { background-color: var(--pastel-blue); }
+.bg-pastel-success { background-color: var(--pastel-green); }
+.bg-pastel-warning { background-color: var(--pastel-orange); }
+.bg-pastel-info { background-color: var(--pastel-purple); }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .current-profile-image {
+        width: 120px !important;
+        height: 120px !important;
+    }
+    
+    .row.mb-4 {
+        flex-direction: column;
+    }
+    
+    .col-md-4.text-center {
+        order: -1;
+        margin-bottom: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const forms = document.querySelectorAll('.needs-validation');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+    });
+    
+    // Profil resmi önizleme
+    const profilePictureInput = document.getElementById('id_profile_picture');
+    const currentProfileImage = document.querySelector('.current-profile-image');
+    
+    if (profilePictureInput && currentProfileImage) {
+        profilePictureInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentProfileImage.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

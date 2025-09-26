@@ -2,81 +2,138 @@
 {% load static %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0 text-center">Yeni Hesap Oluştur</h4>
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>Yeni Hesap Oluştur</h3>
                 </div>
-                <div class="card-body">
-                    {% if form.errors %}
-                    <div class="alert alert-danger">
-                        <strong>Hata!</strong> Lütfen aşağıdaki hataları düzeltin.
-                    </div>
+                <div class="card-body p-4 p-md-5">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{% if message.tags == 'success' %}check-circle{% else %}exclamation-triangle{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
                     {% endif %}
                     
-                    <form method="post" novalidate>
+                    <form method="post" novalidate class="needs-validation">
                         {% csrf_token %}
                         
                         <div class="mb-3">
-                            <label for="id_username" class="form-label">Kullanıcı Adı</label>
-                            {{ form.username }}
-                            <div class="form-text">150 karakter veya daha az. Harfler, rakamlar ve @/./+/-/_ karakterleri.</div>
+                            <label for="id_username" class="form-label fw-semibold">
+                                <i class="fas fa-user me-2 text-success"></i>Kullanıcı Adı
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-user text-muted"></i>
+                                </span>
+                                <input type="text" name="username" id="id_username" 
+                                       class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                                       value="{{ form.username.value|default_if_none:'' }}"
+                                       placeholder="Kullanıcı adınız"
+                                       required
+                                       autocomplete="username">
+                            </div>
+                            <div class="form-text small">150 karakter veya daha az. Harfler, rakamlar ve @/./+/-/_ karakterleri.</div>
                             {% if form.username.errors %}
                                 <div class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
                                     {{ form.username.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
                         
                         <div class="mb-3">
-                            <label for="id_email" class="form-label">E-posta</label>
-                            {{ form.email }}
+                            <label for="id_email" class="form-label fw-semibold">
+                                <i class="fas fa-envelope me-2 text-success"></i>E-posta
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-at text-muted"></i>
+                                </span>
+                                <input type="email" name="email" id="id_email" 
+                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                                       value="{{ form.email.value|default_if_none:'' }}"
+                                       placeholder="ornek@email.com"
+                                       required
+                                       autocomplete="email">
+                            </div>
                             {% if form.email.errors %}
                                 <div class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
                                     {{ form.email.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
                         
                         <div class="mb-3">
-                            <label for="id_password1" class="form-label">Şifre</label>
-                            {{ form.password1 }}
-                            <div class="form-text">
-                                <ul>
-                                    <li>Şifreniz diğer kişisel bilgilerinizle çok benzer olmamalı.</li>
-                                    <li>Şifreniz en az 8 karakter içermelidir.</li>
-                                    <li>Şifreniz yaygın olarak kullanılan bir şifre olmamalıdır.</li>
-                                    <li>Şifreniz tamamen sayısal olamaz.</li>
-                                </ul>
+                            <label for="id_password1" class="form-label fw-semibold">
+                                <i class="fas fa-lock me-2 text-success"></i>Şifre
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-key text-muted"></i>
+                                </span>
+                                <input type="password" name="password1" id="id_password1" 
+                                       class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                                       placeholder="Şifrenizi girin"
+                                       required
+                                       autocomplete="new-password">
+                                <button type="button" class="btn btn-outline-secondary toggle-password" 
+                                        data-target="id_password1">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                             </div>
                             {% if form.password1.errors %}
                                 <div class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
                                     {{ form.password1.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="id_password2" class="form-label">Şifre Onayı</label>
-                            {{ form.password2 }}
-                            <div class="form-text">Doğrulama için şifrenizi tekrar girin.</div>
+                        <div class="mb-4">
+                            <label for="id_password2" class="form-label fw-semibold">
+                                <i class="fas fa-lock me-2 text-success"></i>Şifre Onayı
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0">
+                                    <i class="fas fa-key text-muted"></i>
+                                </span>
+                                <input type="password" name="password2" id="id_password2" 
+                                       class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                                       placeholder="Şifrenizi tekrar girin"
+                                       required
+                                       autocomplete="new-password">
+                                <button type="button" class="btn btn-outline-secondary toggle-password" 
+                                        data-target="id_password2">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text small">Doğrulama için şifrenizi tekrar girin.</div>
                             {% if form.password2.errors %}
                                 <div class="invalid-feedback d-block">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
                                     {{ form.password2.errors.0 }}
                                 </div>
                             {% endif %}
                         </div>
                         
-                        <div class="d-grid mb-3">
-                            <button type="submit" class="btn btn-success btn-lg">
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-success btn-lg py-2 fw-semibold">
                                 <i class="fas fa-user-plus me-2"></i>Hesap Oluştur
                             </button>
                         </div>
                         
-                        <div class="text-center">
-                            <p>Zaten hesabınız var mı? <a href="{% url 'user_profile:login' %}">Giriş Yapın</a></p>
+                        <div class="text-center pt-3 border-top">
+                            <p class="mb-0 text-muted">Zaten hesabınız var mı?</p>
+                            <a href="{% url 'user_profile:login' %}" class="btn btn-outline-primary mt-2">
+                                <i class="fas fa-sign-in-alt me-2"></i>Giriş Yapın
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -86,59 +143,144 @@
 </div>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: none;
+}
+
+.input-group-text {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus + .input-group-text,
+.form-control:focus ~ .input-group-text {
+    border-color: #198754;
+    background-color: #e7f7ef;
+}
+
+.toggle-password {
+    border-left: none;
+}
+
+.toggle-password:hover {
+    background-color: #f8f9fa;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container.mt-4 {
+        margin-top: 1rem !important;
+    }
+    
+    .card-body {
+        padding: 2rem !important;
+    }
+    
+    .btn-lg {
+        padding: 0.75rem 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-body {
+        padding: 1.5rem !important;
+    }
+    
+    .form-text ul {
+        padding-left: 1rem;
+        margin-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Şifre göster/gizle
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            const target = document.getElementById(this.getAttribute('data-target'));
+            const icon = this.querySelector('i');
+            
+            if (target.type === 'password') {
+                target.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                target.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+    
     // Şifre gücü kontrolü
     const password1 = document.getElementById('id_password1');
     const password2 = document.getElementById('id_password2');
     
     if (password1) {
         password1.addEventListener('input', function() {
-            const strengthIndicator = document.createElement('div');
-            strengthIndicator.className = 'password-strength mt-2';
-            
-            // Şifre gücü hesaplama (basit bir örnek)
-            const password = this.value;
-            let strength = 0;
-            
-            if (password.length >= 8) strength += 1;
-            if (/[A-Z]/.test(password)) strength += 1;
-            if (/[0-9]/.test(password)) strength += 1;
-            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-            
-            // Güç göstergesi
-            const strengthText = ['Çok zayıf', 'Zayıf', 'Orta', 'Güçlü', 'Çok güçlü'];
-            const strengthColors = ['danger', 'warning', 'info', 'success', 'success'];
-            
-            if (password) {
-                const indicator = document.querySelector('.password-strength') || strengthIndicator;
-                indicator.innerHTML = `
-                    <div class="progress">
-                        <div class="progress-bar bg-${strengthColors[strength]}" 
-                             role="progressbar" style="width: ${strength * 25}%">
-                            ${strengthText[strength]}
-                        </div>
-                    </div>
-                `;
-                if (!document.querySelector('.password-strength')) {
-                    this.parentNode.appendChild(indicator);
-                }
-            } else if (document.querySelector('.password-strength')) {
-                document.querySelector('.password-strength').remove();
+            checkPasswordStrength(this.value);
+        });
+    }
+    
+    if (password1 && password2) {
+        password2.addEventListener('input', function() {
+            if (password1.value !== password2.value) {
+                this.setCustomValidity('Şifreler eşleşmiyor!');
+                this.classList.add('is-invalid');
+            } else {
+                this.setCustomValidity('');
+                this.classList.remove('is-invalid');
             }
         });
     }
     
-    // Şifre eşleşmesi kontrolü
-    if (password1 && password2) {
-        password2.addEventListener('input', function() {
-            if (password1.value !== password2.value) {
-                password2.setCustomValidity('Şifreler eşleşmiyor!');
-            } else {
-                password2.setCustomValidity('');
-            }
-        });
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        const feedback = document.getElementById('password-strength-feedback') || createStrengthFeedback();
+        
+        if (password.length >= 8) strength += 1;
+        if (/[A-Z]/.test(password)) strength += 1;
+        if (/[0-9]/.test(password)) strength += 1;
+        if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+        
+        const strengthText = ['Çok zayıf', 'Zayıf', 'Orta', 'Güçlü', 'Çok güçlü'];
+        const strengthColors = ['danger', 'warning', 'info', 'success', 'success'];
+        
+        feedback.innerHTML = `
+            <div class="progress mt-1" style="height: 6px;">
+                <div class="progress-bar bg-${strengthColors[strength]}" 
+                     style="width: ${strength * 25}%"></div>
+            </div>
+            <small class="text-${strengthColors[strength]}">${strengthText[strength]}</small>
+        `;
+    }
+    
+    function createStrengthFeedback() {
+        const div = document.createElement('div');
+        div.id = 'password-strength-feedback';
+        div.className = 'mt-1';
+        password1.parentNode.parentNode.appendChild(div);
+        return div;
     }
 });
 </script>
