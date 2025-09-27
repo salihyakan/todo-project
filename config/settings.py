@@ -20,7 +20,8 @@ INSTALLED_APPS = [
     'todo',
     'user_profile',
     'notes',
-    'analytics'
+    'analytics',
+    'tools'
 ]
 
 MIDDLEWARE = [
@@ -80,10 +81,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = 'tr-tr'
+LANGUAGE_CODE = 'tr'
 TIME_ZONE = 'Europe/Istanbul'
 USE_I18N = True
 USE_TZ = True
+USE_L10N = True
+
+DATETIME_FORMAT = 'd.m.Y H:i'
+DATE_FORMAT = 'd.m.Y'
+TIME_FORMAT = 'H:i'
 
 # Static files
 STATIC_URL = "/static/"

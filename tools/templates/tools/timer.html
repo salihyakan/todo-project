@@ -1,0 +1,271 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Zamanlayıcı - Araçlar{% endblock %}
+
+{% block extra_css %}
+<style>
+.timer-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.time-inputs {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.time-input {
+    text-align: center;
+}
+
+.time-input label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: #6c757d;
+}
+
+.time-input input {
+    width: 80px;
+    height: 60px;
+    font-size: 2rem;
+    text-align: center;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+}
+
+.time-display {
+    font-size: 5rem;
+    font-weight: bold;
+    text-align: center;
+    color: #2c3e50;
+    margin: 2rem 0;
+    font-family: 'Courier New', monospace;
+}
+
+.progress {
+    height: 10px;
+    margin: 2rem 0;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 576px) {
+    .time-display {
+        font-size: 3.5rem;
+    }
+    .time-input input {
+        width: 60px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+    .controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    .controls .btn {
+        width: 200px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Zamanlayıcı</h2>
+            <a href="{% url 'tools:home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri
+            </a>
+        </div>
+        
+        <div class="timer-container text-center">
+            <div class="time-inputs">
+                <div class="time-input">
+                    <label for="hours">Saat</label>
+                    <input type="number" id="hours" min="0" max="23" value="0" onchange="updateTimeDisplay()">
+                </div>
+                <div class="time-input">
+                    <label for="minutes">Dakika</label>
+                    <input type="number" id="minutes" min="0" max="59" value="10" onchange="updateTimeDisplay()">
+                </div>
+                <div class="time-input">
+                    <label for="seconds">Saniye</label>
+                    <input type="number" id="seconds" min="0" max="59" value="0" onchange="updateTimeDisplay()">
+                </div>
+            </div>
+            
+            <div class="time-display" id="timeDisplay">10:00</div>
+            
+            <div class="progress">
+                <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+            </div>
+            
+            <div class="controls mb-4">
+                <button class="btn btn-success btn-lg" id="startBtn" onclick="startTimer()">
+                    <i class="fas fa-play me-2"></i>Başlat
+                </button>
+                <button class="btn btn-warning btn-lg" id="pauseBtn" onclick="pauseTimer()" disabled>
+                    <i class="fas fa-pause me-2"></i>Duraklat
+                </button>
+                <button class="btn btn-danger btn-lg" onclick="resetTimer()">
+                    <i class="fas fa-redo me-2"></i>Sıfırla
+                </button>
+            </div>
+            
+            <div class="alert alert-info">
+                <small>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Zamanlayıcı bitince sesli uyarı verecektir.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let totalTime = 600; // 10 dakika varsayılan
+let remainingTime = totalTime;
+let timerInterval;
+let isRunning = false;
+let originalTime = totalTime;
+
+function updateTimeDisplay() {
+    const hours = parseInt(document.getElementById('hours').value) || 0;
+    const minutes = parseInt(document.getElementById('minutes').value) || 0;
+    const seconds = parseInt(document.getElementById('seconds').value) || 0;
+    
+    totalTime = hours * 3600 + minutes * 60 + seconds;
+    remainingTime = totalTime;
+    originalTime = totalTime;
+    
+    updateDisplay();
+    updateProgressBar();
+}
+
+function updateDisplay() {
+    const hours = Math.floor(remainingTime / 3600);
+    const minutes = Math.floor((remainingTime % 3600) / 60);
+    const seconds = remainingTime % 60;
+    
+    if (hours > 0) {
+        document.getElementById('timeDisplay').textContent = 
+            `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    } else {
+        document.getElementById('timeDisplay').textContent = 
+            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+}
+
+function updateProgressBar() {
+    const progress = ((originalTime - remainingTime) / originalTime) * 100;
+    document.getElementById('progressBar').style.width = `${progress}%`;
+}
+
+function startTimer() {
+    if (!isRunning && remainingTime > 0) {
+        isRunning = true;
+        timerInterval = setInterval(() => {
+            remainingTime--;
+            updateDisplay();
+            updateProgressBar();
+            
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                playAlarm();
+                showCompletionAlert();
+            }
+        }, 1000);
+        
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('pauseBtn').disabled = false;
+    }
+}
+
+function pauseTimer() {
+    if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+    }
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    isRunning = false;
+    remainingTime = totalTime;
+    updateDisplay();
+    updateProgressBar();
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('pauseBtn').disabled = true;
+}
+
+function playAlarm() {
+    // Basit bir bip sesi simülasyonu
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1);
+}
+
+function showCompletionAlert() {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-warning alert-dismissible fade show';
+    alert.innerHTML = `
+        <i class="fas fa-bell me-2"></i>
+        <strong>Zamanlayıcı bitti!</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.querySelector('.timer-container').prepend(alert);
+    
+    // 5 saniye sonra alert'i otomatik kaldır
+    setTimeout(() => {
+        if (alert.parentNode) {
+            alert.remove();
+        }
+    }, 5000);
+}
+
+// Klavye kontrolleri
+document.addEventListener('keydown', function(event) {
+    if (event.code === 'Space') {
+        event.preventDefault();
+        if (isRunning) {
+            pauseTimer();
+        } else {
+            startTimer();
+        }
+    } else if (event.code === 'KeyR') {
+        resetTimer();
+    }
+});
+
+// İlk yükleme
+updateTimeDisplay();
+</script>
+{% endblock %}

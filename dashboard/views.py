@@ -12,6 +12,7 @@ from django.views.decorators.csrf import csrf_exempt
 from notes.models import Note
 from datetime import datetime
 from django.views.decorators.http import require_http_methods
+from .forms import CalendarEventForm 
 
 # Redis utils kaldırıldı - basit alternatifler eklendi
 def get_pomodoro_stats(user_id):
@@ -106,73 +107,23 @@ def pomodoro_view(request):
 
 @login_required
 def calendar_view(request):
-    return render(request, 'dashboard/calendar.html')
-
-@login_required
-@require_http_methods(["POST"])
-def create_calendar_event(request):
-    data = json.loads(request.body)
-    start_date_str = data.get('start_date')
+    # Formu başlat
+    form = CalendarEventForm()
     
-    # Saat dilimi düzeltmesi: Gelen tarihi Türkiye saat dilimine göre işle
-    try:
-        naive_datetime = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M")
-        turkiye_tz = pytz.timezone('Europe/Istanbul')
-        start_date = turkiye_tz.localize(datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M"))
-    except Exception as e:
-        return JsonResponse({
-            "status": "error",
-            "message": f"Tarih formatı hatası: {str(e)}"
-        }, status=400)
-    
-    # Hatırlatıcı bilgisini al
-    reminder = data.get('reminder')
-    if reminder:
-        reminder = int(reminder)
-    
-    event = CalendarEvent.objects.create(
-        user=request.user,
-        title=data.get('title'),
-        description=data.get('description', ''),
-        start_date=start_date,
-        event_type=data.get('event_type'),
-        reminder=reminder
-    )
-    
-    return JsonResponse({
-        "status": "success",
-        "message": "Etkinlik başarıyla oluşturuldu!",
-        "event_id": event.id,
-        "event_url": event.get_absolute_url(),
-        "start_date_utc": start_date.astimezone(pytz.utc).isoformat(),
-        "start_date_local": start_date.isoformat()
-    })
-
-@login_required
-@require_http_methods(["GET"])
-def get_calendar_events(request):
-    start = request.GET.get('start')
-    end = request.GET.get('end')
-    
+    # Etkinlikleri JSON formatında hazırla
     turkiye_tz = pytz.timezone('Europe/Istanbul')
+    start_date = timezone.now() - timedelta(days=30)
+    end_date = timezone.now() + timedelta(days=365)
     
-    try:
-        # Tarihleri zaman dilimiyle birlikte işle
-        start_date = turkiye_tz.localize(datetime.strptime(start, "%Y-%m-%dT%H:%M:%S"))
-        end_date = turkiye_tz.localize(datetime.strptime(end, "%Y-%m-%dT%H:%M:%S"))
-    except:
-        start_date = timezone.now() - timedelta(days=30)
-        end_date = timezone.now() + timedelta(days=30)
-
     events = CalendarEvent.objects.filter(
         user=request.user,
         start_date__gte=start_date,
         start_date__lte=end_date
     )
-
+    
     events_data = []
     for event in events:
-        # Etkinlik zamanını Türkiye saat dilimine dönüştür
+        # Zaman dilimi düzeltmesi - UTC'den Türkiye saatine
         start_date_tz = event.start_date.astimezone(turkiye_tz)
         end_date_tz = event.end_date.astimezone(turkiye_tz) if event.end_date else None
         
@@ -182,15 +133,115 @@ def get_calendar_events(request):
             'start': start_date_tz.isoformat(),
             'end': end_date_tz.isoformat() if end_date_tz else None,
             'color': event.color,
+            'extendedProps': {
+                'type': event.event_type,
+                'description': event.description,
+                'url': event.get_absolute_url()
+            }
+        })
+    
+    context = {
+        'form': form,
+        'events_json': json.dumps(events_data)
+    }
+    return render(request, 'dashboard/calendar.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def create_calendar_event(request):
+    try:
+        data = json.loads(request.body)
+        start_date_str = data.get('start_date')
+        
+        # Saat dilimi düzeltmesi
+        turkiye_tz = pytz.timezone('Europe/Istanbul')
+        
+        try:
+            naive_datetime = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M")
+            start_date = turkiye_tz.localize(naive_datetime)
+        except Exception as e:
+            return JsonResponse({
+                "status": "error",
+                "message": f"Tarih formatı hatası: {str(e)}"
+            }, status=400)
+        
+        # Bitiş tarihini işle (opsiyonel)
+        end_date = None
+        end_date_str = data.get('end_date')
+        if end_date_str:
+            try:
+                naive_end = datetime.strptime(end_date_str, "%Y-%m-%dT%H:%M")
+                end_date = turkiye_tz.localize(naive_end)
+            except:
+                pass
+        
+        # Etkinlik oluştur - otomatik bildirim için reminder kullanılmıyor
+        event = CalendarEvent.objects.create(
+            user=request.user,
+            title=data.get('title'),
+            description=data.get('description', ''),
+            start_date=start_date,
+            end_date=end_date,
+            event_type=data.get('event_type'),
+            reminder=None  # Artık otomatik bildirim
+        )
+        
+        return JsonResponse({
+            "status": "success",
+            "message": "Etkinlik başarıyla oluşturuldu! Başlangıç ve bitiş zamanlarında otomatik bildirim gönderilecek.",
+            "event_id": event.id,
+            "event_url": event.get_absolute_url(),
+            "start_date_local": start_date.isoformat()
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            "status": "error",
+            "message": f"Bir hata oluştu: {str(e)}"
+        }, status=400)
+
+@login_required
+@require_http_methods(["GET"])
+def get_calendar_events(request):
+    start = request.GET.get('start')
+    end = request.GET.get('end')
+    
+    # Basit tarih işleme - zaman dilimi dönüşümlerini kaldırıyoruz
+    try:
+        if start and end:
+            # Tarihleri doğrudan işle
+            start_date = datetime.fromisoformat(start.replace('Z', ''))
+            end_date = datetime.fromisoformat(end.replace('Z', ''))
+        else:
+            start_date = timezone.now() - timedelta(days=30)
+            end_date = timezone.now() + timedelta(days=365)
+    except:
+        start_date = timezone.now() - timedelta(days=30)
+        end_date = timezone.now() + timedelta(days=365)
+
+    events = CalendarEvent.objects.filter(
+        user=request.user,
+        start_date__gte=start_date,
+        start_date__lte=end_date
+    )
+
+    events_data = []
+    for event in events:
+        # Zaman dilimi dönüşümü yapmadan doğrudan gönder
+        events_data.append({
+            'id': event.id,
+            'title': event.title,
+            'start': event.start_date.isoformat(),
+            'end': event.end_date.isoformat() if event.end_date else None,
+            'color': event.color,
             'allDay': event.is_all_day,
             'extendedProps': {
                 'type': event.event_type,
                 'description': event.description,
-                'reminder': event.reminder,
-                'reminder_time': event.reminder_time.astimezone(turkiye_tz).isoformat() if event.reminder_time else None,
                 'url': event.get_absolute_url()
             }
         })
+    
     return JsonResponse(events_data, safe=False)
 
 @login_required

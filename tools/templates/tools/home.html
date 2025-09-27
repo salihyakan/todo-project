@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Araçlar - TODO{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="display-5 mb-4 text-center">Yardımcı Araçlar</h1>
+        <p class="lead text-center mb-5">Üretkenliğinizi artıracak kullanışlı araçlar</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Hesap Makinesi Kartı -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+                <div class="icon-wrapper bg-primary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="fas fa-calculator fa-2x text-white"></i>
+                </div>
+                <h3 class="h5 card-title">Hesap Makinesi</h3>
+                <p class="card-text text-muted">Gelişmiş hesap makinesi ile matematik işlemlerinizi kolayca yapın</p>
+                <a href="{% url 'tools:calculator' %}" class="btn btn-primary mt-2">Kullan</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kronometre Kartı -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+                <div class="icon-wrapper bg-success rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="fas fa-stopwatch fa-2x text-white"></i>
+                </div>
+                <h3 class="h5 card-title">Kronometre</h3>
+                <p class="card-text text-muted">Zamanı doğru ölçün, aktivitelerinizin süresini takip edin</p>
+                <a href="{% url 'tools:stopwatch' %}" class="btn btn-success mt-2">Kullan</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zamanlayıcı Kartı -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+                <div class="icon-wrapper bg-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                    <i class="fas fa-hourglass-half fa-2x text-white"></i>
+                </div>
+                <h3 class="h5 card-title">Zamanlayıcı</h3>
+                <p class="card-text text-muted">Geri sayım zamanlayıcısı ile zamanı yönetin</p>
+                <a href="{% url 'tools:timer' %}" class="btn btn-warning mt-2">Kullan</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.icon-wrapper {
+    transition: transform 0.3s ease;
+}
+.card:hover .icon-wrapper {
+    transform: scale(1.1);
+}
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}

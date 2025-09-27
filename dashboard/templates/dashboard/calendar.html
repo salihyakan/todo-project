@@ -127,6 +127,7 @@
   .fc-event {
     border: 1px solid transparent !important;
     color: #212529 !important;
+    /* Yazı rengini siyah yapıyoruz */
     font-size: 0.85rem;
     padding: 2px 4px;
     margin: 1px 0;
@@ -137,6 +138,11 @@
     gap: 4px;
     max-width: 100%;
     overflow: hidden;
+  }
+
+  .fc-event.fc-event-multiday {
+    color: #212529 !important;
+    font-weight: 500 !important;
   }
 
   .fc-event:hover {
@@ -163,12 +169,14 @@
     text-overflow: ellipsis;
     display: block;
     width: 100%;
+    color: #212529 !important;
   }
 
   .fc-event-time {
-    font-weight: 400 !important;
+    font-weight: 500 !important;
     flex-shrink: 0;
     margin-right: 4px;
+    color: #212529 !important;
   }
 
   .fc-event-dot {
@@ -186,6 +194,74 @@
 
   .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
     font-weight: 600;
+  }
+
+  /* Responsive tasarım için eklemeler - MEVCUT YAPIYI BOZMADAN */
+  @media (max-width: 768px) {
+    .fc-toolbar {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .fc-toolbar .fc-button-group {
+      order: 2;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .fc-toolbar .fc-toolbar-chunk:first-child {
+      order: 1;
+      width: 100%;
+      text-align: center;
+    }
+
+    .fc-toolbar .fc-toolbar-chunk:last-child {
+      order: 3;
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .fc-dayGridMonth-view .fc-day {
+      min-height: 60px;
+    }
+
+    .fc-event {
+      font-size: 0.7em;
+      padding: 1px 2px;
+    }
+
+    .modal-dialog {
+      margin: 10px;
+      max-width: 95%;
+    }
+
+    #calendar {
+      padding: 10px;
+      min-height: 400px;
+    }
+  }
+
+  /* Yükleme animasyonu */
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-radius: 50%;
+    border-top: 2px solid #3498db;
+    animation: spin 1s linear infinite;
+    margin-left: 8px;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
   }
 </style>
 {% endblock %}
@@ -218,34 +294,45 @@
               <option value="reminder">Hatırlatıcı</option>
             </select>
           </div>
-          <div class="mb-3">
-            <label for="eventDate" class="form-label">Tarih</label>
-            <input type="date" class="form-control" id="eventDate" name="start_date" required>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="eventStartDate" class="form-label">Başlangıç Tarihi</label>
+              <input type="date" class="form-control" id="eventStartDate" name="start_date" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="eventStartTime" class="form-label">Başlangıç Saati</label>
+              <input type="time" class="form-control" id="eventStartTime" name="start_time" required>
+            </div>
           </div>
-          <div class="mb-3">
-            <label for="eventTime" class="form-label">Saat</label>
-            <input type="time" class="form-control" id="eventTime" name="start_time" required>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="eventEndDate" class="form-label">Bitiş Tarihi</label>
+              <input type="date" class="form-control" id="eventEndDate" name="end_date">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="eventEndTime" class="form-label">Bitiş Saati</label>
+              <input type="time" class="form-control" id="eventEndTime" name="end_time">
+            </div>
           </div>
           <div class="mb-3">
             <label for="eventDesc" class="form-label">Açıklama</label>
             <textarea class="form-control" id="eventDesc" name="description" rows="3"></textarea>
           </div>
-          <!-- Hatırlatıcı seçeneği -->
-          <div class="mb-3">
-            <label for="eventReminder" class="form-label">Hatırlatıcı</label>
-            <select class="form-select" id="eventReminder" name="reminder">
-              <option value="">Hatırlatıcı yok</option>
-              <option value="5">5 dakika önce</option>
-              <option value="15">15 dakika önce</option>
-              <option value="30">30 dakika önce</option>
-              <option value="60">1 saat önce</option>
-              <option value="1440">1 gün önce</option>
-            </select>
+          <!-- Otomatik bildirim bilgisi -->
+          <div class="alert alert-info">
+            <small>
+              <i class="fas fa-info-circle"></i>
+              <strong>Otomatik Bildirim:</strong> Başlangıç zamanında etkinlik başlangıcı,
+              bitiş zamanında ise bitiş bildirimi otomatik olarak gönderilecektir.
+            </small>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
-          <button type="submit" class="btn btn-primary">Kaydet</button>
+          <button type="submit" class="btn btn-primary" id="saveButton">
+            <span class="button-text">Kaydet</span>
+            <span class="loading-spinner" style="display: none;"></span>
+          </button>
         </div>
       </div>
     </form>
@@ -261,249 +348,294 @@
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
 
-    // Türkiye saat dilimi ayarı
-    const turkiyeTimeZone = 'Europe/Istanbul';
-
+    // Zaman dilimi ayarını kaldırıyoruz - doğrudan lokal saati kullanacağız
     window.calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'tr',
-      timeZone: turkiyeTimeZone,  // Zaman dilimi düzeltildi
-      themeSystem: 'standard',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-      },
-      buttonText: {
-        today: 'Bugün',
-        month: 'Ay',
-        week: 'Hafta',
-        day: 'Gün'
-      },
-      weekNumbers: false,
-      dayMaxEvents: true,
-      editable: true,
-      selectable: true,
-      events: {
-        url: "{% url 'dashboard:calendar_events' %}",
-        method: 'GET',
-        failure: function () {
-          console.error('Etkinlikler yüklenirken hata oluştu');
+        initialView: 'dayGridMonth',
+        locale: 'tr',
+        timeZone: 'local', // ÖNEMLİ: 'Europe/Istanbul' yerine 'local' kullanıyoruz
+        themeSystem: 'standard',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        extraParams: {
-          timezone: turkiyeTimeZone
+        buttonText: {
+            today: 'Bugün',
+            month: 'Ay',
+            week: 'Hafta',
+            day: 'Gün'
+        },
+        weekNumbers: false,
+        dayMaxEvents: true,
+        editable: true,
+        selectable: true,
+        events: {
+            url: "{% url 'dashboard:calendar_events' %}",
+            method: 'GET',
+            failure: function () {
+                console.error('Etkinlikler yüklenirken hata oluştu');
+            }
+            // extraParams kısmını kaldırıyoruz
+        },
+        eventContent: function (arg) {
+            // Zamanı doğrudan lokal saat olarak formatla - BASİT VE DOĞRU YÖNTEM
+            let timeText = '';
+            if (arg.event.start) {
+                const eventDate = arg.event.start;
+                timeText = eventDate.getHours().toString().padStart(2, '0') + ':' + 
+                          eventDate.getMinutes().toString().padStart(2, '0');
+            }
+
+            // Etkinlik içeriğini oluştur
+            const eventEl = document.createElement('div');
+            eventEl.className = 'fc-event-main';
+
+            // Madde imleci ekle
+            const dotEl = document.createElement('span');
+            dotEl.className = 'fc-event-dot';
+            eventEl.appendChild(dotEl);
+
+            // Zaman bilgisi
+            if (timeText && !arg.event.allDay) {
+                const timeEl = document.createElement('span');
+                timeEl.className = 'fc-event-time';
+                timeEl.textContent = timeText;
+                eventEl.appendChild(timeEl);
+            }
+
+            // Başlık container'ı
+            const titleContainer = document.createElement('div');
+            titleContainer.className = 'fc-event-title-container';
+
+            // Başlık - YAZI RENGİ SİYAH GARANTİLENİYOR
+            const titleEl = document.createElement('span');
+            titleEl.className = 'fc-event-title';
+            titleEl.textContent = arg.event.title;
+            titleEl.style.color = '#212529'; // Siyah renk garantisi
+            titleEl.style.fontWeight = '400';
+            titleContainer.appendChild(titleEl);
+
+            eventEl.appendChild(titleContainer);
+
+            return { domNodes: [eventEl] };
+        },
+        dateClick: function (info) {
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var clicked = new Date(info.date);
+            clicked.setHours(0, 0, 0, 0);
+
+            if (clicked >= today) {
+                // Tarihi doğru formatta al
+                const year = info.date.getFullYear();
+                const month = String(info.date.getMonth() + 1).padStart(2, '0');
+                const day = String(info.date.getDate()).padStart(2, '0');
+                const startDateStr = `${year}-${month}-${day}`;
+
+                document.getElementById('eventStartDate').value = startDateStr;
+                document.getElementById('eventStartTime').value = "09:00";
+
+                // Bitiş tarihini başlangıç + 1 gün olarak ayarla
+                const endDate = new Date(info.date);
+                endDate.setDate(endDate.getDate() + 1);
+                const endYear = endDate.getFullYear();
+                const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+                const endDay = String(endDate.getDate()).padStart(2, '0');
+                const endDateStr = `${endYear}-${endMonth}-${endDay}`;
+
+                document.getElementById('eventEndDate').value = endDateStr;
+                document.getElementById('eventEndTime').value = "10:00";
+
+                var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+                eventModal.show();
+            }
+        },
+        eventClick: function (info) {
+            window.location.href = "/dashboard/calendar/event/" + info.event.id + "/";
+        },
+        eventDidMount: function (info) {
+            // YAZI RENGİNİ SİYAH YAP - ÇOK GÜNLÜ ETKİNLİKLER İÇİN
+            info.el.style.color = '#212529';
+            info.el.style.fontWeight = '400';
+            
+            const titleEl = info.el.querySelector('.fc-event-title');
+            if (titleEl) {
+                titleEl.style.color = '#212529';
+                titleEl.style.fontWeight = '400';
+            }
+            
+            const timeEl = info.el.querySelector('.fc-event-time');
+            if (timeEl) {
+                timeEl.style.color = '#212529';
+                timeEl.style.fontWeight = '500';
+            }
+
+            // Etkinlik renklerini ayarla
+            const dotEl = info.el.querySelector('.fc-event-dot');
+            if (info.event.extendedProps.type === "reminder") {
+                info.el.style.backgroundColor = '#f8d7da';
+                info.el.style.borderColor = '#f5c6cb';
+                if (dotEl) dotEl.style.backgroundColor = '#dc3545';
+            } else if (info.event.extendedProps.type === "event") {
+                info.el.style.backgroundColor = '#d1e7ff';
+                info.el.style.borderColor = '#b6d4fe';
+                if (dotEl) dotEl.style.backgroundColor = '#0d6efd';
+            }
+        },
+        dayCellDidMount: function (arg) {
+            var dayFrame = arg.el.querySelector('.fc-daygrid-day-frame');
+            if (!dayFrame) return;
+
+            var date = arg.date;
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var day = date.getDate();
+
+            var icons = document.createElement('div');
+            icons.className = 'day-action-icons';
+
+            var eye = document.createElement('a');
+            eye.title = "Gün Detayı";
+            eye.innerHTML = '<i class="fas fa-eye"></i>';
+            eye.onclick = function (e) {
+                e.stopPropagation();
+                window.location.href = "/dashboard/calendar/" + year + "/" + month + "/" + day + "/";
+            };
+
+            icons.appendChild(eye);
+            dayFrame.appendChild(icons);
         }
-      },
-      eventContent: function (arg) {
-        // Zamanı Türkiye saat diliminde formatla
-        let timeText = '';
-        if (arg.event.start) {
-          // Zaman dilimi düzeltildi: toLocaleString kullanıldı
-          timeText = arg.event.start.toLocaleTimeString('tr-TR', {
-            hour: '2-digit',
-            minute: '2-digit',
-            timeZone: turkiyeTimeZone
-          });
-        }
-
-        // Etkinlik içeriğini oluştur
-        const eventEl = document.createElement('div');
-        eventEl.className = 'fc-event-main';
-
-        // Madde imleci ekle
-        const dotEl = document.createElement('span');
-        dotEl.className = 'fc-event-dot';
-        eventEl.appendChild(dotEl);
-
-        // Zaman bilgisi
-        if (timeText) {
-          const timeEl = document.createElement('span');
-          timeEl.className = 'fc-event-time';
-          timeEl.textContent = timeText;
-          eventEl.appendChild(timeEl);
-        }
-
-        // Başlık container'ı
-        const titleContainer = document.createElement('div');
-        titleContainer.className = 'fc-event-title-container';
-
-        // Başlık
-        const titleEl = document.createElement('span');
-        titleEl.className = 'fc-event-title';
-        titleEl.textContent = arg.event.title;
-        titleContainer.appendChild(titleEl);
-
-        eventEl.appendChild(titleContainer);
-
-        return { domNodes: [eventEl] };
-      },
-      dateClick: function (info) {
-        var today = new Date();
-        today.setHours(0, 0, 0, 0);
-        var clicked = info.date;
-        clicked.setHours(0, 0, 0, 0);
-
-        if (clicked >= today) {
-          document.getElementById('eventDate').value = info.dateStr;
-          document.getElementById('eventTime').value = "09:00";
-          var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-          eventModal.show();
-        }
-      },
-      eventClick: function (info) {
-        window.location.href = "/dashboard/calendar/event/" + info.event.id + "/";
-      },
-      eventDidMount: function (info) {
-        // Etkinlik renklerini ayarla
-        const dotEl = info.el.querySelector('.fc-event-dot');
-        if (info.event.extendedProps.type === "reminder") {
-          info.el.style.backgroundColor = '#f8d7da';
-          info.el.style.borderColor = '#f5c6cb';
-          if (dotEl) dotEl.style.backgroundColor = '#dc3545';
-        } else if (info.event.extendedProps.type === "event") {
-          info.el.style.backgroundColor = '#d1e7ff';
-          info.el.style.borderColor = '#b6d4fe';
-          if (dotEl) dotEl.style.backgroundColor = '#0d6efd';
-        } else if (info.event.extendedProps.type === "note") {
-          info.el.style.backgroundColor = '#fff3cd';
-          info.el.style.borderColor = '#ffecb5';
-          if (dotEl) dotEl.style.backgroundColor = '#ffc107';
-        } else if (info.event.extendedProps.type === "task") {
-          info.el.style.backgroundColor = '#cfe2ff';
-          info.el.style.borderColor = '#b6d4fe';
-          if (dotEl) dotEl.style.backgroundColor = '#0d6efd';
-        }
-      },
-      dayCellDidMount: function (arg) {
-        var dayFrame = arg.el.querySelector('.fc-daygrid-day-frame');
-        if (!dayFrame) return;
-
-        var date = arg.date;
-        var year = date.getFullYear();
-        var month = date.getMonth() + 1;
-        var day = date.getDate();
-
-        var icons = document.createElement('div');
-        icons.className = 'day-action-icons';
-
-        var eye = document.createElement('a');
-        eye.title = "Gün Detayı";
-        eye.innerHTML = '<i class="fas fa-eye"></i>';
-        eye.onclick = function (e) {
-          e.stopPropagation();
-          window.location.href = "/dashboard/calendar/" + year + "/" + month + "/" + day + "/";
-        };
-
-        icons.appendChild(eye);
-        dayFrame.appendChild(icons);
-      }
     });
 
     window.calendar.render();
 
     // Etkinlik formu submit işlemi
     document.getElementById('eventForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      var form = e.target;
-      var start_date = form.start_date.value;
-      var start_time = form.start_time.value;
-      var start_datetime = start_date + "T" + start_time;
+        e.preventDefault();
 
-      // Hatırlatıcı bilgisini al
-      var reminder = form.reminder.value;
+        // Yükleme durumunu göster
+        const saveButton = document.getElementById('saveButton');
+        const buttonText = saveButton.querySelector('.button-text');
+        const loadingSpinner = saveButton.querySelector('.loading-spinner');
 
-      var data = {
-        title: form.title.value,
-        event_type: form.event_type.value,
-        start_date: start_datetime,
-        description: form.description.value,
-        reminder: reminder,
-        timezone: turkiyeTimeZone  // Zaman dilimi bilgisi eklendi
-      };
+        buttonText.textContent = 'Kaydediliyor...';
+        loadingSpinner.style.display = 'inline-block';
+        saveButton.disabled = true;
 
-      fetch("{% url 'dashboard:create_calendar_event' %}", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify(data)
-      })
-        .then(response => response.json())
-        .then(result => {
-          if (result.status === "success") {
-            // Modal'ı kapat
-            var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
-            eventModal.hide();
+        var form = e.target;
+        var start_date = form.start_date.value;
+        var start_time = form.start_time.value;
+        var start_datetime = start_date + "T" + start_time;
 
-            // Formu sıfırla
-            form.reset();
+        // Bitiş tarihini işle (opsiyonel)
+        var end_datetime = null;
+        var end_date = form.end_date.value;
+        var end_time = form.end_time.value;
+        if (end_date && end_time) {
+            end_datetime = end_date + "T" + end_time;
+        }
 
-            // Yeni etkinliği hemen takvime ekle
-            const calendarApi = window.calendar.getApi();
+        var data = {
+            title: form.title.value,
+            event_type: form.event_type.value,
+            start_date: start_datetime,
+            end_date: end_datetime,
+            description: form.description.value
+            // timezone parametresini kaldırıyoruz
+        };
 
-            // Zaman dilimi düzeltildi: Yerel zaman kullanıldı
-            calendarApi.addEvent({
-              id: result.event_id,
-              title: data.title,
-              start: result.start_date_local,  // Düzeltildi: start_date -> start_date_local
-              color: getEventColor(data.event_type),
-              extendedProps: {
-                type: data.event_type,
-                description: data.description,
-                url: result.event_url
-              }
-            });
-
-            // Başarı mesajı göster
-            showToast('success', result.message);
-
-            // 1 saniye sonra etkinlik detay sayfasına yönlendir
-            setTimeout(() => {
-              window.location.href = result.event_url;
-            }, 1000);
-          } else {
-            showToast('error', 'Hata: ' + result.message);
-          }
+        fetch("{% url 'dashboard:create_calendar_event' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}",
+                "X-Requested-With": "XMLHttpRequest"
+            },
+            body: JSON.stringify(data)
         })
-        .catch((error) => {
-          showToast('error', 'Bir hata oluştu: ' + error);
-        });
-    });
+            .then(response => response.json())
+            .then(result => {
+                // Yükleme durumunu gizle
+                buttonText.textContent = 'Kaydet';
+                loadingSpinner.style.display = 'none';
+                saveButton.disabled = false;
 
-    // Etkinlik türüne göre renk döndür
-    function getEventColor(eventType) {
-      const colors = {
-        'reminder': '#dc3545',
-        'event': '#28a745',
-        'note': '#ffc107',
-        'task': '#3788d8'
-      };
-      return colors[eventType] || '#6c757d';
-    }
+                if (result.status === "success") {
+                    // Modal'ı kapat
+                    var eventModal = bootstrap.Modal.getInstance(document.getElementById('eventModal'));
+                    eventModal.hide();
+
+                    // Formu sıfırla
+                    form.reset();
+
+                    // Takvimi yenile
+                    window.calendar.refetchEvents();
+
+                    // Başarı mesajı göster
+                    showToast('success', result.message);
+
+                    // 1 saniye sonra etkinlik detay sayfasına yönlendir
+                    setTimeout(() => {
+                        window.location.href = result.event_url;
+                    }, 1000);
+                } else {
+                    showToast('error', 'Hata: ' + result.message);
+                }
+            })
+            .catch((error) => {
+                // Yükleme durumunu gizle
+                buttonText.textContent = 'Kaydet';
+                loadingSpinner.style.display = 'none';
+                saveButton.disabled = false;
+
+                showToast('error', 'Bir hata oluştu: ' + error);
+            });
+    });
 
     // Toast bildirim fonksiyonu
     function showToast(type, message) {
-      const toastContainer = document.createElement('div');
-      toastContainer.innerHTML = `
-        <div class="toast align-items-center text-white bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-          <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Kapat"></button>
-          </div>
-        </div>
-      `;
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1060; min-width: 300px;';
+        alertDiv.innerHTML = `
+            <div class="d-flex align-items-center">
+                <div class="flex-grow-1">${message}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
 
-      document.body.appendChild(toastContainer);
-      const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
-      toast.show();
+        document.body.appendChild(alertDiv);
 
-      // Toast otomatik kapanma
-      setTimeout(() => {
-        toast.dispose();
-        toastContainer.remove();
-      }, 5000);
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 4000);
     }
-  });
+
+    // Sayfa yüklendiğinde bugünün tarihini varsayılan olarak ayarla
+    const now = new Date();
+    
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const todayDate = `${year}-${month}-${day}`;
+    
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const currentTime = `${hours}:${minutes}`;
+    
+    document.getElementById('eventStartDate').value = todayDate;
+    document.getElementById('eventStartTime').value = currentTime;
+    
+    // Bitiş tarihini başlangıç + 1 saat olarak ayarla
+    const endTime = new Date(now.getTime() + 60 * 60 * 1000);
+    const endHours = String(endTime.getHours()).padStart(2, '0');
+    const endMinutes = String(endTime.getMinutes()).padStart(2, '0');
+    const endTimeValue = `${endHours}:${endMinutes}`;
+    
+    document.getElementById('eventEndDate').value = todayDate;
+    document.getElementById('eventEndTime').value = endTimeValue;
+});
 </script>
 {% endblock %}

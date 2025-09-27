@@ -1,0 +1,529 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Hesap Makinesi - Araçlar{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calculator {
+        max-width: 500px;
+        margin: 0 auto;
+        background: #1a1a1a;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .display {
+        background: #000;
+        color: #fff;
+        text-align: right;
+        padding: 25px 20px;
+        font-size: 2.2rem;
+        min-height: 100px;
+        word-wrap: break-word;
+        border-bottom: 2px solid #333;
+    }
+
+    .buttons {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1px;
+        background: #333;
+        padding: 1px;
+    }
+
+    .btn-calc {
+        border: none;
+        padding: 18px 10px;
+        font-size: 1.1rem;
+        background: #2a2a2a;
+        color: #fff;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+
+    .btn-calc:hover {
+        background: #3a3a3a;
+        transform: scale(0.98);
+    }
+
+    .btn-calc:active {
+        transform: scale(0.95);
+    }
+
+    /* Sayı butonları */
+    .btn-calc.number {
+        background: #404040;
+        color: #fff;
+    }
+
+    .btn-calc.number:hover {
+        background: #505050;
+    }
+
+    /* İşlem butonları */
+    .btn-calc.operator {
+        background: #4a4a4a;
+        color: #fff;
+    }
+
+    .btn-calc.operator:hover {
+        background: #5a5a5a;
+    }
+
+    /* Eşittir butonu - YEŞİL */
+    .btn-calc.equals {
+        background: #28a745;
+        color: white;
+        grid-column: span 2;
+    }
+
+    .btn-calc.equals:hover {
+        background: #218838;
+    }
+
+    /* Silme butonları - KIRMIZI */
+    .btn-calc.clear {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-calc.clear:hover {
+        background: #c82333;
+    }
+
+    /* Fonksiyon butonları */
+    .btn-calc.function {
+        background: #333;
+        color: #ccc;
+        font-size: 0.9rem;
+    }
+
+    .btn-calc.function:hover {
+        background: #444;
+    }
+
+    /* Özel butonlar (π, e) */
+    .btn-calc.special {
+        background: #555;
+        color: #fff;
+    }
+
+    .btn-calc.special:hover {
+        background: #666;
+    }
+
+    /* Responsive tasarım */
+    @media (max-width: 576px) {
+        .calculator {
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .display {
+            padding: 20px 15px;
+            font-size: 1.8rem;
+            min-height: 80px;
+        }
+
+        .btn-calc {
+            padding: 15px 8px;
+            font-size: 1rem;
+        }
+
+        .btn-calc.function {
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .buttons {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .btn-calc.function {
+            font-size: 0.75rem;
+            padding: 12px 5px;
+        }
+    }
+
+    .calculator-history {
+        max-height: 150px;
+        overflow-y: auto;
+        background: #000;
+        color: #888;
+        padding: 10px;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #333;
+    }
+
+    .history-item {
+        padding: 2px 0;
+        border-bottom: 1px solid #222;
+    }
+
+    .error-message {
+        color: #ff6b6b;
+        font-size: 0.8rem;
+        text-align: center;
+        padding: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Gelişmiş Hesap Makinesi</h2>
+            <a href="{% url 'tools:home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri
+            </a>
+        </div>
+
+        <div class="calculator">
+            <div class="calculator-history" id="history">
+                <div class="text-center text-muted">Hesap geçmişi burada görünecek</div>
+            </div>
+            <div class="display" id="display">0</div>
+            <div id="errorMessage" class="error-message"></div>
+            <div class="buttons">
+                <!-- Üst Satır - Gelişmiş Fonksiyonlar -->
+                <button class="btn-calc function" onclick="calculateFunction('sin')">sin</button>
+                <button class="btn-calc function" onclick="calculateFunction('cos')">cos</button>
+                <button class="btn-calc function" onclick="calculateFunction('tan')">tan</button>
+                <button class="btn-calc function" onclick="calculateFunction('log')">log</button>
+                <button class="btn-calc function" onclick="calculateFunction('ln')">ln</button>
+
+                <!-- 2. Satır - Gelişmiş Fonksiyonlar -->
+                <button class="btn-calc function" onclick="calculateFunction('sqrt')">√</button>
+                <button class="btn-calc function" onclick="calculateFunction('square')">x²</button>
+                <button class="btn-calc function" onclick="calculateFunction('power')">x^y</button>
+                <button class="btn-calc function" onclick="calculateFunction('factorial')">x!</button>
+                <button class="btn-calc function" onclick="appendToDisplay('(')">(</button>
+
+                <!-- 3. Satır - Sayılar ve Temel İşlemler -->
+                <button class="btn-calc clear" onclick="clearDisplay()">C</button>
+                <button class="btn-calc clear" onclick="deleteLast()">⌫</button>
+                <button class="btn-calc special" onclick="appendToDisplay('π')">π</button>
+                <button class="btn-calc special" onclick="appendToDisplay('e')">e</button>
+                <button class="btn-calc function" onclick="appendToDisplay(')')">)</button>
+
+                <!-- 4. Satır - Sayılar -->
+                <button class="btn-calc number" onclick="appendToDisplay('7')">7</button>
+                <button class="btn-calc number" onclick="appendToDisplay('8')">8</button>
+                <button class="btn-calc number" onclick="appendToDisplay('9')">9</button>
+                <button class="btn-calc operator" onclick="appendToDisplay('/')">/</button>
+                <button class="btn-calc operator" onclick="appendToDisplay('%')">%</button>
+
+                <!-- 5. Satır - Sayılar -->
+                <button class="btn-calc number" onclick="appendToDisplay('4')">4</button>
+                <button class="btn-calc number" onclick="appendToDisplay('5')">5</button>
+                <button class="btn-calc number" onclick="appendToDisplay('6')">6</button>
+                <button class="btn-calc operator" onclick="appendToDisplay('*')">×</button>
+                <button class="btn-calc function" onclick="calculateFunction('reciprocal')">1/x</button>
+
+                <!-- 6. Satır - Sayılar -->
+                <button class="btn-calc number" onclick="appendToDisplay('1')">1</button>
+                <button class="btn-calc number" onclick="appendToDisplay('2')">2</button>
+                <button class="btn-calc number" onclick="appendToDisplay('3')">3</button>
+                <button class="btn-calc operator" onclick="appendToDisplay('-')">-</button>
+                <button class="btn-calc function" onclick="calculateFunction('negate')">±</button>
+
+                <!-- 7. Satır - Sayılar ve Eşittir -->
+                <button class="btn-calc number" onclick="appendToDisplay('0')">0</button>
+                <button class="btn-calc number" onclick="appendToDisplay('00')">00</button>
+                <button class="btn-calc operator" onclick="appendToDisplay('.')">.</button>
+                <button class="btn-calc operator" onclick="appendToDisplay('+')">+</button>
+                <button class="btn-calc equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <div class="alert alert-dark">
+                <small>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Gelişmiş hesap makinesi ile trigonometrik, logaritmik ve bilimsel işlemler yapabilirsiniz.
+                    <br><strong>Yüzde işlemi:</strong> Örnekler: "100%" → 1, "50+10%" → 55, "10%10" → 1
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let display = document.getElementById('display');
+    let history = document.getElementById('history');
+    let errorMessage = document.getElementById('errorMessage');
+    let currentInput = '0';
+    let shouldResetDisplay = false;
+    let calculationHistory = [];
+
+    function updateDisplay() {
+        display.textContent = currentInput;
+        errorMessage.textContent = '';
+    }
+
+    function showError(message) {
+        errorMessage.textContent = message;
+    }
+
+    function addToHistory(expression, result) {
+        calculationHistory.unshift({ expression, result });
+        if (calculationHistory.length > 5) {
+            calculationHistory.pop();
+        }
+
+        updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+        if (calculationHistory.length === 0) {
+            history.innerHTML = '<div class="text-center text-muted">Hesap geçmişi burada görünecek</div>';
+            return;
+        }
+
+        history.innerHTML = calculationHistory.map(item =>
+            `<div class="history-item">${item.expression} = ${item.result}</div>`
+        ).join('');
+    }
+
+    function appendToDisplay(value) {
+        if (currentInput === '0' || shouldResetDisplay) {
+            currentInput = value;
+            shouldResetDisplay = false;
+        } else {
+            currentInput += value;
+        }
+        updateDisplay();
+    }
+
+    function clearDisplay() {
+        currentInput = '0';
+        updateDisplay();
+    }
+
+    function deleteLast() {
+        if (currentInput.length > 1) {
+            currentInput = currentInput.slice(0, -1);
+        } else {
+            currentInput = '0';
+        }
+        updateDisplay();
+    }
+
+    function calculateFunction(func) {
+        try {
+            let value = parseFloat(currentInput);
+            if (isNaN(value)) {
+                showError('Geçersiz sayı');
+                return;
+            }
+
+            let result;
+            let expression = '';
+
+            switch (func) {
+                case 'sin':
+                    result = Math.sin(value * Math.PI / 180);
+                    expression = `sin(${value}°)`;
+                    break;
+                case 'cos':
+                    result = Math.cos(value * Math.PI / 180);
+                    expression = `cos(${value}°)`;
+                    break;
+                case 'tan':
+                    if (Math.abs(value % 90) === 0 && Math.abs(value % 180) !== 0) {
+                        showError('Tanımsız açı');
+                        return;
+                    }
+                    result = Math.tan(value * Math.PI / 180);
+                    expression = `tan(${value}°)`;
+                    break;
+                case 'sqrt':
+                    if (value < 0) {
+                        showError('Negatif sayının karekökü alınamaz');
+                        return;
+                    }
+                    result = Math.sqrt(value);
+                    expression = `√${value}`;
+                    break;
+                case 'square':
+                    result = Math.pow(value, 2);
+                    expression = `${value}²`;
+                    break;
+                case 'power':
+                    currentInput += '^';
+                    updateDisplay();
+                    return;
+                case 'factorial':
+                    if (value < 0 || !Number.isInteger(value)) {
+                        showError('Sadece pozitif tam sayıların faktoriyeli alınabilir');
+                        return;
+                    }
+                    if (value > 170) {
+                        showError('Sayı çok büyük');
+                        return;
+                    }
+                    result = factorial(value);
+                    expression = `${value}!`;
+                    break;
+                case 'log':
+                    if (value <= 0) {
+                        showError('Logaritma için pozitif sayı gerekli');
+                        return;
+                    }
+                    result = Math.log10(value);
+                    expression = `log(${value})`;
+                    break;
+                case 'ln':
+                    if (value <= 0) {
+                        showError('Doğal logaritma için pozitif sayı gerekli');
+                        return;
+                    }
+                    result = Math.log(value);
+                    expression = `ln(${value})`;
+                    break;
+                case 'reciprocal':
+                    if (value === 0) {
+                        showError('Sıfıra bölünemez');
+                        return;
+                    }
+                    result = 1 / value;
+                    expression = `1/${value}`;
+                    break;
+                case 'negate':
+                    result = -value;
+                    expression = `-${value}`;
+                    break;
+            }
+
+            if (result !== undefined && !isNaN(result) && isFinite(result)) {
+                if (Math.abs(result) < 0.000001 || Math.abs(result) > 1000000) {
+                    currentInput = result.toExponential(6);
+                } else {
+                    currentInput = parseFloat(result.toPrecision(12)).toString();
+                }
+
+                addToHistory(expression, currentInput);
+                shouldResetDisplay = true;
+                updateDisplay();
+            } else {
+                showError('Hesaplama hatası');
+            }
+        } catch (error) {
+            showError('Fonksiyon hatası');
+        }
+    }
+
+    function factorial(n) {
+        if (n === 0 || n === 1) return 1;
+        let result = 1;
+        for (let i = 2; i <= n; i++) {
+            result *= i;
+        }
+        return result;
+    }
+
+    function calculate() {
+        try {
+            let expression = currentInput
+                .replace(/×/g, '*')
+                .replace(/π/g, Math.PI.toString())
+                .replace(/e/g, Math.E.toString())
+                .replace(/\^/g, '**');
+
+            // ✅ BASİT VE DOĞRU YÜZDE İŞLEME
+            // Önce tüm yüzde işlemlerini 100'e bölme olarak işle
+            expression = expression.replace(/(\d+(\.\d+)?)([+\-*/])(\d+(\.\d+)?)%/g, function (_, num1, _, operator, num2) {
+                switch (operator) {
+                    case '+': return `${num1}+(${num1}*${num2}/100)`;
+                    case '-': return `${num1}-(${num1}*${num2}/100)`;
+                    case '*': return `${num1}*(${num2}/100)`;
+                    case '/': return `${num1}/(${num2}/100)`;
+                }
+            });
+
+            // Tek başına % işareti için
+            expression = expression.replace(/(\d+(\.\d+)?)%/g, function (match, number) {
+                return `(${number}/100)`;
+            });
+
+            // Parantezleri kontrol et
+            let openParentheses = (expression.match(/\(/g) || []).length;
+            let closeParentheses = (expression.match(/\)/g) || []).length;
+
+            // Eksik parantezleri kapat
+            if (openParentheses > closeParentheses) {
+                expression += ')'.repeat(openParentheses - closeParentheses);
+            }
+
+            let result = eval(expression);
+
+            if (isFinite(result)) {
+                if (Math.abs(result) < 0.000001 || Math.abs(result) > 1000000) {
+                    result = result.toExponential(6);
+                } else {
+                    result = parseFloat(result.toPrecision(12));
+                }
+
+                addToHistory(currentInput, result);
+                currentInput = result.toString();
+            } else {
+                showError('Matematiksel hata');
+            }
+        } catch (error) {
+            showError('Hesaplama hatası: ' + error.message);
+        }
+        shouldResetDisplay = true;
+        updateDisplay();
+    }
+
+    // Klavye desteği
+    document.addEventListener('keydown', function (event) {
+        const key = event.key;
+
+        if (/[0-9]/.test(key)) {
+            appendToDisplay(key);
+        } else if (key === '+') {
+            appendToDisplay('+');
+        } else if (key === '-') {
+            appendToDisplay('-');
+        } else if (key === '*') {
+            appendToDisplay('*');
+        } else if (key === '/') {
+            event.preventDefault();
+            appendToDisplay('/');
+        } else if (key === '.' || key === ',') {
+            appendToDisplay('.');
+        } else if (key === 'Enter' || key === '=') {
+            event.preventDefault();
+            calculate();
+        } else if (key === 'Escape' || key === 'Delete') {
+            clearDisplay();
+        } else if (key === 'Backspace') {
+            deleteLast();
+        } else if (key === '(') {
+            appendToDisplay('(');
+        } else if (key === ')') {
+            appendToDisplay(')');
+        } else if (key === 'p' || key === 'P') {
+            event.preventDefault();
+            appendToDisplay('π');
+        } else if (key === 'e' || key === 'E') {
+            event.preventDefault();
+            appendToDisplay('e');
+        } else if (key === '%') {
+            event.preventDefault();
+            appendToDisplay('%');
+        }
+    });
+
+    // İlk yükleme
+    updateDisplay();
+</script>
+{% endblock %}

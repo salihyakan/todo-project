@@ -15,6 +15,7 @@ urlpatterns = [
     path('notes/', include('notes.urls', namespace='notes')),
     path('analytics/', include('analytics.urls', namespace='analytics')),  # Namespace eklendi
     path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'favicon.ico')),
+    path('tools/', include('tools.urls')),
 ]
 
 if settings.DEBUG:

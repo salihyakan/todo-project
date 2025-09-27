@@ -1,129 +1,389 @@
 {% extends 'core/base.html' %}
-{% load static analytics_tags %}
+{% load static %}
+
+{% block title %}Analiz - Detaylı Raporlar{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- Real-time Data Indicator -->
-    <div class="alert alert-info alert-dismissible fade show">
-        <span id="realtime-indicator">
-            <i class="fas fa-sync-alt fa-spin"></i> Veriler anlık güncelleniyor
-        </span>
-        <small class="text-muted float-end">Son güncelleme: {{ stats.last_update|default:"Şimdi" }}</small>
-    </div>
-
-    <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Verimlilik Skoru</h6>
-                    <div class="gauge" id="productivity-gauge" 
-                         data-value="{{ productivity_score }}"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Tamamlanan Görevler</h6>
-                    <h2 class="text-success">{{ stats.completed }}</h2>
-                    <small class="text-muted">Toplamın %{{ stats.completed|div:stats.total|mul:100|floatformat:1 }}</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Bekleyen Görevler</h6>
-                    <h2 class="text-warning">{{ stats.pending }}</h2>
-                    <small class="text-muted">{{ stats.overdue }} gecikmiş</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body text-center">
-                    <h6 class="text-muted">Günlük Ortalama</h6>
-                    <h2>{{ stats.completed|div:7|floatformat:1 }}</h2>
-                    <small class="text-muted">Son 7 gün</small>
-                </div>
-            </div>
+    <!-- Başlık ve Refresh Butonu -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-line me-2"></i>Analiz Raporları
+        </h1>
+        <div class="d-flex align-items-center">
+            <small class="text-muted me-3 d-none d-md-block">
+                <i class="fas fa-sync-alt fa-spin me-1"></i>Veriler anlık güncelleniyor
+            </small>
+            <a href="{% url 'analytics:refresh' %}" class="btn btn-primary btn-sm" 
+               title="Verileri Manuel Güncelle" id="refresh-btn">
+                <i class="fas fa-redo me-1"></i>Güncelle
+            </a>
         </div>
     </div>
 
-    <!-- Interactive Charts -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Hızlı İstatistik Kartları -->
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    <ul class="nav nav-tabs card-header-tabs">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#" data-chart="completion">Tamamlama</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#" data-chart="timeline">Zaman Çizelgesi</a>
-                        </li>
-                    </ul>
-                </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
                 <div class="card-body">
-                    <div id="dynamic-chart-container">
-                        <img src="data:image/png;base64,{{ completion_chart }}" 
-                             alt="Dynamic Chart" class="img-fluid">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Verimlilik Skoru
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ productivity_score }}/100
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bolt fa-2x text-gray-300"></i>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header">
-                    Haftalık Aktivite Haritası
-                </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
                 <div class="card-body">
-                    <img src="data:image/png;base64,{{ heatmap_chart }}" 
-                         alt="Aktivite Haritası" class="img-fluid">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Tamamlanan Görevler
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.completed }}
+                            </div>
+                            {% with completion_rate=stats.completed|default:0 total=stats.total|default:1 %}
+                            {% widthratio completion_rate total 100 as rate %}
+                            <small class="text-muted">Toplam {{ stats.total }} görev (%{{ rate }} tamamlandı)</small>
+                            {% endwith %}
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Bekleyen Görevler
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ stats.pending }}
+                            </div>
+                            <small class="text-muted">Aktif çalışma</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Toplam Çalışma
+                            </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                {{ pomodoro_stats.total }} Pomodoro
+                            </div>
+                            <small class="text-muted">{{ work_time }}</small>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hourglass-half fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <!-- Weekly Trends -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header">
-            Haftalık Performans Trendleri
+
+    <!-- Performans Analizi Bölümü -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Performans Analizi - Görev Tamamlama Durumu</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Ana Grafik -->
+                        <div class="col-md-8">
+                            <div class="chart-container" style="height: 400px; display: flex; align-items: center; justify-content: center;">
+                                <img src="data:image/png;base64,{{ completion_chart }}" 
+                                     alt="Tamamlama Durumu Grafiği" class="img-fluid" style="max-height: 380px;">
+                            </div>
+                        </div>
+                        
+                        <!-- Grafik Açıklamaları -->
+                        <div class="col-md-4">
+                            <div>
+                                <h6 class="text-primary">Tamamlama Durumu</h6>
+                                <p class="small text-muted">
+                                    Bu grafik, görevlerinizin tamamlanma durumunu göstermektedir. 
+                                    Yeşil dilim tamamlanan görevleri, sarı dilim ise bekleyen görevleri temsil eder.
+                                </p>
+                                
+                                <div class="mt-4">
+                                    <h6 class="text-primary">İstatistikler</h6>
+                                    <ul class="list-unstyled small">
+                                        <li class="mb-2">
+                                            <i class="fas fa-circle text-success me-2"></i>
+                                            Tamamlanan: <strong>{{ stats.completed }}</strong> görev
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-circle text-warning me-2"></i>
+                                            Bekleyen: <strong>{{ stats.pending }}</strong> görev
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-bolt text-primary me-2"></i>
+                                            Verimlilik: <strong>{{ productivity_score }}%</strong>
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-clock text-info me-2"></i>
+                                            Toplam Çalışma: <strong>{{ work_time }}</strong>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kategori Dağılımı ve Hızlı İstatistikler -->
+    <div class="row mb-4">
+        <!-- Kategori Dağılımı -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Kategori Dağılımı</h6>
+                </div>
+                <div class="card-body">
+                    {% for category in stats.categories %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">{{ category.category__name|default:"Kategorisiz" }}</span>
+                            <span class="small">{{ category.completed }}/{{ category.total }}</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            {% if category.total > 0 %}
+                            {% widthratio category.completed category.total 100 as progress %}
+                            <div class="progress-bar" style="width: {{ progress }}%; 
+                                background-color: {{ category.category__color|default:'#6c757d' }}"></div>
+                            {% else %}
+                            <div class="progress-bar" style="width: 0%; 
+                                background-color: {{ category.category__color|default:'#6c757d' }}"></div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted py-2">
+                        <small>Kategori verisi bulunamadı</small>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Hızlı İstatistikler -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hızlı İstatistikler</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-2">
+                                <i class="fas fa-tasks fa-2x text-primary mb-2"></i>
+                                <div class="h5 mb-0">{{ stats.total|default:0 }}</div>
+                                <small class="text-muted">Toplam Görev</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-2">
+                                <i class="fas fa-check fa-2x text-success mb-2"></i>
+                                <div class="h5 mb-0">{{ stats.completed|default:0 }}</div>
+                                <small class="text-muted">Tamamlanan</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-2">
+                                <i class="fas fa-sticky-note fa-2x text-warning mb-2"></i>
+                                <div class="h5 mb-0">{{ notes_stats.total|default:0 }}</div>
+                                <small class="text-muted">Toplam Not</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded p-2">
+                                <i class="fas fa-hourglass-half fa-2x text-info mb-2"></i>
+                                <div class="h5 mb-0">{{ pomodoro_stats.total|default:0 }}</div>
+                                <small class="text-muted">Pomodoro</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detaylı Performans Raporu -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Detaylı Performans Raporu</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Çalışma Süresi Analizi -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-clock me-2"></i>Çalışma Süresi Analizi
+                            </h6>
+                            <div class="mb-3">
+                                <small class="text-muted">Toplam Çalışma Süresi</small>
+                                <div class="h5 text-success">{{ work_time }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Günlük Ortalama</small>
+                                <div class="h5 text-info">{{ daily_work_time }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">En Verimli Zaman</small>
+                                <div class="h5 text-warning">{{ peak_hours }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Görev Performansı -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-tasks me-2"></i>Görev Performansı
+                            </h6>
+                            <div class="mb-3">
+                                <small class="text-muted">Ortalama Tamamlama Süresi</small>
+                                <div class="h5 text-success">{{ avg_completion_time }} gün</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Zamanında Tamamlama Oranı</small>
+                                <div class="h5 text-info">%{{ on_time_rate }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">En Sık Kullanılan Kategori</small>
+                                <div class="h5 text-warning">{{ most_used_category }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Not İstatistikleri -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-sticky-note me-2"></i>Not İstatistikleri
+                            </h6>
+                            <div class="mb-3">
+                                <small class="text-muted">Toplam Not Sayısı</small>
+                                <div class="h5 text-success">{{ notes_stats.total }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Bu Ay Eklenen</small>
+                                <div class="h5 text-info">{{ notes_stats.monthly }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Ortalama Not Uzunluğu</small>
+                                <div class="h5 text-warning">{{ notes_stats.avg_length }} karakter</div>
+                            </div>
+                        </div>
+
+                        <!-- Pomodoro İstatistikleri -->
+                        <div class="col-md-6 mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-hourglass-half me-2"></i>Pomodoro İstatistikleri
+                            </h6>
+                            <div class="mb-3">
+                                <small class="text-muted">Toplam Pomodoro</small>
+                                <div class="h5 text-success">{{ pomodoro_stats.total }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Günlük Ortalama</small>
+                                <div class="h5 text-info">{{ pomodoro_stats.daily_avg }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <small class="text-muted">Başarı Oranı</small>
+                                <div class="h5 text-warning">%{{ pomodoro_stats.success_rate }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Haftalık Trendler Tablosu -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Haftalık Performans Trendleri</h6>
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
                         <tr>
                             <th>Gün</th>
-                            <th>Oluşturulan</th>
-                            <th>Tamamlanan</th>
-                            <th>Verimlilik</th>
-                            <th style="width:30%">İlerleme</th>
+                            <th>Oluşturulan Görev</th>
+                            <th>Tamamlanan Görev</th>
+                            <th>Verimlilik (%)</th>
+                            <th>Not Sayısı</th>
+                            <th>Pomodoro</th>
+                            <th>İlerleme</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for day in weekly_trends %}
                         <tr>
-                            <td>{{ day.day_name }}</td>
-                            <td>{{ day.created }}</td>
-                            <td>{{ day.completed }}</td>
-                            <td>{{ day.efficiency|floatformat:1 }}%</td>
+                            <td class="fw-bold">{{ day.day_name }}</td>
+                            <td>{{ day.created|default:0 }}</td>
+                            <td class="text-success">{{ day.completed|default:0 }}</td>
                             <td>
-                                <div class="progress">
-                                    <div class="progress-bar bg-success" 
-                                         role="progressbar" 
-                                         style="width: {{ day.efficiency }}%"
-                                         aria-valuenow="{{ day.efficiency }}" 
-                                         aria-valuemin="0" 
-                                         aria-valuemax="100"></div>
+                                <span class="badge {% if day.efficiency > 80 %}bg-success{% elif day.efficiency > 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ day.efficiency|default:0|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td>{{ day.notes_count|default:0 }}</td>
+                            <td>{{ day.pomodoro_count|default:0 }}</td>
+                            <td style="width: 30%;">
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar {% if day.efficiency > 80 %}bg-success{% elif day.efficiency > 50 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                         style="width: {{ day.efficiency|default:0 }}%"
+                                         title="{{ day.efficiency|default:0|floatformat:1 }}%"></div>
                                 </div>
                             </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted">Haftalık veri bulunamadı</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -132,59 +392,80 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
-<!-- Gauge.js for productivity score -->
-<script src="https://cdn.jsdelivr.net/npm/gauge-chart@1.2.2/dist/bundle.min.js"></script>
 <script>
-// Real-time updates
-const eventSource = new EventSource("/analytics/updates/");
-eventSource.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    if(data.update) {
-        document.getElementById('realtime-indicator').innerHTML = 
-            '<i class="fas fa-check-circle text-success"></i> Veriler güncellendi';
-        setTimeout(() => {
-            location.reload();
-        }, 2000);
+// Refresh butonu için loading efekti
+document.addEventListener('DOMContentLoaded', function() {
+    const refreshBtn = document.getElementById('refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(e) {
+            const originalHtml = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Güncelleniyor...';
+            this.classList.add('disabled');
+        });
     }
-};
-
-// Dynamic chart switching
-document.querySelectorAll('[data-chart]').forEach(tab => {
-    tab.addEventListener('click', function(e) {
-        e.preventDefault();
-        const chartType = this.getAttribute('data-chart');
-        const container = document.getElementById('dynamic-chart-container');
-        
-        // Show loading
-        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
-        
-        // Fetch chart data
-        fetch(`/analytics/chart/${chartType}/`)
-            .then(response => response.json())
-            .then(data => {
-                container.innerHTML = `<img src="data:image/png;base64,${data.chart}" 
-                                      alt="${chartType} chart" class="img-fluid">`;
-            });
-    });
 });
-
-// Initialize productivity gauge
-GaugeChart.gaugeChart(
-    document.getElementById('productivity-gauge'), 
-    200,
-    {
-        max: 100,
-        value: {{ productivity_score }},
-        greenColor: "#4CAF50",
-        yellowColor: "#FFC107",
-        redColor: "#F44336",
-        currentValueText: "{{ productivity_score }}",
-        levelColorsGradient: false
-    }
-);
 </script>
+
+<style>
+.chart-container {
+    max-height: 400px;
+    overflow: hidden;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    border-bottom: 1px solid #e3e6f0;
+}
+
+.progress {
+    border-radius: 10px;
+}
+
+.border.rounded {
+    transition: transform 0.2s;
+}
+
+.border.rounded:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Responsive düzenlemeler */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 300px;
+    }
+    
+    .chart-container img {
+        max-height: 280px;
+    }
+}
+
+@media (max-width: 576px) {
+    .chart-container {
+        height: 250px;
+    }
+    
+    .chart-container img {
+        max-height: 230px;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* Grafik geçiş animasyonları */
+img[alt*="Grafiği"] {
+    transition: opacity 0.3s ease;
+}
+</style>
 {% endblock %}

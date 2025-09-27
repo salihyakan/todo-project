@@ -1,0 +1,194 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Kronometre - Araçlar{% endblock %}
+
+{% block extra_css %}
+<style>
+.stopwatch-container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.time-display {
+    font-size: 4rem;
+    font-weight: bold;
+    text-align: center;
+    color: #2c3e50;
+    margin: 2rem 0;
+    font-family: 'Courier New', monospace;
+}
+
+.controls {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.lap-times {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-top: 2rem;
+}
+
+.lap-item {
+    padding: 0.5rem;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+@media (max-width: 576px) {
+    .time-display {
+        font-size: 3rem;
+    }
+    .controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    .controls .btn {
+        width: 200px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">Kronometre</h2>
+            <a href="{% url 'tools:home' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Geri
+            </a>
+        </div>
+        
+        <div class="stopwatch-container text-center">
+            <div class="time-display" id="timeDisplay">00:00:00</div>
+            
+            <div class="controls mb-4">
+                <button class="btn btn-success btn-lg" id="startBtn" onclick="startStopwatch()">
+                    <i class="fas fa-play me-2"></i>Başlat
+                </button>
+                <button class="btn btn-warning btn-lg" id="lapBtn" onclick="recordLap()" disabled>
+                    <i class="fas fa-flag me-2"></i>Tur
+                </button>
+                <button class="btn btn-danger btn-lg" id="stopBtn" onclick="stopStopwatch()" disabled>
+                    <i class="fas fa-stop me-2"></i>Durdur
+                </button>
+                <button class="btn btn-secondary btn-lg" onclick="resetStopwatch()">
+                    <i class="fas fa-redo me-2"></i>Sıfırla
+                </button>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Tur Zamanları</h5>
+                </div>
+                <div class="card-body">
+                    <div id="lapTimes" class="lap-times">
+                        <p class="text-muted text-center mb-0">Henüz tur kaydedilmedi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let startTime;
+let elapsedTime = 0;
+let timerInterval;
+let isRunning = false;
+let lapCount = 0;
+
+function updateDisplay() {
+    const totalSeconds = Math.floor(elapsedTime / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const milliseconds = Math.floor((elapsedTime % 1000) / 10);
+    
+    document.getElementById('timeDisplay').textContent = 
+        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+}
+
+function startStopwatch() {
+    if (!isRunning) {
+        startTime = Date.now() - elapsedTime;
+        timerInterval = setInterval(() => {
+            elapsedTime = Date.now() - startTime;
+            updateDisplay();
+        }, 10);
+        
+        isRunning = true;
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+        document.getElementById('lapBtn').disabled = false;
+    }
+}
+
+function stopStopwatch() {
+    if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('stopBtn').disabled = true;
+    }
+}
+
+function resetStopwatch() {
+    stopStopwatch();
+    elapsedTime = 0;
+    lapCount = 0;
+    updateDisplay();
+    document.getElementById('lapTimes').innerHTML = '<p class="text-muted text-center mb-0">Henüz tur kaydedilmedi</p>';
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('lapBtn').disabled = true;
+}
+
+function recordLap() {
+    if (isRunning) {
+        lapCount++;
+        const lapTime = document.getElementById('timeDisplay').textContent;
+        const lapTimesContainer = document.getElementById('lapTimes');
+        
+        if (lapTimesContainer.querySelector('.text-muted')) {
+            lapTimesContainer.innerHTML = '';
+        }
+        
+        const lapItem = document.createElement('div');
+        lapItem.className = 'lap-item';
+        lapItem.innerHTML = `
+            <span>Tur ${lapCount}:</span>
+            <span>${lapTime}</span>
+        `;
+        
+        lapTimesContainer.prepend(lapItem);
+    }
+}
+
+// Klavye kontrolleri
+document.addEventListener('keydown', function(event) {
+    if (event.code === 'Space') {
+        event.preventDefault();
+        if (isRunning) {
+            stopStopwatch();
+        } else {
+            startStopwatch();
+        }
+    } else if (event.code === 'KeyL') {
+        recordLap();
+    } else if (event.code === 'KeyR') {
+        resetStopwatch();
+    }
+});
+
+// İlk yükleme
+updateDisplay();
+</script>
+{% endblock %}
