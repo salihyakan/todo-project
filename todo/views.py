@@ -3,11 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q
 from django.core.paginator import Paginator
-from .models import Task, Note, Category
+from .models import Task, Category
 from user_profile.models import Badge, UserBadge
-from .forms import TaskForm, NoteForm, CategoryForm
+from .forms import TaskForm, CategoryForm
 from django.utils import timezone
 from django.http import JsonResponse
+from datetime import datetime
 
 @login_required
 def task_list(request):
@@ -17,11 +18,25 @@ def task_list(request):
     priority = request.GET.get('priority', '')
     search = request.GET.get('search', '')
     sort = request.GET.get('sort', '-due_date')
+    due_date = request.GET.get('due_date', '')
     
-    # Temel sorgu
+    # Temel sorgu - süresi geçmiş görevleri varsayılan olarak gösterme
     tasks = Task.objects.filter(user=request.user)
     
-    # Filtreleme
+    # Özel durum filtreleri (hızlı filtre butonları)
+    quick_filter = request.GET.get('filter', '')
+    if quick_filter:
+        if quick_filter == 'active':
+            tasks = tasks.filter(status__in=['todo', 'in_progress'])
+        elif quick_filter == 'completed':
+            tasks = tasks.filter(status='completed')
+        elif quick_filter == 'overdue':
+            tasks = Task.objects.filter(user=request.user, status='overdue')
+        elif quick_filter == 'today':
+            today = timezone.now().date()
+            tasks = tasks.filter(due_date__date=today)
+    
+    # Detaylı filtreleme
     if category_id:
         tasks = tasks.filter(category__id=category_id)
     if status:
@@ -33,16 +48,21 @@ def task_list(request):
             Q(title__icontains=search) | 
             Q(description__icontains=search)
         )
+    if due_date:
+        try:
+            filter_date = datetime.datetime.strptime(due_date, '%Y-%m-%d').date()
+            tasks = tasks.filter(due_date__date=filter_date)
+        except ValueError:
+            pass
     
     # Sıralama
     tasks = tasks.order_by(sort)
     
     # Sayfalama
-    paginator = Paginator(tasks, 10)
+    paginator = Paginator(tasks, 9)  # 3x3 grid için 9 görev
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Context verileri
     context = {
         'page_obj': page_obj,
         'status_choices': Task.STATUS_CHOICES,
@@ -52,7 +72,9 @@ def task_list(request):
         'current_priority': priority,
         'current_search': search,
         'current_sort': sort,
-        'has_filters': any([category_id, status, priority, search])
+        'current_due_date': due_date,
+        'current_filter': quick_filter,
+        'has_filters': any([category_id, status, priority, search, due_date, quick_filter])
     }
     
     return render(request, 'todo/task_list.html', context)
@@ -65,10 +87,11 @@ def task_create(request):
         if form.is_valid():
             task = form.save(commit=False)
             task.user = request.user
-            task.status = 'todo'  # Varsayılan olarak 'todo' olarak ayarla
             task.save()
             messages.success(request, 'Görev başarıyla oluşturuldu!')
             return redirect('todo:task_list')
+        else:
+            messages.error(request, 'Lütfen formdaki hataları düzeltin.')
     else:
         initial = {}
         category_id = request.GET.get('category')
@@ -90,7 +113,6 @@ def task_update(request, pk):
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task, user=request.user)
         if form.is_valid():
-            # Görev durumu değiştiyse
             if form.cleaned_data['status'] == 'completed' and task.status != 'completed':
                 task.completed_at = timezone.now()
             elif form.cleaned_data['status'] != 'completed' and task.completed_at:
@@ -99,6 +121,8 @@ def task_update(request, pk):
             form.save()
             messages.success(request, 'Görev başarıyla güncellendi!')
             return redirect('todo:task_detail', pk=task.pk)
+        else:
+            messages.error(request, 'Lütfen formdaki hataları düzeltin.')
     else:
         form = TaskForm(instance=task, user=request.user)
     
@@ -107,34 +131,29 @@ def task_update(request, pk):
 @login_required
 def task_detail(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
-    notes = task.notes.all()
     
-    if request.method == 'POST':
-        note_form = NoteForm(request.POST)
-        if note_form.is_valid():
-            note = note_form.save(commit=False)
-            note.user = request.user
-            note.task = task
-            note.save()
-            messages.success(request, 'Not başarıyla eklendi!')
-            return redirect('todo:task_detail', pk=task.pk)
-    else:
-        note_form = NoteForm()
+    # Notes app'inden task ile ilişkili notları al
+    from notes.models import Note
+    notes = Note.objects.filter(task=task, user=request.user).order_by('-is_pinned', '-updated_at')[:3]  # Son 3 not
     
     return render(request, 'todo/task_detail.html', {
         'task': task,
-        'notes': notes,
-        'note_form': note_form
+        'notes': notes
     })
-
 
 @login_required
 def task_delete(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     if request.method == 'POST':
-        task.delete()
-        messages.success(request, 'Görev başarıyla silindi!')
-        return redirect('todo:task_list')
+        try:
+            task_title = task.title
+            task.delete()
+            messages.success(request, f'"{task_title}" görevi başarıyla silindi!')
+            return redirect('todo:task_list')
+        except Exception as e:
+            messages.error(request, f'Görev silinirken hata oluştu: {str(e)}')
+            return redirect('todo:task_list')
+    
     return render(request, 'todo/task_confirm_delete.html', {'task': task})
 
 @login_required

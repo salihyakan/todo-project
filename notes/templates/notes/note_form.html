@@ -6,84 +6,298 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     .form-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
+        max-width: 600px;
+        margin: 20px auto;
     }
     .form-header {
-        border-radius: 10px 10px 0 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px 8px 0 0;
+        padding: 15px 20px;
     }
-    .priority-badge {
-        padding: 4px 10px;
+    .form-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        border: 1px solid #dee2e6;
+    }
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 3px solid #667eea;
+    }
+    .form-section h6 {
+        font-size: 0.95rem;
+        color: #495057;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+    .btn-submit {
+        padding: 8px 25px;
+        font-weight: 600;
         border-radius: 20px;
         font-size: 0.9rem;
+    }
+    .task-info {
+        background: #e3f2fd;
+        border-radius: 6px;
+        padding: 12px;
+        margin-bottom: 15px;
+        font-size: 0.85rem;
+        border-left: 3px solid #2196F3;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+        font-size: 0.9rem;
+    }
+    .form-control, .form-select {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.75rem;
+    }
+    .card-body {
+        padding: 20px;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="card shadow">
-        <div class="card-header bg-primary text-white form-header">
-            <h3 class="mb-0">
-                {% if note %}Not Düzenle{% else %}Yeni Not Oluştur{% endif %}
-            </h3>
-        </div>
-        <div class="card-body form-container">
-            <form method="post">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label class="form-label">Başlık</label>
-                    <input type="text" class="form-control" name="title" value="{{ note.title|default:'' }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Kategori</label>
-                    <select class="form-select" name="category">
-                        <option value="">Kategori seçin</option>
-                        {% for category in categories %}
-                        <option value="{{ category.id }}" 
-                            {% if note.category and note.category.id == category.id %}selected{% endif %}>
-                            {{ category.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">İçerik</label>
-                    <textarea class="form-control" name="content" rows="8" required>{{ note.content|default:'' }}</textarea>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Öncelik</label>
-                        <select class="form-select" name="priority">
-                            <option value="L" {% if note.priority == 'L' %}selected{% endif %}>Düşük</option>
-                            <option value="M" {% if not note or note.priority == 'M' %}selected{% endif %}>Orta</option>
-                            <option value="H" {% if note.priority == 'H' %}selected{% endif %}>Yüksek</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">İlişkili Tarih</label>
-                        <input type="datetime-local" class="form-control" name="related_date" 
-                               value="{{ note.related_date|date:'Y-m-d\TH:i'|default:'' }}">
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card form-card">
+                <div class="card-header form-header text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-{% if is_update %}edit{% else %}plus{% endif %} me-2"></i>
+                            {% if is_update %}
+                                Notu Düzenle
+                            {% else %}
+                                {% if task %}"{{ task.title }}" için Not{% else %}Yeni Not{% endif %}
+                            {% endif %}
+                        </h5>
+                        <a href="{% if is_update %}{% url 'notes:note_detail' note.pk %}{% elif task %}{% url 'todo:task_detail' task.pk %}{% else %}{% url 'notes:note_list' %}{% endif %}" 
+                           class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Geri
+                        </a>
                     </div>
                 </div>
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" name="is_pinned" id="is_pinned"
-                           {% if note.is_pinned %}checked{% endif %}>
-                    <label class="form-check-label" for="is_pinned">Notu sabitle</label>
-                </div>
-                <div class="d-flex justify-content-end gap-2">
-                    {% if note %}
-                    <a href="{% url 'notes:note_delete' note.pk %}" class="btn btn-danger ms-2">
-                        <i class="fas fa-trash me-1"></i> Sil
-                    </a>
+                
+                <div class="card-body">
+                    {% if task and not is_update %}
+                    <div class="task-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong><i class="fas fa-tasks me-1"></i>Görev:</strong> {{ task.title }}
+                            </div>
+                            <span class="badge bg-{% if task.status == 'completed' %}success{% else %}warning{% endif %}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
                     {% endif %}
-                    <a href="{% if note %}{% url 'notes:note_detail' note.pk %}{% else %}{% url 'notes:note_list' %}{% endif %}" 
-                       class="btn btn-secondary">Vazgeç</a>
-                    <button type="submit" class="btn btn-primary">Kaydet</button>
+
+                    <form method="post" id="noteForm">
+                        {% csrf_token %}
+                        
+                        <!-- Başlık ve Öncelik -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-heading me-2"></i>Temel Bilgiler</h6>
+                            <div class="row g-2">
+                                <div class="col-md-8">
+                                    <div class="mb-2">
+                                        <label class="form-label">Başlık *</label>
+                                        <input type="text" name="title" class="form-control" 
+                                               placeholder="Not başlığı" 
+                                               value="{{ form.title.value|default:'' }}" required>
+                                        {% if form.title.errors %}
+                                        <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-2">
+                                        <label class="form-label">Öncelik</label>
+                                        <select name="priority" class="form-select">
+                                            <option value="L" {% if form.priority.value == 'L' %}selected{% endif %}>Düşük</option>
+                                            <option value="M" {% if form.priority.value == 'M' or not form.priority.value %}selected{% endif %}>Orta</option>
+                                            <option value="H" {% if form.priority.value == 'H' %}selected{% endif %}>Yüksek</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- İçerik -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-align-left me-2"></i>İçerik</h6>
+                            <div class="mb-2">
+                                <label class="form-label">Not İçeriği *</label>
+                                <textarea name="content" rows="4" class="form-control" 
+                                          placeholder="Not içeriğini yazın..." required>{{ form.content.value|default:'' }}</textarea>
+                                {% if form.content.errors %}
+                                <div class="text-danger small mt-1">{{ form.content.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Kategori ve Görev -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-tags me-2"></i>Kategori ve İlişkiler</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <label class="form-label">Kategori</label>
+                                        <select name="category" class="form-select">
+                                            <option value="">Kategori seçin</option>
+                                            {% for category in categories %}
+                                            <option value="{{ category.id }}" 
+                                                    {% if form.category.value == category.id|stringformat:'i' %}selected{% endif %}>
+                                                {{ category.name }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <label class="form-label">İlişkili Görev</label>
+                                        <select name="task" class="form-select">
+                                            <option value="">Görev seçin</option>
+                                            {% for task_item in tasks %}
+                                            <option value="{{ task_item.id }}" 
+                                                    {% if form.task.value == task_item.id|stringformat:'i' or task.id == task_item.id %}selected{% endif %}>
+                                                {{ task_item.title|truncatechars:25 }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Diğer Ayarlar -->
+                        <div class="form-section">
+                            <h6><i class="fas fa-cog me-2"></i>Diğer Ayarlar</h6>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <div class="mb-2">
+                                        <label class="form-label">İlişkili Tarih</label>
+                                        <input type="datetime-local" name="related_date" class="form-control" 
+                                               value="{{ form.related_date.value|date:'Y-m-d\TH:i'|default:'' }}">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-2 d-flex align-items-end h-100">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" name="is_pinned" 
+                                                   id="is_pinned" {% if form.is_pinned.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_pinned">
+                                                <i class="fas fa-thumbtack me-1"></i>Notu sabitle
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Hataları -->
+                        {% if form.errors %}
+                        <div class="alert alert-danger py-2">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Formda hatalar var:</strong>
+                            <ul class="mb-0 mt-1 small">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <!-- Butonlar -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% if is_update %}{% url 'notes:note_detail' note.pk %}{% elif task %}{% url 'todo:task_detail' task.pk %}{% else %}{% url 'notes:note_list' %}{% endif %}" 
+                               class="btn btn-outline-secondary px-3">
+                                <i class="fas fa-times me-1"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-submit">
+                                <i class="fas fa-save me-1"></i> 
+                                {% if is_update %}Güncelle{% else %}Oluştur{% endif %}
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Öncelik seçiciye görsel feedback
+    const prioritySelect = document.querySelector('select[name="priority"]');
+    
+    function updatePriorityIndicator() {
+        const selectedValue = prioritySelect.value;
+        const colors = {
+            'H': '#dc3545', // Kırmızı
+            'M': '#ffc107', // Sarı
+            'L': '#0dcaf0'  // Mavi
+        };
+        prioritySelect.style.borderLeft = `3px solid ${colors[selectedValue] || '#6f42c1'}`;
+    }
+    
+    prioritySelect.addEventListener('change', updatePriorityIndicator);
+    updatePriorityIndicator();
+    
+    // Tarih alanı için bugünü varsayılan yap (sadece yeni not oluştururken)
+    const dateInput = document.querySelector('input[name="related_date"]');
+    if (dateInput && !dateInput.value && !{{ is_update|yesno:"true,false" }}) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        dateInput.value = now.toISOString().slice(0, 16);
+    }
+    
+    // Form validation
+    const form = document.getElementById('noteForm');
+    form.addEventListener('submit', function(e) {
+        const title = document.querySelector('input[name="title"]').value.trim();
+        const content = document.querySelector('textarea[name="content"]').value.trim();
+        
+        if (!title) {
+            e.preventDefault();
+            alert('Lütfen not başlığı girin.');
+            document.querySelector('input[name="title"]').focus();
+            return false;
+        }
+        
+        if (!content) {
+            e.preventDefault();
+            alert('Lütfen not içeriği girin.');
+            document.querySelector('textarea[name="content"]').focus();
+            return false;
+        }
+    });
+
+    // Dinamik olarak textarea boyutunu ayarla
+    const textarea = document.querySelector('textarea[name="content"]');
+    if (textarea) {
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Sayfa yüklendiğinde boyutu ayarla
+        setTimeout(() => {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }, 100);
+    }
+});
+</script>
 {% endblock %}

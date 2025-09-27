@@ -12,7 +12,25 @@ from django.views.decorators.csrf import csrf_exempt
 from notes.models import Note
 from datetime import datetime
 from django.views.decorators.http import require_http_methods
-from .redis_utils import get_pomodoro_stats, get_recent_sessions, store_pomodoro_session
+
+# Redis utils kaldırıldı - basit alternatifler eklendi
+def get_pomodoro_stats(user_id):
+    """Basit pomodoro istatistikleri (Redis olmadan)"""
+    return {
+        'total_sessions': 0,
+        'total_focus_time': 0,
+        'daily_average': 0
+    }
+
+def get_recent_sessions(user_id, limit=10):
+    """Son pomodoro oturumları (Redis olmadan)"""
+    return []
+
+def store_pomodoro_session(user_id, session_type, duration):
+    """Pomodoro oturumunu kaydet (Redis olmadan)"""
+    # Basitçe database'e kaydedebilirsiniz veya geçici olarak boş bırakın
+    print(f"Pomodoro session: user={user_id}, type={session_type}, duration={duration}")
+    # İsterseniz burada basit bir database modeli kullanabilirsiniz
 
 # Etkinlik türüne göre renk döndürür
 def get_event_color(event_type):
@@ -86,7 +104,6 @@ def pomodoro_view(request):
         'redis_history': history
     })
 
-
 @login_required
 def calendar_view(request):
     return render(request, 'dashboard/calendar.html')
@@ -101,9 +118,7 @@ def create_calendar_event(request):
     try:
         naive_datetime = datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M")
         turkiye_tz = pytz.timezone('Europe/Istanbul')
-        start_date = turkiye_tz.localize(
-            datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M")
-    )
+        start_date = turkiye_tz.localize(datetime.strptime(start_date_str, "%Y-%m-%dT%H:%M"))
     except Exception as e:
         return JsonResponse({
             "status": "error",
@@ -198,7 +213,7 @@ def day_detail_view(request, year, month, day):
 
 @login_required
 def event_detail_view(request, event_id):
-    event = CalendarEvent.objects.get(id=event_id, user=request.user)
+    event = get_object_or_404(CalendarEvent, id=event_id, user=request.user)
     return render(request, 'dashboard/event_detail.html', {'event': event})
 
 @csrf_exempt

@@ -4,8 +4,6 @@ from django.utils import timezone
 from django.urls import reverse
 from slugify import slugify
 
-
-
 User = get_user_model()
 
 class Category(models.Model):
@@ -74,9 +72,9 @@ class Task(models.Model):
         return reverse('todo:task_detail', args=[str(self.id)])
 
     def save(self, *args, **kwargs):
-        # Yeni görev oluşturulurken status'ü kontrol et
-        if not self.pk and not self.status:  # Eğer yeni görevse ve status belirtilmemişse
-            self.status = 'todo'
+        # Süresi geçmiş görevleri kontrol et
+        if self.due_date < timezone.now() and self.status not in ['completed', 'overdue']:
+            self.status = 'overdue'
         
         # Tamamlama tarihi kontrolü
         if self.status == 'completed' and not self.completed_at:
@@ -94,17 +92,28 @@ class Task(models.Model):
     def is_overdue(self):
         return self.due_date < timezone.now() and not self.is_completed
 
-class Note(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='todo_notes')
-    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='notes', null=True, blank=True)
-    content = models.TextField(verbose_name="İçerik")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return f"{self.user.username} - {self.created_at.strftime('%Y-%m-%d')}"
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Not'
-        verbose_name_plural = 'Notlar'
+    @property
+    def time_remaining(self):
+        """Kalan süreyi hesapla"""
+        now = timezone.now()
+        if self.due_date > now:
+            delta = self.due_date - now
+            if delta.days > 0:
+                return f"{delta.days} gün"
+            elif delta.seconds // 3600 > 0:
+                return f"{delta.seconds // 3600} saat"
+            else:
+                return f"{delta.seconds // 60} dakika"
+        else:
+            return "Süresi doldu"
+
+    @property
+    def is_almost_due(self):
+        """24 saat içinde bitecek mi?"""
+        now = timezone.now()
+        return (self.due_date - now).total_seconds() < 86400 and not self.is_completed and not self.is_overdue
+
+    @property
+    def notes_count(self):
+        """Bu göreve ait not sayısı"""
+        return self.notes.count()

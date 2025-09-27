@@ -3,79 +3,318 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h3 class="mb-0">{{ task.title }}</h3>
-            <span
-                class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}primary{% else %}secondary{% endif %}">
-                {{ task.get_status_display }}
-            </span>
-        </div>
-        <div class="card-body">
-            <div class="row mb-4">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <h5 class="text-muted">Açıklama</h5>
-                        <p>{{ task.description|linebreaks }}</p>
-                    </div>
-
-                    <div class="mb-3">
-                        <h5 class="text-muted">Öncelik</h5>
-                        <span
-                            class="badge bg-{% if task.priority == 'H' %}danger{% elif task.priority == 'M' %}warning{% else %}info{% endif %}">
-                            {{ task.get_priority_display }}
-                        </span>
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <!-- Görev Detay Kartı -->
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h3 class="mb-1">{{ task.title }}</h3>
+                            <div class="d-flex align-items-center gap-3 mt-2">
+                                <span
+                                    class="badge bg-{% if task.status == 'completed' %}success{% elif task.status == 'in_progress' %}primary{% elif task.status == 'overdue' %}danger{% else %}secondary{% endif %} fs-6">
+                                    {{ task.get_status_display }}
+                                </span>
+                                <span
+                                    class="badge bg-{% if task.priority == 'H' %}danger{% elif task.priority == 'M' %}warning{% else %}info{% endif %} fs-6">
+                                    {{ task.get_priority_display }} Öncelik
+                                </span>
+                                {% if task.category %}
+                                <span class="badge fs-6"
+                                    style="background-color: {{ task.category.color }}; color: white;">
+                                    {{ task.category.name }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-cog"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'todo:task_update' task.pk %}">
+                                        <i class="fas fa-edit me-2"></i>Düzenle
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'todo:task_delete' task.pk %}">
+                                        <i class="fas fa-trash me-2"></i>Sil
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <h5 class="text-muted">Kategori</h5>
-                        {% if task.category %}
-                        <span class="badge" style="background-color: {{ task.category.color }}; color: white;">
-                            {{ task.category.name }}
-                        </span>
-                        {% else %}
-                        <span class="badge bg-secondary">Kategorisiz</span>
-                        {% endif %}
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Sol Taraf - Görev Bilgileri -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Görev Detayları
+                                </h5>
+
+                                <div class="task-info-item mb-3">
+                                    <label class="fw-bold text-muted small">Açıklama:</label>
+                                    <div class="p-3 bg-light rounded mt-1">
+                                        {{ task.description|linebreaksbr|default:"Açıklama bulunmuyor" }}
+                                    </div>
+                                </div>
+
+                                <div class="task-info-item mb-2">
+                                    <label class="fw-bold text-muted small">Teslim Tarihi:</label>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <i class="fas fa-calendar text-info"></i>
+                                        <span>{{ task.due_date|date:"d M Y H:i" }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="task-info-item mb-2">
+                                    <label class="fw-bold text-muted small">Kalan Süre:</label>
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <i
+                                            class="fas fa-clock {% if task.status == 'overdue' %}text-danger{% elif task.is_almost_due %}text-warning{% else %}text-success{% endif %}"></i>
+                                        <span
+                                            class="{% if task.status == 'overdue' %}text-danger fw-bold{% elif task.is_almost_due %}text-warning{% else %}text-success{% endif %}">
+                                            {{ task.time_remaining }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sağ Taraf - Zaman Bilgileri -->
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-history me-2"></i>Zaman Bilgileri
+                                </h5>
+
+                                <div class="timeline-info">
+                                    <div class="timeline-item mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <i class="fas fa-plus-circle text-success"></i>
+                                            <div>
+                                                <label class="fw-bold text-muted small mb-0">Oluşturulma:</label>
+                                                <div>{{ task.created_at|date:"d M Y H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="timeline-item mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <i class="fas fa-edit text-warning"></i>
+                                            <div>
+                                                <label class="fw-bold text-muted small mb-0">Son Güncelleme:</label>
+                                                <div>{{ task.updated_at|date:"d M Y H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {% if task.completed_at %}
+                                    <div class="timeline-item mb-3">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            <div>
+                                                <label class="fw-bold text-muted small mb-0">Tamamlanma:</label>
+                                                <div>{{ task.completed_at|date:"d M Y H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Durum Değiştirme Butonu -->
+                            {% if not task.is_completed %}
+                            <div class="text-center">
+                                <form method="post" action="{% url 'todo:complete_task' task.pk %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-lg w-100">
+                                        <i class="fas fa-check-circle me-2"></i>Görevi Tamamla
+                                    </button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <div class="alert alert-success text-center">
+                                <i class="fas fa-trophy me-2"></i>
+                                <strong>Tebrikler!</strong> Bu görevi başarıyla tamamladınız.
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <h5 class="text-muted">Teslim Tarihi</h5>
-                        <p>{{ task.due_date|date:"d M Y H:i" }}</p>
+                </div>
+            </div>
+
+            <!-- Notlar Bölümü - DÜZENLENMİŞ -->
+            <div class="card shadow border-0 mt-4">
+                <div class="card-header bg-gradient-info text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>Görev Notları
+                            <span class="badge bg-light text-dark ms-2">{{ task.notes.count }}</span>
+                        </h5>
+                        <div>
+                            <a href="{% url 'notes:note_create_for_task' task.pk %}" class="btn btn-light btn-sm">
+                                <i class="fas fa-plus me-1"></i>Not Ekle
+                            </a>
+                            <a href="{% url 'notes:task_notes' task.pk %}" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-list me-1"></i>Tüm Notlar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if notes %}
+                    <div class="notes-list">
+                        {% for note in notes %}
+                        <div class="note-item border rounded p-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="mb-1">
+                                    <a href="{% url 'notes:note_detail' note.pk %}"
+                                        class="text-decoration-none text-dark">
+                                        {{ note.title }}
+                                    </a>
+                                </h6>
+                                <div>
+                                    {% if note.is_pinned %}
+                                    <span class="badge bg-warning me-2" title="Sabitlenmiş"><i
+                                            class="fas fa-thumbtack"></i></span>
+                                    {% endif %}
+                                    <small class="text-muted">{{ note.updated_at|date:"d.m.Y H:i" }}</small>
+                                </div>
+                            </div>
+                            <div class="note-content">
+                                {{ note.content|linebreaks|truncatewords:30 }}
+                            </div>
+                            <div class="note-meta mt-2 d-flex flex-wrap gap-2">
+                                {% if note.category %}
+                                <span class="badge" style="background-color: {{ note.category.color }};">
+                                    <i class="fas fa-folder me-1"></i>{{ note.category.name }}
+                                </span>
+                                {% endif %}
+                                <span
+                                    class="badge bg-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %}">
+                                    <i class="fas fa-flag me-1"></i>{{ note.get_priority_display }}
+                                </span>
+                                {% if note.related_date %}
+                                <span class="badge bg-secondary">
+                                    <i class="far fa-calendar me-1"></i>{{ note.related_date|date:"d.m.Y" }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="note-actions mt-3 d-flex justify-content-end gap-2">
+                                <a href="{% url 'notes:note_detail' note.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>Detay
+                                </a>
+                                <a href="{% url 'notes:note_update' note.pk %}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-edit me-1"></i>Düzenle
+                                </a>
+                                <a href="{% url 'notes:note_delete' note.pk %}" class="btn btn-sm btn-outline-danger">
+                                    <i class="fas fa-trash me-1"></i>Sil
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
 
-                    <div class="mb-3">
-                        <h5 class="text-muted">Oluşturulma Tarihi</h5>
-                        <p>{{ task.created_at|date:"d M Y H:i" }}</p>
+                    {% if notes.count >= 3 %}
+                    <div class="text-center mt-3">
+                        <a href="{% url 'notes:task_notes' task.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-right me-1"></i>Tüm Notları Görüntüle ({{ task.notes.count }})
+                        </a>
                     </div>
+                    {% endif %}
 
-                    {% if task.completed %}
-                    <div class="mb-3">
-                        <h5 class="text-muted">Tamamlanma Tarihi</h5>
-                        <p>{{ task.completed_at|date:"d M Y H:i" }}</p>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-sticky-note fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">Bu görev için henüz not eklenmemiş</h5>
+                        <p class="text-muted mb-3">Görevle ilgili önemli notlarınızı ekleyin</p>
+                        <a href="{% url 'notes:note_create_for_task' task.pk %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i>İlk Notu Ekleyin
+                        </a>
                     </div>
                     {% endif %}
                 </div>
             </div>
-
-            <div class="d-flex justify-content-end gap-2 mt-4">
-                {% if not task.is_completed %}
-                <form method="post" action="{% url 'todo:complete_task' task.pk %}">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check-circle me-1"></i> Tamamlandı Olarak İşaretle
-                    </button>
-                </form>
-                {% endif %}
-
-                <a href="{% url 'todo:task_update' task.pk %}" class="btn btn-primary">
-                    <i class="fas fa-edit me-1"></i> Düzenle
-                </a>
-                <a href="{% url 'todo:task_delete' task.pk %}" class="btn btn-danger">
-                    <i class="fas fa-trash me-1"></i> Sil
-                </a>
-            </div>
         </div>
     </div>
 </div>
+
+<!-- Not Ekleme Modal -->
+<div class="modal fade" id="noteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-gradient-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-sticky-note me-2"></i>Görev Notu Ekle
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="add_note" value="true">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        {{ note_form.content }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Notu Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-header.bg-gradient-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    }
+
+    .card-header.bg-gradient-info {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%) !important;
+    }
+
+    .task-info-item {
+        border-left: 3px solid #667eea;
+        padding-left: 15px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding-left: 40px;
+    }
+
+    .timeline-item i {
+        position: absolute;
+        left: 0;
+        top: 0;
+        font-size: 1.2em;
+    }
+
+    .note-item {
+        background: #f8f9fa;
+        border-left: 4px solid #74b9ff !important;
+        transition: all 0.3s ease;
+    }
+
+    .note-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+
+    .note-actions .btn {
+        border-radius: 20px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.875rem;
+    }
+</style>
 {% endblock %}

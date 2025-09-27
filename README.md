@@ -8,15 +8,12 @@ TODO
 │  │  ├─ 0001_initial.py
 │  │  └─ __init__.py
 │  ├─ models.py
-│  ├─ signals.py
 │  ├─ static
 │  │  └─ analytics
 │  ├─ templates
 │  │  └─ analytics
 │  │     ├─ dashboard.html
 │  │     └─ stats_badge.html
-│  ├─ templatetags
-│  │  └─ analytics_tags.py
 │  ├─ tests.py
 │  ├─ urls.py
 │  ├─ utils.py
@@ -24,7 +21,6 @@ TODO
 │  └─ __init__.py
 ├─ config
 │  ├─ asgi.py
-│  ├─ celery.py
 │  ├─ settings.py
 │  ├─ urls.py
 │  ├─ wsgi.py
@@ -34,11 +30,9 @@ TODO
 │  ├─ apps.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
+│  │  ├─ 0002_initial.py
 │  │  └─ __init__.py
 │  ├─ models.py
-│  ├─ redis_utils.py
-│  ├─ signals.py
-│  ├─ tasks.py
 │  ├─ templates
 │  │  └─ dashboard
 │  │     ├─ calendar.html
@@ -46,14 +40,10 @@ TODO
 │  │     ├─ event_detail.html
 │  │     ├─ home.html
 │  │     └─ pomodoro.html
-│  ├─ templatetags
-│  │  └─ dashboard_filters.py
 │  ├─ tests.py
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
-├─ docker-compose.yml
-├─ Dockerfile
 ├─ manage.py
 ├─ notes
 │  ├─ admin.py
@@ -63,7 +53,6 @@ TODO
 │  │  ├─ 0001_initial.py
 │  │  └─ __init__.py
 │  ├─ models.py
-│  ├─ signals.py
 │  ├─ templates
 │  │  └─ notes
 │  │     ├─ category_confirm_delete.html
@@ -72,7 +61,8 @@ TODO
 │  │     ├─ note_confirm_delete.html
 │  │     ├─ note_detail.html
 │  │     ├─ note_form.html
-│  │     └─ note_list.html
+│  │     ├─ note_list.html
+│  │     └─ task_notes.html
 │  ├─ tests.py
 │  ├─ urls.py
 │  ├─ views.py
@@ -107,8 +97,6 @@ TODO
 │  │  ├─ 0001_initial.py
 │  │  └─ __init__.py
 │  ├─ models.py
-│  ├─ signals.py
-│  ├─ tasks.py
 │  ├─ templates
 │  │  └─ todo
 │  │     ├─ category_confirm_delete.html
@@ -133,8 +121,6 @@ TODO
    │  ├─ 0001_initial.py
    │  └─ __init__.py
    ├─ models.py
-   ├─ signals.py
-   ├─ tasks.py
    ├─ templates
    │  └─ user_profile
    │     ├─ badge_detail.html

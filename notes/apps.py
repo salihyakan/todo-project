@@ -5,4 +5,4 @@ class NotesConfig(AppConfig):
     name = 'notes'
 
     def ready(self):
-        import notes.signals  # Sinyalleri kaydet
+        pass

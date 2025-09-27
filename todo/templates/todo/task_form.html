@@ -4,20 +4,29 @@
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-12 col-md-8 col-lg-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        {% if task %}Görevi Düzenle{% else %}Yeni Görev Oluştur{% endif %}
-                    </h5>
+        <div class="col-12 col-lg-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-{% if task %}edit{% else %}plus{% endif %} me-2"></i>
+                            {% if task %}Görevi Düzenle{% else %}Yeni Görev Oluştur{% endif %}
+                        </h5>
+                        <a href="{% if task %}{% url 'todo:task_detail' task.pk %}{% else %}{% url 'todo:task_list' %}{% endif %}" 
+                           class="btn btn-light btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i> Geri
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="post">
+                <div class="card-body p-4">
+                    <form method="post" id="task-form">
                         {% csrf_token %}
 
                         {% if form.errors %}
                         <div class="alert alert-danger">
-                            <ul class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Formda hatalar var:</strong>
+                            <ul class="mb-0 mt-2">
                                 {% for field, errors in form.errors.items %}
                                 {% for error in errors %}
                                 <li>{{ error }}</li>
@@ -27,57 +36,100 @@
                         </div>
                         {% endif %}
 
-                        <div class="mb-3">
-                            <label for="{{ form.title.id_for_label }}" class="form-label">Başlık*</label>
-                            {{ form.title }}
-                            <small class="text-muted">Görevin kısa açıklaması</small>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-heading me-1 text-primary"></i>Başlık*
+                                    </label>
+                                    {{ form.title }}
+                                    <div class="form-text">Görevin kısa ve açıklayıcı başlığı</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="{{ form.priority.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-exclamation-circle me-1 text-warning"></i>Öncelik
+                                    </label>
+                                    {{ form.priority }}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row">
                             <div class="col-md-6">
-                                <label for="{{ form.due_date.id_for_label }}" class="form-label">Bitiş Tarihi</label>
-                                {{ form.due_date }}
+                                <div class="mb-3">
+                                    <label for="{{ form.due_date.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-calendar-alt me-1 text-info"></i>Bitiş Tarihi ve Saati
+                                    </label>
+                                    {{ form.due_date }}
+                                </div>
                             </div>
                             <div class="col-md-6">
-                                <label for="{{ form.priority.id_for_label }}" class="form-label">Öncelik</label>
-                                {{ form.priority }}
+                                <div class="mb-3">
+                                    <label for="{{ form.status.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-tasks me-1 text-success"></i>Durum
+                                    </label>
+                                    {{ form.status }}
+                                    {% if task and task.is_completed %}
+                                    <div class="form-text text-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Tamamlanma: {{ task.completed_at|date:"d.m.Y H:i" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.status.id_for_label }}" class="form-label">Durum</label>
-                            {{ form.status }}
-                            {% if task and task.is_completed %}
-                            <small class="text-muted">Tamamlanma Tarihi: {{ task.completed_at|date:"d.m.Y H:i"
-                                }}</small>
-                            {% endif %}
+                        <!-- Kategori Seçim Alanı -->
+                        <div class="card mb-3 border-primary">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-tag me-1 text-primary"></i>Kategori Yönetimi
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
+                                        Mevcut Kategoriler
+                                    </label>
+                                    {{ form.category }}
+                                    <div class="form-text">Listeden bir kategori seçin</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="{{ form.new_category.id_for_label }}" class="form-label fw-bold">
+                                        Yeni Kategori Oluştur
+                                    </label>
+                                    {{ form.new_category }}
+                                    <div class="form-text">Veya yeni bir kategori adı yazın</div>
+                                </div>
+
+                                <div class="alert alert-info py-2">
+                                    <small>
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        <strong>Not:</strong> Sadece bir seçenek kullanabilirsiniz. Ya mevcut kategoriden seçin ya da yeni kategori adı yazın.
+                                    </small>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="{{ form.category.id_for_label }}" class="form-label">Kategori</label>
-                            {{ form.category }}
-                            <small class="text-muted">Mevcut kategorilerden seçin</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.new_category.id_for_label }}" class="form-label">Yeni Kategori</label>
-                            {{ form.new_category }}
-                            <small class="text-muted">Veya yeni bir kategori adı yazın</small>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="{{ form.description.id_for_label }}" class="form-label">Açıklama</label>
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-align-left me-1 text-secondary"></i>Detaylı Açıklama
+                            </label>
                             {{ form.description }}
-                            <small class="text-muted">Görevle ilgili detaylı bilgiler</small>
+                            <div class="form-text">Görevle ilgili detaylı bilgiler, notlar veya açıklamalar</div>
                         </div>
 
-                        <div class="d-flex justify-content-end gap-2">
-                            <a href="{% if task %}{% url 'todo:task_detail' task.pk %}{% else %}{% url 'todo:task_list' %}{% endif %}"
-                                class="btn btn-secondary">
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% if task %}{% url 'todo:task_detail' task.pk %}{% else %}{% url 'todo:task_list' %}{% endif %}" 
+                               class="btn btn-outline-secondary">
                                 <i class="fas fa-times me-1"></i> İptal
                             </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> Kaydet
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-1"></i> 
+                                {% if task %}Güncelle{% else %}Oluştur{% endif %}
                             </button>
                         </div>
                     </form>
@@ -86,4 +138,34 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('category-select');
+    const newCategoryInput = document.getElementById('new-category-input');
+    
+    function updateCategoryFields() {
+        if (categorySelect.value) {
+            newCategoryInput.disabled = true;
+            newCategoryInput.placeholder = 'Mevcut kategori seçildi';
+        } else if (newCategoryInput.value) {
+            categorySelect.disabled = true;
+            categorySelect.parentElement.style.opacity = '0.6';
+        } else {
+            newCategoryInput.disabled = false;
+            categorySelect.disabled = false;
+            categorySelect.parentElement.style.opacity = '1';
+            newCategoryInput.placeholder = 'Yeni kategori adı';
+        }
+    }
+    
+    categorySelect.addEventListener('change', updateCategoryFields);
+    newCategoryInput.addEventListener('input', updateCategoryFields);
+    
+    // Sayfa yüklendiğinde kontrol et
+    updateCategoryFields();
+});
+</script>
 {% endblock %}

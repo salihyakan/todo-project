@@ -25,7 +25,7 @@ class Category(models.Model):
         super().save(*args, **kwargs)
     
     class Meta:
-        unique_together = ['user', 'name']  # Kategori tekrarını önlemek için
+        unique_together = ['user', 'name']
         verbose_name_plural = "Kategoriler"
 
 class Note(models.Model):
@@ -45,8 +45,22 @@ class Note(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    # Task ilişkisi - related_name değiştirildi
+    task = models.ForeignKey('todo.Task', on_delete=models.CASCADE, null=True, blank=True, 
+                           verbose_name="İlişkili Görev", related_name='notes')
+    
     def __str__(self):
         return self.title
+    
+    @property
+    def priority_color(self):
+        """Önceliğe göre renk döndürür"""
+        colors = {
+            'H': '#dc3545',  # Kırmızı
+            'M': '#ffc107',  # Sarı
+            'L': '#0dcaf0',  # Mavi
+        }
+        return colors.get(self.priority, '#6f42c1')
     
     class Meta:
         ordering = ['-is_pinned', '-updated_at']

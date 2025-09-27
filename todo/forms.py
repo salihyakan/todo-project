@@ -1,8 +1,7 @@
 from django import forms
-from .models import Task, Note, Category
+from .models import Task, Category
 from django.utils import timezone
 from django.core.exceptions import ValidationError
-
 
 class CategoryForm(forms.ModelForm):
     class Meta:
@@ -30,7 +29,8 @@ class TaskForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Yeni kategori adı'
+            'placeholder': 'Yeni kategori adı',
+            'id': 'new-category-input'
         }),
         label='Veya yeni kategori oluştur'
     )
@@ -47,7 +47,7 @@ class TaskForm(forms.ModelForm):
             ),
             'priority': forms.Select(attrs={'class': 'form-select'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
-            'category': forms.Select(attrs={'class': 'form-select'}),
+            'category': forms.Select(attrs={'class': 'form-select', 'id': 'category-select'}),
         }
     
     def __init__(self, *args, **kwargs):
@@ -55,11 +55,10 @@ class TaskForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         
         # Yeni görev oluşturulurken 'completed' seçeneğini kaldır
-        if not self.instance.pk:  # Eğer yeni görev oluşturuluyorsa
+        if not self.instance.pk:
             self.fields['status'].choices = [
                 ('todo', 'Yapılacak'),
                 ('in_progress', 'Devam Ediyor'),
-                # 'completed' seçeneğini kaldırdık
             ]
         
         if self.user:
@@ -76,25 +75,16 @@ class TaskForm(forms.ModelForm):
         if new_category and category:
             raise forms.ValidationError('Lütfen ya mevcut bir kategori seçin ya da yeni bir kategori adı girin, ikisini birden değil.')
         
+        if not new_category and not category:
+            raise forms.ValidationError('Lütfen bir kategori seçin veya yeni kategori adı girin.')
+        
         if new_category:
             # Yeni kategori oluştur
             category, created = Category.objects.get_or_create(
                 user=self.user,
                 name=new_category,
-                defaults={'color': '#6c757d'}  # Varsayılan renk
+                defaults={'color': '#6c757d'}
             )
             cleaned_data['category'] = category
         
         return cleaned_data
-
-class NoteForm(forms.ModelForm):
-    class Meta:
-        model = Note
-        fields = ['content']
-        widgets = {
-            'content': forms.Textarea(attrs={
-                'class': 'form-control',
-                'rows': 3,
-                'placeholder': 'Notunuzu buraya yazın...'
-            }),
-        }

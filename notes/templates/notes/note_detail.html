@@ -5,6 +5,12 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
+    .note-detail-card {
+        border-radius: 10px;
+        overflow: hidden;
+        max-width: 900px;
+        margin: 0 auto;
+    }
     .note-header {
         border-radius: 10px 10px 0 0;
         border: none;
@@ -17,11 +23,13 @@
     .note-content {
         line-height: 1.8;
         font-size: 1.05rem;
+        padding: 20px;
     }
     .note-meta {
         background-color: #f8f9fa;
-        border-radius: 0 0 10px 10px;
+        border-radius: 10px;
         padding: 20px;
+        margin: 20px;
     }
     .note-actions .btn {
         min-width: 100px;
@@ -32,40 +40,55 @@
     .back-btn:hover {
         transform: translateX(-3px);
     }
+    .task-link {
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .task-link:hover {
+        transform: translateY(-2px);
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow-sm border-0">
-        <!-- Not Başlık Alanı -->
-        <div class="card-header note-header {% if note.category %}text-white{% else %}bg-light{% endif %}" 
-             {% if note.category %}style="background-color: {{ note.category.color }};"{% endif %}>
+    <div class="card shadow-sm border-0 note-detail-card">
+        <!-- Not Başlık Alanı - Öncelik rengine göre -->
+        <div class="card-header note-header text-white" style="background-color: {{ note.priority_color }};">
             <div class="d-flex justify-content-between align-items-center flex-wrap">
                 <div>
-                    <h1 class="h3 mb-1">{{ note.title }}</h1>
-                    {% if note.category %}
-                    <span class="badge bg-white text-dark bg-opacity-75">
-                        {{ note.category.name }}
-                    </span>
-                    {% endif %}
+                    <h1 class="h3 mb-2">{{ note.title }}</h1>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        {% if note.category %}
+                        <span class="badge bg-white text-dark bg-opacity-75">
+                            <i class="fas fa-folder me-1"></i>{{ note.category.name }}
+                        </span>
+                        {% endif %}
+                        {% if note.task %}
+                        <a href="{% url 'todo:task_detail' note.task.pk %}" class="task-link">
+                            <span class="badge bg-info">
+                                <i class="fas fa-tasks me-1"></i> {{ note.task.title|truncatechars:30 }}
+                            </span>
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
-                <div>
+                <div class="mt-2 mt-md-0">
                     {% if note.is_pinned %}
                     <span class="badge bg-warning bg-opacity-25 text-dark me-2">
                         <i class="fas fa-thumbtack me-1"></i>Sabitlenmiş
                     </span>
                     {% endif %}
-                    <span class="note-priority bg-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %} bg-opacity-10 text-{% if note.priority == 'H' %}danger{% elif note.priority == 'M' %}warning{% else %}info{% endif %}">
-                        Öncelik: {{ note.get_priority_display }}
+                    <span class="note-priority bg-white bg-opacity-25">
+                        {{ note.get_priority_display }} Öncelik
                     </span>
                 </div>
             </div>
         </div>
         
         <!-- Not İçeriği -->
-        <div class="card-body py-4">
-            <div class="note-content mb-4">
+        <div class="note-content">
+            <div class="mb-4">
                 {{ note.content|linebreaks }}
             </div>
         </div>
@@ -74,16 +97,39 @@
         <div class="note-meta">
             <div class="row">
                 <div class="col-md-6 mb-3 mb-md-0">
-                    <p class="mb-1"><strong><i class="far fa-calendar-plus me-2"></i>Oluşturulma Tarihi:</strong></p>
-                    <p class="text-muted">{{ note.created_at|date:"d M Y H:i" }}</p>
+                    <div class="mb-3">
+                        <p class="mb-1"><strong><i class="far fa-calendar-plus me-2"></i>Oluşturulma Tarihi:</strong></p>
+                        <p class="text-muted">{{ note.created_at|date:"d M Y H:i" }}</p>
+                    </div>
                     
-                    <p class="mb-1 mt-3"><strong><i class="fas fa-sync me-2"></i>Son Güncelleme:</strong></p>
-                    <p class="text-muted">{{ note.updated_at|date:"d M Y H:i" }}</p>
+                    <div class="mb-3">
+                        <p class="mb-1"><strong><i class="fas fa-sync me-2"></i>Son Güncelleme:</strong></p>
+                        <p class="text-muted">{{ note.updated_at|date:"d M Y H:i" }}</p>
+                    </div>
                 </div>
                 <div class="col-md-6">
                     {% if note.related_date %}
-                    <p class="mb-1"><strong><i class="far fa-calendar-check me-2"></i>İlişkili Tarih:</strong></p>
-                    <p class="text-muted">{{ note.related_date|date:"d M Y H:i" }}</p>
+                    <div class="mb-3">
+                        <p class="mb-1"><strong><i class="far fa-calendar-check me-2"></i>İlişkili Tarih:</strong></p>
+                        <p class="text-muted">{{ note.related_date|date:"d M Y H:i" }}</p>
+                    </div>
+                    {% endif %}
+                    
+                    {% if note.task %}
+                    <div class="mb-3">
+                        <p class="mb-1"><strong><i class="fas fa-tasks me-2"></i>İlişkili Görev:</strong></p>
+                        <p class="text-muted">
+                            <a href="{% url 'todo:task_detail' note.task.pk %}" class="text-decoration-none text-info">
+                                <i class="fas fa-external-link-alt me-1"></i>{{ note.task.title }}
+                            </a>
+                        </p>
+                        <small class="text-muted">
+                            Durum: 
+                            <span class="badge bg-{% if note.task.completed %}success{% else %}warning{% endif %}">
+                                {% if note.task.completed %}Tamamlandı{% else %}Devam Ediyor{% endif %}
+                            </span>
+                        </small>
+                    </div>
                     {% endif %}
                 </div>
             </div>

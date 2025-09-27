@@ -1,12 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from todo.models import Task
-from notes.models import Note
 from django.urls import reverse
 import pytz
-
-
 
 User = get_user_model()
 
@@ -19,15 +15,20 @@ class DashboardStats(models.Model):
     current_streak = models.PositiveIntegerField(default=0)
     
     def update_stats(self):
-        self.tasks_completed = Task.objects.filter(
-            user=self.user, 
-            status='completed'
-        ).count()
-        self.save()
+        # Geçici import kullanarak döngüsel import'u önle
+        try:
+            from todo.models import Task
+            self.tasks_completed = Task.objects.filter(
+                user=self.user, 
+                status='completed'
+            ).count()
+            self.save()
+        except ImportError:
+            pass
     
     def __str__(self):
         return f"{self.user.username} İstatistikleri"
-    
+
 class CalendarEvent(models.Model):
     EVENT_TYPES = [
         ('reminder', 'Hatırlatıcı'),
@@ -52,10 +53,11 @@ class CalendarEvent(models.Model):
     event_type = models.CharField(max_length=20, choices=EVENT_TYPES)
     created_at = models.DateTimeField(auto_now_add=True)
     is_all_day = models.BooleanField(default=False)
-    related_note = models.ForeignKey(Note, on_delete=models.CASCADE, null=True, blank=True)
-    related_task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
     
-    # Yeni hatırlatıcı alanları
+    # String referans kullanarak döngüsel import'u önle
+    related_note = models.ForeignKey('notes.Note', on_delete=models.CASCADE, null=True, blank=True)
+    related_task = models.ForeignKey('todo.Task', on_delete=models.CASCADE, null=True, blank=True)
+    
     reminder = models.PositiveIntegerField(
         choices=REMINDER_CHOICES, 
         null=True, 
@@ -86,4 +88,3 @@ class CalendarEvent(models.Model):
             'task': '#3788d8'       # Mavi
         }
         return colors.get(self.event_type, '#6c757d')
-    

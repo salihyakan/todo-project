@@ -11,6 +11,8 @@ def note_list(request):
     query = request.GET.get('q')
     category_slug = request.GET.get('category')
     is_pinned = request.GET.get('pinned')
+    task_id = request.GET.get('task')
+    date_filter = request.GET.get('date', '')  # Eksik parametreyi ekledim
     
     notes = Note.objects.filter(user=request.user)
     
@@ -20,8 +22,34 @@ def note_list(request):
     
     # Kategori filtresi
     if category_slug:
-        category = get_object_or_404(Category, slug=category_slug, user=request.user)
-        notes = notes.filter(category=category)
+        try:
+            category = Category.objects.get(slug=category_slug, user=request.user)
+            notes = notes.filter(category=category)
+        except Category.DoesNotExist:
+            pass
+    
+    # Görev filtresi - tür dönüşümü yap
+    current_task_id = None
+    if task_id and task_id != 'none':
+        try:
+            current_task_id = int(task_id)
+            from todo.models import Task
+            task = get_object_or_404(Task, id=current_task_id, user=request.user)
+            notes = notes.filter(task=task)
+        except (ValueError, Task.DoesNotExist):
+            pass
+    elif task_id == 'none':
+        # Görevsiz notlar
+        notes = notes.filter(task__isnull=True)
+    
+    # Tarih filtresi
+    if date_filter:
+        try:
+            from datetime import datetime
+            filter_date = datetime.strptime(date_filter, '%Y-%m-%d').date()
+            notes = notes.filter(created_at__date=filter_date)
+        except ValueError:
+            pass
     
     # Sabitlenmiş notlar
     if is_pinned == 'true':
@@ -30,15 +58,31 @@ def note_list(request):
     # Kategorileri getir (kenar çubuğu için)
     categories = Category.objects.filter(user=request.user)
     
+    # Görevleri getir (filtreleme için)
+    from todo.models import Task
+    tasks = Task.objects.filter(user=request.user)
+    
+    # İstatistikleri hesapla
+    total_notes_count = notes.count()
+    pinned_notes_count = notes.filter(is_pinned=True).count()
+    task_notes_count = notes.filter(task__isnull=False).count()
+    
     # Sonuçları tarihe göre sırala
     notes = notes.order_by('-is_pinned', '-updated_at')
     
     context = {
         'notes': notes,
         'categories': categories,
+        'tasks': tasks,
         'current_category': category_slug,
+        'current_task': task_id,
+        'current_task_id': current_task_id,
         'is_pinned': is_pinned,
-        'query': query
+        'query': query,
+        'date_filter': date_filter,  # Eksik parametreyi ekledim
+        'total_notes_count': total_notes_count,
+        'pinned_notes_count': pinned_notes_count,
+        'task_notes_count': task_notes_count,
     }
     
     return render(request, 'notes/note_list.html', context)
@@ -51,82 +95,117 @@ def note_detail(request, pk):
 @login_required
 def note_create(request):
     categories = Category.objects.filter(user=request.user)
+    from todo.models import Task
+    tasks = Task.objects.filter(user=request.user)
     
     if request.method == 'POST':
-        try:
-            # Form verilerini doğrudan al
-            title = request.POST.get('title', '').strip()
-            content = request.POST.get('content', '').strip()
-            category_id = request.POST.get('category')
-            
-            # Gerekli alan kontrolü
-            if not title or not content:
-                raise ValueError("Başlık ve içerik zorunlu alanlardır")
-            
-            # Kategori kontrolü
-            category = None
-            if category_id:
-                try:
-                    category = Category.objects.get(id=int(category_id), user=request.user)
-                except (Category.DoesNotExist, ValueError):
-                    messages.warning(request, 'Geçersiz kategori seçildi')
-            
-            # Notu oluştur
-            note = Note.objects.create(
-                user=request.user,
-                title=title,
-                content=content,
-                category=category,
-                priority=request.POST.get('priority', 'M'),
-                is_pinned=bool(request.POST.get('is_pinned', False)),
-                related_date=request.POST.get('related_date') or None
-            )
-            
+        form = NoteForm(request.user, request.POST)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.user = request.user
+            note.save()
             messages.success(request, 'Not başarıyla oluşturuldu!')
-            return redirect('notes:note_list')  # Kesinlikle listeye yönlendir
             
-        except Exception as e:
-            messages.error(request, f'Hata: {str(e)}')
-            return render(request, 'notes/note_form.html', {
-                'categories': categories,
-                'title': request.POST.get('title', ''),
-                'content': request.POST.get('content', ''),
-                'priority': request.POST.get('priority', 'M'),
-                'is_pinned': bool(request.POST.get('is_pinned', False)),
-                'related_date': request.POST.get('related_date', '')
-            })
+            # Eğer bir görevle ilişkiliyse, görev detay sayfasına yönlendir
+            if note.task:
+                return redirect('todo:task_detail', pk=note.task.id)
+            return redirect('notes:note_list')
+    else:
+        form = NoteForm(request.user)
     
-    # GET isteği için
-    return render(request, 'notes/note_form.html', {'categories': categories})
+    return render(request, 'notes/note_form.html', {
+        'form': form,
+        'categories': categories,
+        'tasks': tasks
+    })
 
 @login_required
 def note_update(request, pk):
     note = get_object_or_404(Note, pk=pk, user=request.user)
     categories = Category.objects.filter(user=request.user)
+    from todo.models import Task
+    tasks = Task.objects.filter(user=request.user)
     
     if request.method == 'POST':
         form = NoteForm(request.user, request.POST, instance=note)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Not başarıyla güncellendi!')
-            return redirect('notes:note_detail', pk=note.pk)
+            try:
+                form.save()
+                messages.success(request, 'Not başarıyla güncellendi!')
+                
+                # Eğer bir görevle ilişkiliyse, görev detay sayfasına yönlendir
+                if note.task:
+                    return redirect('todo:task_detail', pk=note.task.id)
+                return redirect('notes:note_detail', pk=note.pk)
+            except Exception as e:
+                # Redis hatasını yakala ve devam et
+                messages.success(request, 'Not başarıyla güncellendi! (Bildirim gönderilemedi)')
+                if note.task:
+                    return redirect('todo:task_detail', pk=note.task.id)
+                return redirect('notes:note_detail', pk=note.pk)
     else:
+        # GET isteğinde formu mevcut not verileriyle doldur
         form = NoteForm(request.user, instance=note)
     
     return render(request, 'notes/note_form.html', {
         'form': form,
         'note': note,
-        'categories': categories
+        'categories': categories,
+        'tasks': tasks,
+        'is_update': True  # Güncelleme modunda olduğumuzu belirt
     })
 
 @login_required
 def note_delete(request, pk):
     note = get_object_or_404(Note, pk=pk, user=request.user)
     if request.method == 'POST':
+        task_id = note.task.id if note.task else None
         note.delete()
         messages.success(request, 'Not başarıyla silindi!')
+        
+        # Eğer bir görevle ilişkiliyse, görev detay sayfasına yönlendir
+        if task_id:
+            return redirect('todo:task_detail', pk=task_id)
         return redirect('notes:note_list')
     return render(request, 'notes/note_confirm_delete.html', {'note': note})
+
+@login_required
+def note_create_for_task(request, task_id):
+    """Belirli bir task için not oluştur"""
+    from todo.models import Task
+    task = get_object_or_404(Task, id=task_id, user=request.user)
+    categories = Category.objects.filter(user=request.user)
+    
+    if request.method == 'POST':
+        form = NoteForm(request.user, request.POST)
+        if form.is_valid():
+            note = form.save(commit=False)
+            note.user = request.user
+            note.task = task  # Görev ilişkisini zorla
+            note.save()
+            messages.success(request, 'Not başarıyla oluşturuldu!')
+            return redirect('todo:task_detail', pk=task.id)
+    else:
+        form = NoteForm(request.user, initial={'task': task})
+    
+    return render(request, 'notes/note_form.html', {
+        'form': form,
+        'categories': categories,
+        'task': task,
+        'title': f'"{task.title}" için Not Ekle'
+    })
+
+@login_required
+def task_notes(request, task_id):
+    """Bir task'a ait notları listele"""
+    from todo.models import Task
+    task = get_object_or_404(Task, id=task_id, user=request.user)
+    notes = Note.objects.filter(task=task, user=request.user).order_by('-is_pinned', '-updated_at')
+    
+    return render(request, 'notes/task_notes.html', {
+        'task': task,
+        'notes': notes
+    })
 
 @login_required
 def category_list(request):
