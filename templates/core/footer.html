@@ -1,91 +1,196 @@
+<!-- templates/core/footer.html -->
+{% load static %}
 <!-- Masaüstü Footer -->
-<footer class="d-none d-lg-block bg-dark text-white mt-5 py-4">
-    <div class="container">
+<footer class="d-none d-lg-block bg-footer-custom text-white py-4 mt-auto">
+    <div class="container mx-auto px-3">  <!-- container-fluid yerine container -->
         <div class="row">
-            <div class="col-md-4 mb-3 mb-md-0">
-                <h5 class="text-primary">TODO Uygulaması</h5>
-                <p class="small text-muted">Üretkenliğinizi artırmak için tasarlanmış kapsamlı bir görev yönetim sistemi</p>
-                <div class="social-icons">
-                    <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+            <div class="col-lg-4 mb-4">
+                <div class="footer-brand mb-3">
+                    <img src="{% static 'images/ked-o.png' %}" alt="Ked-O Logo" class="footer-logo-img me-3"
+                        style="height: 50px;">
+                    <h4 class="text-white mb-0">Ked-O</h4>
+                </div>
+                <p class="text-light mb-3">Üretkenliğinizi artırmak için tasarlanmış kapsamlı bir görev yönetim
+                    platformu. Kedici dostunuz gibi size rehberlik eder!</p>
+                <div class="social-links">
+                    <a href="#" class="text-white me-3 fs-5"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white me-3 fs-5"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="text-white me-3 fs-5"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white fs-5"><i class="fab fa-linkedin-in"></i></a>
                 </div>
             </div>
-            
-            <div class="col-md-2 mb-3 mb-md-0">
-                <h6 class="text-primary">Hızlı Linkler</h6>
-                <ul class="list-unstyled small">
-                    <li class="mb-2"><a href="{% url 'dashboard:home' %}" class="text-white text-decoration-none">Anasayfa</a></li>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="text-warning mb-3">Hızlı Erişim</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'dashboard:home' %}" class="text-white text-decoration-none">Ana Sayfa</a></li>
                     <li class="mb-2"><a href="{% url 'todo:task_list' %}" class="text-white text-decoration-none">Görevler</a></li>
                     <li class="mb-2"><a href="{% url 'notes:note_list' %}" class="text-white text-decoration-none">Notlar</a></li>
-                    <li><a href="{% url 'dashboard:calendar' %}" class="text-white text-decoration-none">Takvim</a></li>
+                    <li class="mb-2"><a href="{% url 'dashboard:calendar' %}" class="text-white text-decoration-none">Takvim</a></li>
+                    <li><a href="{% url 'tools:home' %}" class="text-white text-decoration-none">Araçlar</a></li>
                 </ul>
             </div>
-            
-            <div class="col-md-3 mb-3 mb-md-0">
-                <h6 class="text-primary">Yardım</h6>
-                <ul class="list-unstyled small">
-                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">SSS</a></li>
-                    <li class="mb-2"><a href="#" class="text-white text-decoration-none">Kullanım Kılavuzu</a></li>
-                    <li><a href="#" class="text-white text-decoration-none">İletişim</a></li>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="text-warning mb-3">Hesap</h5>
+                <ul class="list-unstyled">
+                    {% if user.is_authenticated %}
+                    <li class="mb-2"><a href="{% url 'user_profile:profile' %}" class="text-white text-decoration-none">Profilim</a></li>
+                    <li class="mb-2"><a href="{% url 'user_profile:logout' %}" class="text-white text-decoration-none">Çıkış Yap</a></li>
+                    {% else %}
+                    <li class="mb-2"><a href="{% url 'user_profile:login' %}" class="text-white text-decoration-none">Giriş Yap</a></li>
+                    <li class="mb-2"><a href="{% url 'user_profile:register' %}" class="text-white text-decoration-none">Kayıt Ol</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'user_profile:password_reset' %}" class="text-white text-decoration-none">Şifremi Unuttum</a></li>
                 </ul>
             </div>
-            
-            <div class="col-md-3">
-                <h6 class="text-primary">Bülten Aboneliği</h6>
-                <form class="mb-3">
-                    <div class="input-group">
-                        <input type="email" class="form-control form-control-sm" placeholder="E-posta adresiniz">
-                        <button class="btn btn-primary btn-sm" type="submit">Abone Ol</button>
-                    </div>
-                </form>
-                <p class="small text-muted">Yeni özelliklerden haberdar olun</p>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="text-warning mb-3">Yardım</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'dashboard:faq' %}" class="text-white text-decoration-none">SSS</a></li>
+                    <li class="mb-2"><a href="{% url 'dashboard:support' %}" class="text-white text-decoration-none">Destek</a></li>
+                    <li class="mb-2"><a href="{% url 'dashboard:guide' %}" class="text-white text-decoration-none">Kılavuz</a></li>
+                    <li><a href="{% url 'dashboard:contact' %}" class="text-white text-decoration-none">İletişim</a></li>
+                </ul>
+            </div>
+
+            <div class="col-lg-2 col-md-6 mb-4">
+                <h5 class="text-warning mb-3">Yasal</h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><a href="{% url 'dashboard:privacy' %}" class="text-white text-decoration-none">Gizlilik</a></li>
+                    <li class="mb-2"><a href="{% url 'dashboard:terms' %}" class="text-white text-decoration-none">Şartlar</a></li>
+                    <li class="mb-2"><a href="{% url 'dashboard:cookies' %}" class="text-white text-decoration-none">Çerezler</a></li>
+                    <li><a href="{% url 'dashboard:license' %}" class="text-white text-decoration-none">Lisans</a></li>
+                </ul>
             </div>
         </div>
-        <hr class="my-4 bg-secondary">
+
+        <hr class="my-3 bg-light">
+
+        <!-- ORTALANMIŞ KISIM -->
         <div class="row">
-            <div class="col-md-6 text-center text-md-start">
-                <small class="text-muted">© 2023 TODO Uygulaması. Tüm hakları saklıdır.</small>
-            </div>
-            <div class="col-md-6 text-center text-md-end">
-                <small class="text-muted">
-                    <a href="#" class="text-decoration-none text-muted me-3">Gizlilik Politikası</a>
-                    <a href="#" class="text-decoration-none text-muted">Kullanım Şartları</a>
-                </small>
+            <div class="col-12 text-center">
+                <p class="mb-0 text-light">&copy; 2025 <strong>Ked-O</strong>. Tüm hakları saklıdır.</p>
             </div>
         </div>
     </div>
 </footer>
 
 <!-- Mobil Footer -->
-<footer class="d-lg-none fixed-bottom bg-dark text-white border-top border-primary">
-    <div class="container">
-        <div class="d-flex justify-content-around py-2">
-            <a href="{% url 'dashboard:home' %}" class="text-center text-decoration-none text-white">
-                <i class="fas fa-home fa-lg d-block mb-1"></i>
-                <span class="small">Anasayfa</span>
-            </a>
-            
-            <a href="{% url 'todo:task_list' %}" class="text-center text-decoration-none text-white">
-                <i class="fas fa-tasks fa-lg d-block mb-1"></i>
-                <span class="small">Görevler</span>
-            </a>
-            
-            <a href="{% url 'notes:note_list' %}" class="text-center text-decoration-none text-white">
-                <i class="fas fa-sticky-note fa-lg d-block mb-1"></i>
-                <span class="small">Notlar</span>
-            </a>
-            
-            <a href="{% url 'dashboard:calendar' %}" class="text-center text-decoration-none text-white">
-                <i class="fas fa-calendar-alt fa-lg d-block mb-1"></i>
-                <span class="small">Takvim</span>
-            </a>
-            
-            <a href="{% url 'user_profile:profile' %}" class="text-center text-decoration-none text-white">
-                <i class="fas fa-user fa-lg d-block mb-1"></i>
-                <span class="small">Profil</span>
-            </a>
+<footer class="d-lg-none bg-footer-custom text-white py-3 mt-auto">
+    <div class="container mx-auto px-3">  <!-- container-fluid yerine container -->
+        <div class="row text-center">
+            <div class="col-12 mb-3">
+                <div class="footer-brand">
+                    <img src="{% static 'images/ked-o.png' %}" alt="Ked-O Logo" class="footer-logo-img me-2"
+                        style="height: 40px;">
+                    <h5 class="text-white mb-0 d-inline">Ked-O</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-6">
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="{% url 'dashboard:home' %}" class="text-white text-decoration-none">Ana Sayfa</a></li>
+                    <li class="mb-2"><a href="{% url 'todo:task_list' %}" class="text-white text-decoration-none">Görevler</a></li>
+                    <li><a href="{% url 'notes:note_list' %}" class="text-white text-decoration-none">Notlar</a></li>
+                </ul>
+            </div>
+            <div class="col-6">
+                <ul class="list-unstyled small">
+                    <li class="mb-2"><a href="{% url 'dashboard:calendar' %}" class="text-white text-decoration-none">Takvim</a></li>
+                    <li class="mb-2"><a href="{% url 'tools:home' %}" class="text-white text-decoration-none">Araçlar</a></li>
+                    <li><a href="{% url 'user_profile:profile' %}" class="text-white text-decoration-none">Profil</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="my-2 bg-light">
+
+        <div class="row">
+            <div class="col-12 text-center">
+                <p class="small text-light mb-0">&copy; 2024 Ked-O</p>
+            </div>
         </div>
     </div>
 </footer>
+
+<style>
+    /* Gri tonlarında arkaplan */
+    .bg-footer-custom {
+        background: linear-gradient(135deg, #495057 0%, #343a40 100%) !important;
+        border-top: 1px solid #6c757d;
+    }
+
+    .footer-brand {
+        display: flex;
+        align-items: center;
+    }
+
+    .footer-logo-img {
+        height: auto;
+    }
+
+    footer a:hover {
+        color: #ffc107 !important;
+        text-decoration: underline !important;
+        transition: all 0.3s ease;
+    }
+
+    .social-links a:hover {
+        transform: translateY(-2px);
+        transition: transform 0.3s ease;
+    }
+
+    /* Tüm sayfalarda tutarlı footer için */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    main {
+        flex: 1 0 auto;
+        /* Ana içerik alanı */
+    }
+
+    footer {
+        flex-shrink: 0;
+        width: 100%;
+        margin-top: auto;
+    }
+
+    /* Container için tutarlı padding */
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Responsive ayarlar */
+    @media (max-width: 768px) {
+        footer {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .container {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+    }
+</style>

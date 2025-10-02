@@ -1,15 +1,16 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% load cat_utils %}
 {% block content %}
 <div class="container mt-3">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-sm">
                 {% with badge_color=badge.badge_type.color|default:'#6c757d' %}
                 <div class="card-header text-center py-3"
                      style="background: linear-gradient(135deg, {{ badge_color }}, #343a40); color: white;">
-                    <i class="{{ badge.badge_type.icon|default:'fas fa-medal' }} fa-2x mb-2"></i>
+                    <i class="{{ badge.icon }} fa-2x mb-2"></i>
                     <h1 class="mb-0 h5">{{ badge.name }}</h1>
                     <p class="mb-0 small">
                         {{ badge.badge_type.name|default:"Özel" }} Rozeti
@@ -21,7 +22,7 @@
                     <div class="mb-3">
                         <div class="badge-icon-large d-inline-block" 
                              style="color: {{ badge.badge_type.color|default:'#6c757d' }};">
-                            <i class="{{ badge.badge_type.icon|default:'fas fa-medal' }} fa-2x"></i>
+                            <i class="{{ badge.icon }} fa-3x"></i>
                         </div>
                     </div>
                     
@@ -83,7 +84,7 @@
                             {% with badge_color=badge.badge_type.color|default:'#6c757d' %}
                             <div class="card-header text-center py-2"
                                  style="background-color: {{ badge_color }}; color: white;">
-                                <i class="{{ badge.badge_type.icon|default:'fas fa-medal' }}"></i>
+                                <i class="{{ badge.icon }}"></i>
                             </div>
                             {% endwith %}
                             <div class="card-body text-center p-2">

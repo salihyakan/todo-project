@@ -1,0 +1,38 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}Gizlilik Politikası - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-shield-alt fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">Gizlilik Politikası</h1>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <p class="text-muted">Son güncelleme: {% now "F j, Y" %}</p>
+                    
+                    <h4 class="text-primary mt-4">1. Toplanan Bilgiler</h4>
+                    <p>Ked-O olarak, kullanıcı deneyiminizi iyileştirmek için sınırlı bilgiler topluyoruz:</p>
+                    <ul>
+                        <li>Hesap bilgileriniz (e-posta, kullanıcı adı)</li>
+                        <li>Oluşturduğunuz görevler ve notlar</li>
+                        <li>Kullanım istatistikleri</li>
+                    </ul>
+                    
+                    <h4 class="text-primary mt-4">2. Veri Güvenliği</h4>
+                    <p>Verileriniz şifrelenmiş olarak saklanır ve üçüncü şahıslarla paylaşılmaz.</p>
+                    
+                    <h4 class="text-primary mt-4">3. Çerezler</h4>
+                    <p>Çerez kullanımımız hakkında detaylı bilgi için <a href="{% url 'dashboard:cookies' %}">Çerez Politikası</a> sayfamızı ziyaret edin.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

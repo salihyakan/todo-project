@@ -1,0 +1,177 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% load cat_utils %}
+{% block title %}{{ note.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-sticky-note me-2"></i>
+                            {{ note.title }}
+                        </h4>
+                        <div>
+                            <a href="{% url 'tools:study_notes_list' %}" class="btn btn-light btn-sm me-2">
+                                <i class="fas fa-arrow-left me-1"></i> Listeye Dön
+                            </a>
+                            <a href="{% url 'tools:study_note_update' note.pk %}" class="btn btn-warning btn-sm me-2">
+                                <i class="fas fa-edit me-1"></i> Düzenle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Not Meta Bilgileri -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-plus me-1"></i>
+                                Oluşturulma: {{ note.created_at|date:"d.m.Y H:i" }}
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-check me-1"></i>
+                                Son Güncelleme: {{ note.updated_at|date:"d.m.Y H:i" }}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Not İçeriği -->
+                    <div class="study-note-content">
+                        {{ note.content|safe }}
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">
+                            Toplam {{ note.content|wordcount }} kelime
+                        </small>
+                        <div>
+                            <a href="{% url 'tools:study_note_update' note.pk %}" class="btn btn-warning btn-sm me-2">
+                                <i class="fas fa-edit me-1"></i> Düzenle
+                            </a>
+                            <a href="{% url 'tools:study_note_delete' note.pk %}" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash me-1"></i> Sil
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.study-note-content {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.study-note-content h1,
+.study-note-content h2,
+.study-note-content h3,
+.study-note-content h4,
+.study-note-content h5,
+.study-note-content h6 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.study-note-content h1 {
+    font-size: 2.2rem;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 0.5rem;
+}
+
+.study-note-content h2 {
+    font-size: 1.8rem;
+    border-bottom: 1px solid #bdc3c7;
+    padding-bottom: 0.3rem;
+}
+
+.study-note-content p {
+    margin-bottom: 1.2rem;
+    text-align: justify;
+}
+
+.study-note-content ul,
+.study-note-content ol {
+    margin-bottom: 1.2rem;
+    padding-left: 2rem;
+}
+
+.study-note-content li {
+    margin-bottom: 0.5rem;
+}
+
+.study-note-content blockquote {
+    border-left: 4px solid #3498db;
+    padding-left: 1.5rem;
+    margin-left: 0;
+    font-style: italic;
+    color: #7f8c8d;
+}
+
+.study-note-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.2rem;
+}
+
+.study-note-content table th,
+.study-note-content table td {
+    border: 1px solid #ddd;
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.study-note-content table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.study-note-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.study-note-content code {
+    background-color: #f8f9fa;
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    color: #e74c3c;
+}
+
+.study-note-content pre {
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1.2rem;
+}
+
+.study-note-content pre code {
+    background: none;
+    color: inherit;
+    padding: 0;
+}
+</style>
+{% endblock %}

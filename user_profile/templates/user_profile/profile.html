@@ -1,8 +1,9 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% load cat_utils %}
 {% block content %}
 <div class="container mt-4">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
     <!-- Başarı Mesajları -->
     {% if messages %}
         {% for message in messages %}
@@ -27,9 +28,8 @@
                              height="120"
                              style="object-fit: cover; border: 4px solid white; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                         {% if user.is_authenticated %}
-                        <span class="position-absolute bottom-0 end-0 bg-success rounded-circle p-1 border border-3 border-white">
-                            <i class="fas fa-check text-white" style="font-size: 12px;"></i>
-                        </span>
+                        
+
                         {% endif %}
                     </div>
                     <h4 class="mb-1">{{ user.username }}</h4>
@@ -93,7 +93,7 @@
             <!-- Hızlı İstatistikler Kartı -->
             <div class="card shadow border-0">
                 <div class="card-header bg-light py-3">
-                    <h6 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Hızlı İstatistikler</h6>
+                    <h6 class="mb-0 text-muted"><i class="fas fa-tachometer-alt me-2"></i>Hızlı İstatistikler</h6> <!-- Text-muted eklendi -->
                 </div>
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-2">
@@ -128,14 +128,14 @@
                         {% for user_badge in badges|slice:":8" %}
                         <div class="col-xl-3 col-lg-4 col-md-6 col-6 text-center mb-4">
                             <a href="{% url 'user_profile:badge_detail' user_badge.badge.slug %}"
-                               class="text-decoration-none text-dark d-block">
+                               class="text-decoration-none d-block">
                                 <div class="badge-item p-3 rounded-3 hover-lift"
                                      data-bs-toggle="tooltip" 
                                      title="{{ user_badge.badge.name }} - {{ user_badge.badge.description }}"
                                      style="background-color: #f8f9fa; border: 1px solid #e9ecef;">
                                     <i class="{{ user_badge.badge.badge_type.icon|default:'fas fa-medal' }} fa-2x mb-2"
                                        style="color: {{ user_badge.badge.badge_type.color|default:'#6c757d' }};"></i>
-                                    <div class="small fw-bold text-truncate">{{ user_badge.badge.name }}</div>
+                                    <div class="small fw-bold text-truncate text-muted">{{ user_badge.badge.name }}</div> <!-- Text-muted eklendi -->
                                     <small class="text-muted">{{ user_badge.awarded_at|date:"d.m.Y" }}</small>
                                 </div>
                             </a>
@@ -205,6 +205,16 @@
 .hover-lift:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Hızlı İstatistikler kartı için özel stiller */
+.card-header.bg-light h6 {
+    color: #6c757d !important; /* Gri renk */
+}
+
+/* Rozet yazıları için */
+.badge-item .small.fw-bold {
+    color: #6c757d !important; /* Gri renk */
 }
 
 /* Pastel tonlar için renk düzenlemeleri */

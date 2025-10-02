@@ -1,7 +1,7 @@
 {% extends "core/base.html" %}
 {% load static %}
 {% load tz %}
-
+{% load cat_utils %}
 {% block title %}Takvim{% endblock %}
 
 {% block extra_css %}
@@ -268,6 +268,7 @@
 
 {% block content %}
 <div class="container my-4">
+  {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
   <h2 class="mb-4"><i class="far fa-calendar-alt me-2"></i> Takvim</h2>
   <div id="calendar"></div>
 </div>
@@ -348,11 +349,10 @@
     var calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
 
-    // Zaman dilimi ayarını kaldırıyoruz - doğrudan lokal saati kullanacağız
     window.calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'tr',
-        timeZone: 'local', // ÖNEMLİ: 'Europe/Istanbul' yerine 'local' kullanıyoruz
+        timeZone: 'local',
         themeSystem: 'standard',
         headerToolbar: {
             left: 'prev,next today',
@@ -375,7 +375,6 @@
             failure: function () {
                 console.error('Etkinlikler yüklenirken hata oluştu');
             }
-            // extraParams kısmını kaldırıyoruz
         },
         eventContent: function (arg) {
             // Zamanı doğrudan lokal saat olarak formatla - BASİT VE DOĞRU YÖNTEM
@@ -451,7 +450,8 @@
             }
         },
         eventClick: function (info) {
-            window.location.href = "/dashboard/calendar/event/" + info.event.id + "/";
+            // Etkinlik detay sayfasına yönlendir
+            window.location.href = "{% url 'dashboard:event_detail' 0 %}".replace('0', info.event.id);
         },
         eventDidMount: function (info) {
             // YAZI RENGİNİ SİYAH YAP - ÇOK GÜNLÜ ETKİNLİKLER İÇİN
@@ -487,9 +487,20 @@
             if (!dayFrame) return;
 
             var date = arg.date;
-            var year = date.getFullYear();
-            var month = date.getMonth() + 1;
-            var day = date.getDate();
+            
+            // DÜZELTME: UTC zaman dilimi sorununu çözmek için
+            // Yerel tarih bilgilerini al
+            var localYear = date.getFullYear();
+            var localMonth = date.getMonth() + 1; // getMonth() 0-11 döndürür
+            var localDay = date.getDate();
+            
+            // Debug için
+            console.log('Original date:', date);
+            console.log('Local - Year:', localYear, 'Month:', localMonth, 'Day:', localDay);
+            
+            // Ay ve gün değerlerini 2 basamaklı yap
+            var monthStr = localMonth.toString().padStart(2, '0');
+            var dayStr = localDay.toString().padStart(2, '0');
 
             var icons = document.createElement('div');
             icons.className = 'day-action-icons';
@@ -499,7 +510,10 @@
             eye.innerHTML = '<i class="fas fa-eye"></i>';
             eye.onclick = function (e) {
                 e.stopPropagation();
-                window.location.href = "/dashboard/calendar/" + year + "/" + month + "/" + day + "/";
+                // DÜZELTME: Yerel tarih bilgilerini kullan
+                var url = "/calendar/" + localYear + "/" + monthStr + "/" + dayStr + "/";
+                console.log('Navigating to:', url);
+                window.location.href = url;
             };
 
             icons.appendChild(eye);
@@ -541,7 +555,6 @@
             start_date: start_datetime,
             end_date: end_datetime,
             description: form.description.value
-            // timezone parametresini kaldırıyoruz
         };
 
         fetch("{% url 'dashboard:create_calendar_event' %}", {

@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% load cat_utils %}
+{% block title %}{% if form.instance.pk %}Notu Düzenle{% else %}Yeni Not{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-3">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-primary text-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>
+                            {% if form.instance.pk %}Notu Düzenle{% else %}Yeni Çalışma Notu{% endif %}
+                        </h4>
+                        <div>
+                            <a href="{% url 'tools:study_notes_list' %}" class="btn btn-light btn-sm">
+                                <i class="fas fa-arrow-left me-1"></i> Listeye Dön
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" id="studyNoteForm">
+                        {% csrf_token %}
+                        
+                        <!-- Başlık Alanı -->
+                        <div class="mb-4">
+                            <label for="id_title" class="form-label fw-bold fs-5">Başlık</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.title.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- İçerik Alanı - TinyMCE -->
+                        <div class="mb-4">
+                            <label for="id_content" class="form-label fw-bold fs-5">İçerik</label>
+                            {{ form.content }}
+                            {% if form.content.errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {{ form.content.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Butonlar -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% url 'tools:study_notes_list' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i> Notu Kaydet
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ form.media }}
+{% endblock %}
+
+{% block extra_js %}
+<!-- Form media içeriğini yükle -->
+{% endblock %}

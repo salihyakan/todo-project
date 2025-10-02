@@ -1,6 +1,6 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% load cat_utils %}
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -92,15 +92,38 @@
         min-width: 120px;
     }
 
-    .card-header-custom {
-        background-color: var(--priority-color, #6f42c1);
-        color: white;
+    /* Öncelik renklerini kaldırıyoruz, hepsi gri olacak */
+    .note-card .card-header {
+        background-color: #6c757d !important;
+        color: white !important;
     }
-</style>
+
+    /* Kart başlığı hover efekti */
+    .note-card:hover .card-header-custom {
+        background-color: #5a6268 !important; /* Biraz daha koyu gri */
+        transition: background-color 0.3s ease;
+    }
+
+    /* Badge stilleri */
+    .card-header-custom .badge {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Kategori badge'leri için kategori rengi */
+    .category-color-badge {
+        background-color: var(--category-color) !important;
+        color: white !important;
+    }
+    </style>
 {% endblock %}
 
 {% block content %}
+
 <div class="container-fluid mt-4">
+    <h1 class="h2 mb-5"></i>Notlarım</h1>
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
     <div class="row">
         <!-- Sol Kenar Çubuğu (Kategoriler ve Görevler) -->
         <div class="col-lg-3 col-md-4">
@@ -124,19 +147,6 @@
                         <i class="fas fa-thumbtack pinned-indicator me-2"></i>Sabitlenmişler
                     </a>
 
-                    <!-- Görev Filtresi
-                    <div class="list-group-item">
-                        <small class="text-muted fw-bold">Görev Filtresi:</small>
-                        <select class="form-select form-select-sm mt-2" id="taskFilterSelect">
-                            <option value="">Tüm görevler</option>
-                            <option value="none" {% if current_task == 'none' %}selected{% endif %}>Görevsiz notlar</option>
-                            {% for task in tasks %}
-                            <option value="{{ task.id }}" {% if current_task == task.id|stringformat:'s' %}selected{% endif %}>
-                                {{ task.title|truncatechars:25 }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </div> -->
 
                     <!-- Kategoriler -->
                     {% for category in categories %}
@@ -167,12 +177,13 @@
                         <div class="d-flex justify-content-between mb-2">
                             <span>Görevli Notlar:</span>
                             <span class="fw-bold">{{ task_notes_count }}</span>
+                            
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
+        
         <!-- Ana İçerik Alanı -->
         <div class="col-lg-9 col-md-8">
             <!-- Filtreleme Bölümü -->
@@ -233,7 +244,6 @@
             <!-- Başlık ve Yeni Not Butonu -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1 class="h2 mb-0"><i class="fas fa-sticky-note me-2"></i>Notlarım</h1>
                     {% if current_task or current_category or query or is_pinned %}
                     <p class="text-muted mb-0">
                         Filtrelenmiş:

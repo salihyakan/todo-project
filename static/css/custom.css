@@ -1,3 +1,42 @@
+/* Bootstrap default renklerini geri yükle */
+.card-header.bg-primary { background-color: #0d6efd !important; }
+.card-header.bg-success { background-color: #198754 !important; }
+.card-header.bg-warning { background-color: #ffc107 !important; color: #000 !important; }
+.card-header.bg-info { background-color: #0dcaf0 !important; }
+.card-header.bg-dark { background-color: #212529 !important; }
+.card-header.bg-secondary { background-color: #6c757d !important; }
+
+/* Gradient override - mor renkleri kaldır */
+.card-header {
+    background: var(--bs-card-cap-bg) !important;
+}
+
+.bg-gradient-primary,
+.bg-gradient-secondary,
+.bg-gradient-info,
+.bg-gradient-success {
+    background: initial !important;
+}
+
+/* Buton renklerini düzelt */
+.btn-primary { background-color: #0d6efd; border-color: #0d6efd; }
+.btn-success { background-color: #198754; border-color: #198754; }
+.btn-warning { background-color: #ffc107; border-color: #ffc107; color: #000; }
+.btn-info { background-color: #0dcaf0; border-color: #0dcaf0; }
+.btn-dark { background-color: #212529; border-color: #212529; }
+.btn-secondary { background-color: #6c757d; border-color: #6c757d; }
+
+/* Text renklerini düzelt */
+.text-primary { color: #0d6efd !important; }
+.text-success { color: #198754 !important; }
+.text-warning { color: #ffc107 !important; }
+.text-info { color: #0dcaf0 !important; }
+.text-danger { color: #dc3545 !important; }
+.text-dark { color: #212529 !important; }
+.text-secondary { color: #6c757d !important; }
+
+
+
 /* Görev Kartları için Özel Stiller */
 .task-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
@@ -329,4 +368,167 @@ body {
 
 .analytics-card {
     animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Mini Pomodoro Pencere */
+.pomodoro-mini {
+    position: fixed;
+    left: 20px;
+    bottom: 20px;
+    width: 140px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+    z-index: 1050;
+    transition: all 0.3s ease;
+    border: 2px solid #444;
+    backdrop-filter: blur(10px);
+}
+
+.pomodoro-mini-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mini-timer-display {
+    text-align: center;
+    cursor: pointer;
+}
+
+.mini-timer {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+    transition: all 0.3s ease;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.mini-phase {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    color: #ffffff !important;
+}
+
+.mini-controls {
+    display: none;
+    justify-content: space-between;
+    gap: 4px;
+    animation: fadeIn 0.3s ease;
+}
+
+.pomodoro-mini:hover .mini-controls {
+    display: flex;
+}
+
+.mini-controls .btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    padding: 0;
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.mini-controls .btn-success {
+    background: #27ae60;
+    color: white;
+}
+
+.mini-controls .btn-warning {
+    background: #f39c12;
+    color: white;
+}
+
+.mini-controls .btn-danger {
+    background: #e74c3c;
+    color: white;
+}
+
+.mini-controls .btn-secondary {
+    background: #7f8c8d;
+    color: white;
+}
+
+.mini-controls .btn:hover {
+    transform: scale(1.1);
+    opacity: 0.9;
+}
+
+/* Progress bar için */
+.mini-progress {
+    width: 100%;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 1.5px;
+    margin-top: 5px;
+    overflow: hidden;
+}
+
+.mini-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    border-radius: 1.5px;
+    transition: width 1s linear;
+}
+
+/* Animasyon */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Session info */
+.mini-session {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    text-align: center;
+    margin-top: 2px;
+    color: #95a5a6;
+}
+
+/* Work/Break phase renkleri */
+.pomodoro-mini.work-phase {
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border-color: #e74c3c;
+}
+
+.pomodoro-mini.break-phase {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    border-color: #27ae60;
+}
+
+.pomodoro-mini.break-phase .mini-timer {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.pomodoro-mini.break-phase .mini-phase {
+    color: #ecf0f1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .pomodoro-mini {
+        left: 10px;
+        bottom: 10px;
+        width: 120px;
+        padding: 10px;
+    }
+    
+    .mini-timer {
+        font-size: 1.1rem;
+    }
 }

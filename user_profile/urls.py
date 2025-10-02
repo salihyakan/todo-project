@@ -23,6 +23,8 @@ urlpatterns = [
     path('update_pomodoro/', views.update_pomodoro, name='update_pomodoro'),
     path('badges/', views.badge_list, name='badge_list'),
     path('badges/<slug:slug>/', views.badge_detail, name='badge_detail'),
+    path('badges/check/', views.force_badge_check, name='force_badge_check'),
+
     path('notifications/', views.notifications_view, name='notifications'),
     path('notifications/mark-as-read/<int:notification_id>/', 
          views.mark_notification_as_read, name='mark_notification_as_read'),

@@ -48,6 +48,12 @@ class Profile(models.Model):
         verbose_name="Bildirim Sesi"
     )
     
+    # Rozet kontrolü için ek alanlar
+    last_login_date = models.DateField(null=True, blank=True, verbose_name="Son Giriş Tarihi")
+    login_streak = models.PositiveIntegerField(default=0, verbose_name="Giriş Serisi")
+    total_pomodoro_minutes = models.PositiveIntegerField(default=0, verbose_name="Toplam Pomodoro Süresi (dakika)")
+    last_pomodoro_date = models.DateField(null=True, blank=True, verbose_name="Son Pomodoro Tarihi")
+    
     def __str__(self):
         return f"{self.user.username} Profili"
     
@@ -61,14 +67,33 @@ class Profile(models.Model):
                 counter += 1
             self.slug = slug
         super().save(*args, **kwargs)
+    
+    def calculate_profile_completion(self):
+        """Profil tamamlama yüzdesini hesapla"""
+        fields_to_check = [
+            self.bio,
+            self.profile_picture,
+            self.location, 
+            self.birth_date,
+            self.website,
+        ]
+        
+        completed_fields = sum(1 for field in fields_to_check if field)
+        total_fields = len(fields_to_check)
+        
+        return (completed_fields / total_fields) * 100 if total_fields > 0 else 0
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile = Profile.objects.create(user=instance)
         # Yeni kullanıcıya "Hoş Geldin" rozetini ver
-        welcome_badge = Badge.objects.get(name='Hoş Geldin')
-        UserBadge.objects.create(user_profile=profile, badge=welcome_badge)
+        try:
+            welcome_badge = Badge.objects.get(name='Hoş Geldin')
+            UserBadge.objects.create(user_profile=profile, badge=welcome_badge)
+        except Badge.DoesNotExist:
+            # Rozet henüz oluşturulmamışsa pas geç
+            pass
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
@@ -90,6 +115,10 @@ class BadgeType(models.Model):
     
     def __str__(self):
         return self.name
+    
+    class Meta:
+        verbose_name = 'Rozet Tipi'
+        verbose_name_plural = 'Rozet Tipleri'
 
 class Badge(models.Model):
     name = models.CharField(max_length=100, verbose_name="Rozet Adı")
@@ -129,7 +158,37 @@ class Badge(models.Model):
         super().save(*args, **kwargs)
         
     def get_criteria_display(self):
-        return [f"{key.replace('_', ' ').title()}: {value}" for key, value in self.criteria.items()]
+        """Kriterleri kullanıcı dostu formatta göster"""
+        criteria_list = []
+        for key, value in self.criteria.items():
+            # Kriter anahtarlarını Türkçe'ye çevir
+            key_mapping = {
+                'completed_tasks': 'Tamamlanan Görev',
+                'quick_completion': 'Hızlı Tamamlama',
+                'early_completion': 'Erken Tamamlama',
+                'note_count': 'Not Sayısı',
+                'category_count': 'Kategori Sayısı',
+                'total_pomodoro_time': 'Toplam Pomodoro Süresi (dakika)',
+                'consecutive_days': 'Ardışık Gün',
+                'login_streak': 'Giriş Serisi',
+                'profile_completion': 'Profil Tamamlama (%)',
+                'morning_login': 'Sabah Girişi',
+                'night_login': 'Gece Girişi',
+                'weekend_login': 'Hafta Sonu Girişi',
+                'perfect_day': 'Mükemmel Gün',
+                'perfect_week': 'Mükemmel Hafta',
+                'different_days': 'Farklı Gün',
+                'all_badges': 'Tüm Rozetler'
+            }
+            
+            display_key = key_mapping.get(key, key.replace('_', ' ').title())
+            criteria_list.append(f"{display_key}: {value}")
+        
+        return criteria_list
+    
+    class Meta:
+        verbose_name = 'Rozet'
+        verbose_name_plural = 'Rozetler'
 
 class UserBadge(models.Model):
     user_profile = models.ForeignKey(
@@ -148,6 +207,8 @@ class UserBadge(models.Model):
     class Meta:
         unique_together = ('user_profile', 'badge')
         ordering = ['-awarded_at']
+        verbose_name = 'Kullanıcı Rozeti'
+        verbose_name_plural = 'Kullanıcı Rozetleri'
     
     def __str__(self):
         return f"{self.user_profile.user.username} - {self.badge.name}"
@@ -183,6 +244,7 @@ class Notification(models.Model):
 
 
 def create_badge_types():
+    """Rozet tiplerini oluştur"""
     if BadgeType.objects.count() == 0:
         types = [
             {
@@ -221,59 +283,59 @@ def create_badge_types():
             BadgeType.objects.get_or_create(**type_data)
 
 def create_badges():
+    """Rozetleri oluştur"""
     create_badge_types()
     
     if Badge.objects.count() == 0:
-        # Görev rozetleri
+        # Görev rozetleri - her biri farklı icon
         task_badges = [
-            {'name': 'İlk Görev', 'description': 'İlk görevi tamamla', 'criteria': {'tam_görev': 1}},
-            {'name': 'Görev Ustası', 'description': '10 görev tamamla', 'criteria': {'tam_görev': 10}},
-            {'name': 'Görev Efendisi', 'description': '50 görev tamamla', 'criteria': {'tam_görev': 50}},
-            {'name': 'Görev Kralı', 'description': '100 görev tamamla', 'criteria': {'tam_görev': 100}},
-            {'name': 'Hızlı Başlangıç', 'description': 'Bir görevi oluşturulduktan 1 saat içinde tamamla', 'criteria': {'hızlı_tamam': 1}},
-            {'name': 'Zaman Yönetimi', 'description': 'Son güne kalmadan 10 görev tamamla', 'criteria': {'erken_tamam': 10}},
+            {'name': 'İlk Görev', 'description': 'İlk görevi tamamla', 'criteria': {'completed_tasks': 1}, 'icon': 'fas fa-flag-checkered'},
+            {'name': 'Görev Ustası', 'description': '10 görev tamamla', 'criteria': {'completed_tasks': 10}, 'icon': 'fas fa-tasks'},
+            {'name': 'Görev Efendisi', 'description': '50 görev tamamla', 'criteria': {'completed_tasks': 50}, 'icon': 'fas fa-crown'},
+            {'name': 'Görev Kralı', 'description': '100 görev tamamla', 'criteria': {'completed_tasks': 100}, 'icon': 'fas fa-chess-king'},
+            {'name': 'Hızlı Başlangıç', 'description': 'Bir görevi oluşturulduktan 1 saat içinde tamamla', 'criteria': {'quick_completion': 1}, 'icon': 'fas fa-bolt'},
+            {'name': 'Zaman Yönetimi', 'description': 'Son güne kalmadan 10 görev tamamla', 'criteria': {'early_completion': 10}, 'icon': 'fas fa-clock'},
+            {'name': 'Hızlı Tamamlayıcı', 'description': 'Bir görevi oluşturulduktan 10 dakika içinde tamamla', 'criteria': {'quick_completion': 1}, 'icon': 'fas fa-running'},
         ]
         
         # Not rozetleri
         note_badges = [
-            {'name': 'İlk Not', 'description': 'İlk notu oluştur', 'criteria': {'not_sayısı': 1}},
-            {'name': 'Not Tutucu', 'description': '5 not oluştur', 'criteria': {'not_sayısı': 5}},
-            {'name': 'Not Sever', 'description': '20 not oluştur', 'criteria': {'not_sayısı': 20}},
-            {'name': 'Not Koleksiyoncusu', 'description': '50 not oluştur', 'criteria': {'not_sayısı': 50}},
-            {'name': 'Kategorize Edici', 'description': '5 farklı kategoride not oluştur', 'criteria': {'kategori_sayısı': 5}},
+            {'name': 'İlk Not', 'description': 'İlk notu oluştur', 'criteria': {'note_count': 1}, 'icon': 'fas fa-sticky-note'},
+            {'name': 'Not Tutucu', 'description': '5 not oluştur', 'criteria': {'note_count': 5}, 'icon': 'fas fa-book'},
+            {'name': 'Not Sever', 'description': '20 not oluştur', 'criteria': {'note_count': 20}, 'icon': 'fas fa-book-open'},
+            {'name': 'Not Koleksiyoncusu', 'description': '50 not oluştur', 'criteria': {'note_count': 50}, 'icon': 'fas fa-archive'},
+            {'name': 'Kategorize Edici', 'description': '5 farklı kategoride not oluştur', 'criteria': {'category_count': 5}, 'icon': 'fas fa-folder-tree'},
         ]
         
         # Pomodoro rozetleri
         pomodoro_badges = [
-            {'name': 'Pomodoro Acemisi', 'description': 'Toplam 1 saat pomodoro yap', 'criteria': {'toplam_süre': 60}},
-            {'name': 'Pomodoro Sever', 'description': 'Toplam 5 saat pomodoro yap', 'criteria': {'toplam_süre': 300}},
-            {'name': 'Pomodoro Ustası', 'description': 'Toplam 25 saat pomodoro yap', 'criteria': {'toplam_süre': 1500}},
-            {'name': 'Pomodoro Maratoncusu', 'description': 'Tek seferde 10 pomodoro tamamla', 'criteria': {'tek_seferde': 10}},
-            {'name': 'Aralıksız Çalışma', 'description': '3 gün üst üste pomodoro yap', 'criteria': {'gün_serisi': 3}},
+            {'name': 'Pomodoro Acemisi', 'description': 'Toplam 1 saat pomodoro yap', 'criteria': {'total_pomodoro_time': 60}, 'icon': 'fas fa-hourglass-start'},
+            {'name': 'Pomodoro Sever', 'description': 'Toplam 5 saat pomodoro yap', 'criteria': {'total_pomodoro_time': 300}, 'icon': 'fas fa-hourglass-half'},
+            {'name': 'Pomodoro Ustası', 'description': 'Toplam 25 saat pomodoro yap', 'criteria': {'total_pomodoro_time': 1500}, 'icon': 'fas fa-hourglass-end'},
+            {'name': 'Pomodoro Maratoncusu', 'description': 'Tek seferde 10 pomodoro tamamla', 'criteria': {'consecutive_days': 3}, 'icon': 'fas fa-infinity'},
+            {'name': 'Aralıksız Çalışma', 'description': '3 gün üst üste pomodoro yap', 'criteria': {'consecutive_days': 3}, 'icon': 'fas fa-fire'},
         ]
         
         # Seri rozetleri
         streak_badges = [
-            {'name': 'İlk Giriş', 'description': 'İlk giriş yap', 'criteria': {'giriş': 1}},
-            {'name': 'Düzenli Kullanıcı', 'description': '3 gün üst üste giriş yap', 'criteria': {'giriş_serisi': 3}},
-            {'name': 'Sadık Kullanıcı', 'description': '7 gün üst üste giriş yap', 'criteria': {'giriş_serisi': 7}},
-            {'name': 'Tam Bağımlı', 'description': '30 gün üst üste giriş yap', 'criteria': {'giriş_serisi': 30}},
-            {'name': 'Efsanevi Seri', 'description': '100 gün üst üste giriş yap', 'criteria': {'giriş_serisi': 100}},
+            {'name': 'İlk Giriş', 'description': 'İlk giriş yap', 'criteria': {'login_streak': 1}, 'icon': 'fas fa-door-open'},
+            {'name': 'Düzenli Kullanıcı', 'description': '3 gün üst üste giriş yap', 'criteria': {'login_streak': 3}, 'icon': 'fas fa-calendar-day'},
+            {'name': 'Sadık Kullanıcı', 'description': '7 gün üst üste giriş yap', 'criteria': {'login_streak': 7}, 'icon': 'fas fa-calendar-week'},
+            {'name': 'Tam Bağımlı', 'description': '30 gün üst üste giriş yap', 'criteria': {'login_streak': 30}, 'icon': 'fas fa-calendar-alt'},
+            {'name': 'Efsanevi Seri', 'description': '100 gün üst üste giriş yap', 'criteria': {'login_streak': 100}, 'icon': 'fas fa-award'},
         ]
         
         # Çeşitli rozetler
         misc_badges = [
-            {'name': 'Profil Tamamlama', 'description': 'Profili %100 tamamla', 'criteria': {'profil_tamam': 100}},
-            {'name': 'Erken Kuş', 'description': 'Sabah 6-8 arasında giriş yap', 'criteria': {'sabah_girişi': 1}},
-            {'name': 'Gece Kuşu', 'description': 'Gece 12-2 arasında giriş yap', 'criteria': {'gece_girişi': 1}},
-            {'name': 'Hafta Sonu', 'description': 'Hafta sonu giriş yap', 'criteria': {'hafta_sonu_girişi': 1}},
-            {'name': 'Sosyal', 'description': 'Profilini sosyal medya ile bağla', 'criteria': {'sosyal_bağlantı': 1}},
-            {'name': 'Tamamlanmış Hafta', 'description': 'Bir hafta boyunca tüm görevleri tamamla', 'criteria': {'tam_hafta': 1}},
-            {'name': 'Hızlı Tamamlayıcı', 'description': 'Bir görevi oluşturulduktan 10 dakika içinde tamamla', 'criteria': {'süper_hızlı': 1}},
-            {'name': 'Mükemmel Gün', 'description': 'Bir günde tüm görevleri tamamla', 'criteria': {'mükemmel_gün': 1}},
-            {'name': 'Yıldız Kullanıcı', 'description': '10 farklı günde giriş yap', 'criteria': {'farklı_gün': 10}},
-            {'name': 'Efsanevi Kullanıcı', 'description': 'Tüm rozetleri kazan', 'criteria': {'tüm_rozetler': 1}},
-            {'name': 'Hoş Geldin', 'description': 'Hesap oluşturma başarısı', 'criteria': {}},
+            {'name': 'Profil Tamamlama', 'description': 'Profili %80 tamamla', 'criteria': {'profile_completion': 80}, 'icon': 'fas fa-user-check'},
+            {'name': 'Erken Kuş', 'description': 'Sabah 6-8 arasında giriş yap', 'criteria': {'morning_login': 1}, 'icon': 'fas fa-sun'},
+            {'name': 'Gece Kuşu', 'description': 'Gece 12-2 arasında giriş yap', 'criteria': {'night_login': 1}, 'icon': 'fas fa-moon'},
+            {'name': 'Hafta Sonu', 'description': 'Hafta sonu giriş yap', 'criteria': {'weekend_login': 1}, 'icon': 'fas fa-umbrella-beach'},
+            {'name': 'Mükemmel Gün', 'description': 'Bir günde tüm görevleri tamamla', 'criteria': {'perfect_day': 1}, 'icon': 'fas fa-star'},
+            {'name': 'Tamamlanmış Hafta', 'description': 'Bir hafta boyunca tüm görevleri tamamla', 'criteria': {'perfect_week': 1}, 'icon': 'fas fa-trophy'},
+            {'name': 'Yıldız Kullanıcı', 'description': '10 farklı günde giriş yap', 'criteria': {'different_days': 10}, 'icon': 'fas fa-user-astronaut'},
+            {'name': 'Efsanevi Kullanıcı', 'description': 'Tüm rozetleri kazan', 'criteria': {'all_badges': 1}, 'icon': 'fas fa-robot'},
+            {'name': 'Hoş Geldin', 'description': 'Hesap oluşturma başarısı', 'criteria': {}, 'icon': 'fas fa-handshake'},
         ]
         
         # Tüm rozetleri birleştir
@@ -294,13 +356,14 @@ def create_badges():
                         'description': badge_data['description'],
                         'badge_type': badge_type,
                         'criteria': badge_data['criteria'],
-                        'icon': badge_type.icon,
+                        'icon': badge_data['icon'],  # Burada her rozetin kendi iconu
                         'color': badge_type.color
                     }
                 )
 
 @receiver(post_migrate)
 def initialize_badges(sender, **kwargs):
+    """Migration sonrası rozetleri oluştur"""
     if sender.name == 'user_profile':
         create_badge_types()
         create_badges()

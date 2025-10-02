@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% load cat_utils %}
+{% block title %}Notu Sil{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Notu Sil
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">Dikkat!</h5>
+                        <p class="mb-0">Bu işlem geri alınamaz. Aşağıdaki notu silmek istediğinizden emin misiniz?</p>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">{{ object.title }}</h5>
+                            <div class="card-text text-muted">
+                                {{ object.content|striptags|safe|truncatewords:50 }}
+                            </div>
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Oluşturulma: {{ object.created_at|date:"d.m.Y H:i" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'tools:study_note_detail' object.pk %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i> İptal
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash me-2"></i> Evet, Sil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

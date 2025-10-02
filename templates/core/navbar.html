@@ -1,8 +1,10 @@
 {% load static %}
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
     <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'dashboard:home' %}">
-            <i class="fas fa-check-circle me-2"></i>TODO
+        <!-- Logo ve Marka - Ked-O -->
+        <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" href="{% url 'dashboard:landing' %}">
+            <i class="fas fa-paw me-2"></i>
+            <span class="brand-text me-5">Ked-O</span>
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
@@ -10,159 +12,263 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarMain">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'todo:task_list' %}">
-                        <i class="fas fa-tasks d-lg-none me-2"></i>Görevler
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'notes:note_list' %}">
-                        <i class="fas fa-sticky-note d-lg-none me-2"></i>Notlar
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard:calendar' %}">
-                        <i class="fas fa-calendar-alt d-lg-none me-2"></i>Takvim
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'dashboard:pomodoro' %}">
-                        <i class="fas fa-clock d-lg-none me-2"></i>Pomodoro
-                    </a>
-                </li>
-                <li class="nav-item d-lg-none">
-                    <a class="nav-link" href="{% url 'analytics:dashboard' %}">
-                        <i class="fas fa-chart-bar me-2"></i>Analitik
-                    </a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="toolsDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-tools d-lg-none me-2"></i>Araçlar
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="toolsDropdown">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'tools:home' %}">
-                                <i class="fas fa-home me-2"></i>Araçlar Anasayfa
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'tools:calculator' %}">
-                                <i class="fas fa-calculator me-2"></i>Hesap Makinesi
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'tools:stopwatch' %}">
-                                <i class="fas fa-stopwatch me-2"></i>Kronometre
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'tools:timer' %}">
-                                <i class="fas fa-hourglass-half me-2"></i>Zamanlayıcı
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
+            {% if user.is_authenticated %}
+                <!-- Giriş yapmış kullanıcılar için mevcut navbar -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="{% url 'todo:task_list' %}">
+                            <i class="fas fa-tasks me-1"></i>
+                            <span class="nav-text">Görevlerim</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="{% url 'notes:note_list' %}">
+                            <i class="fas fa-sticky-note me-1"></i>
+                            <span class="nav-text">Notlarım</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="{% url 'tools:study_notes_list' %}">
+                            <i class="fas fa-book me-1"></i>
+                            <span class="nav-text">Çalışma Notlarım</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="{% url 'dashboard:calendar' %}">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <span class="nav-text">Takvim</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="{% url 'dashboard:pomodoro' %}">
+                            <i class="fas fa-clock me-1"></i>
+                            <span class="nav-text">Pomodoro</span>
+                        </a>
+                    </li>
 
-            <ul class="navbar-nav ms-auto">
-                {% if user.is_authenticated %}
-                <!-- Bildirimler -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link position-relative" href="#" id="notificationsDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-bell"></i>
-                        {% if unread_notifications_count > 0 %}
-                        <span id="notification-count"
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                            {{ unread_notifications_count }}
-                        </span>
-                        {% else %}
-                        <span id="notification-count"
-                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"></span>
-                        {% endif %}
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationsDropdown">
-                        <li>
-                            <h6 class="dropdown-header">Bildirimler</h6>
-                        </li>
-                        {% if recent_notifications %}
-                        {% for notification in recent_notifications %}
-                        <li>
-                            <a class="dropdown-item d-flex justify-content-between align-items-center {% if not notification.is_read %}fw-bold{% endif %}"
-                                href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}">
-                                <span>{{ notification.message|truncatechars:25 }}</span>
-                                <small class="text-muted ms-2">{{ notification.created_at|timesince }} önce</small>
-                            </a>
-                        </li>
-                        {% endfor %}
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item text-center" href="{% url 'user_profile:notifications' %}">
-                                Tüm Bildirimler
-                            </a>
-                        </li>
-                        {% else %}
-                        <li><a class="dropdown-item text-center" href="#">Bildiriminiz yok</a></li>
-                        {% endif %}
-                    </ul>
-                </li>
+                    <!-- Araçlar Dropdown -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle nav-link-custom" href="#" id="toolsDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-tools me-1"></i>
+                            <span class="nav-text">Araçlar</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="toolsDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'tools:calculator' %}">
+                                    <i class="fas fa-calculator me-2"></i>Hesap Makinesi
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'tools:stopwatch' %}">
+                                    <i class="fas fa-stopwatch me-2"></i>Kronometre
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'tools:timer' %}">
+                                    <i class="fas fa-hourglass-half me-2"></i>Zamanlayıcı
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
 
-                <!-- Kullanıcı Profili -->
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-user me-1"></i>
-                        <span class="d-none d-lg-inline">{{ user.username|truncatechars:12 }}</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li>
-                            <a class="dropdown-item" href="{% url 'user_profile:profile' %}">
-                                <i class="fas fa-user-circle me-2"></i>Profilim
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'user_profile:badge_list' %}">
-                                <i class="fas fa-trophy me-2"></i>Rozetlerim
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'analytics:dashboard' %}">
-                                <i class="fas fa-chart-bar me-2"></i>Analitik
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item text-danger" href="{% url 'user_profile:logout' %}">
-                                <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+                    <!-- Analizler (Mobil için) -->
+                    <li class="nav-item d-lg-none">
+                        <a class="nav-link nav-link-custom" href="{% url 'analytics:dashboard' %}">
+                            <i class="fas fa-chart-bar me-1"></i>
+                            <span class="nav-text">Analizler</span>
+                        </a>
+                    </li>
+                </ul>
 
-                {% else %}
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'user_profile:login' %}">
-                        <i class="fas fa-sign-in-alt me-1"></i>
-                        <span class="d-none d-lg-inline">Giriş Yap</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'user_profile:register' %}">
-                        <i class="fas fa-user-plus me-1"></i>
-                        <span class="d-none d-lg-inline">Kayıt Ol</span>
-                    </a>
-                </li>
-                {% endif %}
-            </ul>
+                <!-- Sağ Taraf - Kullanıcı İşlemleri -->
+                <ul class="navbar-nav ms-auto">
+                    <!-- Analizler (Desktop) -->
+                    <li class="nav-item d-none d-lg-block">
+                        <a class="nav-link nav-link-custom" href="{% url 'analytics:dashboard' %}">
+                            <i class="fas fa-chart-bar"></i>
+                        </a>
+                    </li>
+
+                    <!-- Bildirimler -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link position-relative nav-link-custom" href="#" id="notificationsDropdown"
+                            role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            {% if unread_notifications_count > 0 %}
+                            <span id="notification-count"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_notifications_count }}
+                            </span>
+                            {% else %}
+                            <span id="notification-count"
+                                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none"></span>
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark"
+                            aria-labelledby="notificationsDropdown">
+                            <li>
+                                <h6 class="dropdown-header text-warning">Bildirimler</h6>
+                            </li>
+                            {% if recent_notifications %}
+                            {% for notification in recent_notifications %}
+                            <li>
+                                <a class="dropdown-item d-flex justify-content-between align-items-center {% if not notification.is_read %}fw-bold text-white{% endif %}"
+                                    href="{% if notification.url %}{{ notification.url }}{% else %}#{% endif %}">
+                                    <span>{{ notification.message|truncatechars:30 }}</span>
+                                    <small class="text-muted ms-2">{{ notification.created_at|timesince }} önce</small>
+                                </a>
+                            </li>
+                            {% endfor %}
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-center text-info"
+                                    href="{% url 'user_profile:notifications' %}">
+                                    <i class="fas fa-list me-1"></i>Tüm Bildirimler
+                                </a>
+                            </li>
+                            {% else %}
+                            <li>
+                                <a class="dropdown-item text-center text-muted" href="#">
+                                    <i class="fas fa-bell-slash me-1"></i>Bildiriminiz yok
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+
+                    <!-- Kullanıcı Profili -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle nav-link-custom" href="#" id="userDropdown" role="button"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2"
+                                    style="width: 32px; height: 32px;">
+                                    <i class="fas fa-user text-white"></i>
+                                </div>
+                                <span class="d-none d-lg-inline">{{ user.username|truncatechars:15 }}</span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark" aria-labelledby="userDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'user_profile:profile' %}">
+                                    <i class="fas fa-user-circle me-2"></i>Profilim
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'user_profile:badge_list' %}">
+                                    <i class="fas fa-trophy me-2"></i>Rozetlerim
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-warning" href="{% url 'analytics:dashboard' %}">
+                                    <i class="fas fa-chart-bar me-2"></i>İstatistiklerim
+                                </a>
+                            </li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'user_profile:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            {% else %}
+                <!-- Giriş yapmamış kullanıcılar için navbar -->
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="#features">
+                            <i class="fas fa-star me-1"></i>
+                            <span class="nav-text">Özellikler</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="#how-it-works">
+                            <i class="fas fa-play-circle me-1"></i>
+                            <span class="nav-text">Nasıl Çalışır?</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom" href="{% url 'user_profile:login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            <span class="d-none d-lg-inline">Giriş Yap</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-custom btn-outline-light rounded-pill px-3" 
+                           href="{% url 'user_profile:register' %}">
+                            <i class="fas fa-user-plus me-1"></i>
+                            <span class="d-none d-lg-inline">Hemen Başla</span>
+                            <span class="d-lg-none">Kayıt Ol</span>
+                        </a>
+                    </li>
+                </ul>
+            {% endif %}
         </div>
     </div>
 </nav>
+
+<style>
+    .navbar-brand .brand-text {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-link-custom {
+        transition: all 0.3s ease;
+        border-radius: 6px;
+        margin: 2px 4px;
+        padding: 8px 12px !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .nav-link-custom:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        transform: translateY(-1px);
+        color: rgba(255, 255, 255, 1) !important;
+    }
+
+    .dropdown-menu-dark {
+        background: #343a40;
+        border: 1px solid #495057;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .dropdown-item {
+        border-radius: 4px;
+        margin: 2px 6px;
+        transition: all 0.2s ease;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .dropdown-item:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 1) !important;
+    }
+
+    .user-avatar {
+        transition: all 0.3s ease;
+    }
+
+    .nav-item:hover .user-avatar {
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 991.98px) {
+        .navbar-nav .nav-link-custom {
+            margin: 4px 0;
+        }
+    }
+</style>

@@ -1,4 +1,3 @@
-# user_profile/apps.py
 from django.apps import AppConfig
 
 class UserProfileConfig(AppConfig):
@@ -6,4 +5,4 @@ class UserProfileConfig(AppConfig):
     name = 'user_profile'
     
     def ready(self):
-        pass
+        import user_profile.signals

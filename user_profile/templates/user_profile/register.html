@@ -1,8 +1,9 @@
 {% extends 'core/base.html' %}
 {% load static %}
-
+{% load cat_utils %}
 {% block content %}
-<div class="container mt-4">
+<div class="container mt-4">  
+{% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-6 col-xl-5">
             <div class="card shadow border-0">

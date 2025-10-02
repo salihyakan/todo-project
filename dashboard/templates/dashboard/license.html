@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}Lisans - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-balance-scale fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">Lisans Anlaşması</h1>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="text-primary">MIT Lisansı</h4>
+                    <p class="text-muted">Ked-O açık kaynak kodlu bir projedir ve MIT lisansı altında dağıtılmaktadır.</p>
+                    
+                    <h4 class="text-primary mt-4">İzin Verilenler</h4>
+                    <ul class="text-muted">
+                        <li>Ticari kullanım</li>
+                        <li>Dağıtım</li>
+                        <li>Değişiklik</li>
+                        <li>Özel kullanım</li>
+                    </ul>
+                    
+                    <h4 class="text-primary mt-4">Koşullar</h4>
+                    <p class="text-muted">Lisans ve telif hakkı bildirimlerinin tüm kopyalarda korunması gerekmektedir.</p>
+                    
+                    <div class="alert alert-warning mt-4">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Bu bir basitleştirilmiş özettir. Tam lisans metni için proje deposunu ziyaret edin.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

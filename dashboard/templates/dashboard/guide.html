@@ -1,0 +1,283 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}Kullanım Kılavuzu - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-book-open fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">Ked-O Kullanım Kılavuzu</h1>
+            </div>
+            
+            <!-- Hoş Geldiniz Kartı -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h3 class="text-primary">🐱 Ked-O'ya Hoş Geldiniz!</h3>
+                    <p class="lead mb-3">Ked-O, üretkenliğinizi artırmak için tasarlanmış kapsamlı bir görev yönetim platformudur. Bu kılavuz, tüm özellikleri etkili bir şekilde kullanmanıza yardımcı olacaktır.</p>
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>İpucu:</strong> Platformu keşfederken bu kılavuzu açık tutun ve adım adım ilerleyin.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hızlı Başlangıç -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h4 class="text-primary mb-4">🚀 Hızlı Başlangıç</h4>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">1. Hesap Oluşturun</h6>
+                                    <p class="text-muted small mb-0">30 saniyede ücretsiz hesabınızı oluşturun</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-success text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">2. İlk Görevinizi Ekleyin</h6>
+                                    <p class="text-muted small mb-0">Görevler sayfasından başlayın</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">3. Takviminizi Planlayın</h6>
+                                    <p class="text-muted small mb-0">Etkinliklerinizi takvime ekleyin</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-info text-white rounded-circle p-2 me-3">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">4. İlerlemenizi Takip Edin</h6>
+                                    <p class="text-muted small mb-0">Analizlerle performansınızı görün</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellik Detayları -->
+            <h3 class="text-dark mb-4">🎯 Temel Özellikler</h3>
+            
+            <div class="row">
+                <!-- Görev Yönetimi -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary text-white rounded p-2 me-3">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <h5 class="card-title text-primary mb-0">Görev Yönetimi</h5>
+                            </div>
+                            <p class="card-text">Görevlerinizi oluşturun, organize edin ve takip edin.</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Öncelik seviyeleri (Düşük, Orta, Yüksek)</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Kategori desteği</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Son tarih takibi</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Durum yönetimi (Yapılacak, Devam Ediyor, Tamamlandı)</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Detaylı görev açıklamaları</li>
+                            </ul>
+                            <div class="mt-3">
+                                <a href="{% url 'todo:task_list' %}" class="btn btn-outline-primary btn-sm me-2">
+                                    <i class="fas fa-arrow-right me-1"></i>Görevlere Git
+                                </a>
+                                <a href="{% url 'todo:category_list' %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-tags me-1"></i>Kategoriler
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Not Alma -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-success text-white rounded p-2 me-3">
+                                    <i class="fas fa-sticky-note"></i>
+                                </div>
+                                <h5 class="card-title text-success mb-0">Not Alma</h5>
+                            </div>
+                            <p class="card-text">Zengin metin editörü ile detaylı notlar oluşturun.</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Zengin metin formatlama</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Kategori organizasyonu</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Görev ilişkilendirme</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Sabitleme özelliği</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Hızlı arama ve filtreleme</li>
+                            </ul>
+                            <div class="mt-3">
+                                <a href="{% url 'notes:note_list' %}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-arrow-right me-1"></i>Notlara Git
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Takvim -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-warning text-white rounded p-2 me-3">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <h5 class="card-title text-warning mb-0">Takvim Entegrasyonu</h5>
+                            </div>
+                            <p class="card-text">Etkinliklerinizi görsel takvimde planlayın.</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Görsel planlama arayüzü</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Otomatik hatırlatıcılar</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Renk kodlu etkinlikler</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Hızlı etkinlik ekleme</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Günlük/haftalık/aylık görünüm</li>
+                            </ul>
+                            <div class="mt-3">
+                                <a href="{% url 'dashboard:calendar' %}" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-arrow-right me-1"></i>Takvime Git
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pomodoro -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-info text-white rounded p-2 me-3">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <h5 class="card-title text-info mb-0">Pomodoro Zamanlayıcı</h5>
+                            </div>
+                            <p class="card-text">Odaklanma sürelerinizi verimli yönetin.</p>
+                            <ul class="list-unstyled">
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>25/5 dakika döngüsü</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Ayarlanabilir zaman aralıkları</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Oturum takibi</li>
+                                <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Verimlilik analizi</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Sesli bildirimler</li>
+                            </ul>
+                            <div class="mt-3">
+                                <a href="{% url 'dashboard:pomodoro' %}" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-arrow-right me-1"></i>Pomodoro'ya Git
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İleri Seviye İpuçları -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h4 class="text-primary mb-3">💡 İleri Seviye İpuçları</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-dark">📊 Analizleri Kullanma</h6>
+                            <ul class="text-muted">
+                                <li>Haftalık üretkenlik grafiklerinizi takip edin</li>
+                                <li>Tamamlama oranlarınızı analiz edin</li>
+                                <li>En verimli çalışma saatlerinizi belirleyin</li>
+                                <li>Kategori bazlı performansınızı görün</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-dark">🎖️ Rozet Kazanma</h6>
+                            <ul class="text-muted">
+                                <li>Görev tamamlayarak rozetler kazanın</li>
+                                <li>Günlük hedeflerinize ulaşın</li>
+                                <li>Farklı kategorilerde uzmanlaşın</li>
+                                <li>Başarılarınızı sosyal medyada paylaşın</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <h6 class="text-dark">🔧 Araçlar</h6>
+                            <ul class="text-muted">
+                                <li>Hesap makinesi ile hızlı hesaplamalar</li>
+                                <li>Kronometre ile zaman ölçümü</li>
+                                <li>Zamanlayıcı ile geri sayım</li>
+                                <li>Çalışma notları ile bilgi saklama</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-dark">⚙️ Kişiselleştirme</h6>
+                            <ul class="text-muted">
+                                <li>Profil sayfanızdan ayarlarınızı düzenleyin</li>
+                                <li>Pomodoro sürelerinizi kişiselleştirin</li>
+                                <li>Günlük hedeflerinizi belirleyin</li>
+                                <li>Bildirim tercihlerinizi yapılandırın</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sonraki Adımlar -->
+            <div class="text-center mt-5">
+                <h5>🚀 Sonraki Adımlar</h5>
+                <p class="text-muted mb-4">Hazır mısınız? Aşağıdaki bağlantılardan başlayabilirsiniz:</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'todo:task_list' %}" class="btn btn-primary">
+                        <i class="fas fa-tasks me-2"></i>Görevlere Başla
+                    </a>
+                    <a href="{% url 'dashboard:calendar' %}" class="btn btn-warning">
+                        <i class="fas fa-calendar me-2"></i>Takvimi Planla
+                    </a>
+                    <a href="{% url 'analytics:dashboard' %}" class="btn btn-info">
+                        <i class="fas fa-chart-bar me-2"></i>Analizleri Gör
+                    </a>
+                    <a href="{% url 'user_profile:badge_list' %}" class="btn btn-success">
+                        <i class="fas fa-trophy me-2"></i>Rozetleri Keşfet
+                    </a>
+                </div>
+            </div>
+
+            <!-- Yardım Bölümü -->
+            <div class="alert alert-light border mt-5">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-question-circle fa-2x text-primary me-3"></i>
+                    <div>
+                        <h6 class="mb-1">Yardıma mı ihtiyacınız var?</h6>
+                        <p class="mb-0">Ek sorularınız için diğer kaynaklarımızı ziyaret edin:</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 mt-3 flex-wrap">
+                    <a href="{% url 'dashboard:faq' %}" class="btn btn-outline-primary btn-sm">SSS</a>
+                    <a href="{% url 'dashboard:support' %}" class="btn btn-outline-secondary btn-sm">Destek Merkezi</a>
+                    <a href="{% url 'dashboard:contact' %}" class="btn btn-outline-success btn-sm">İletişim</a>
+                    <a href="{% url 'dashboard:help' %}" class="btn btn-outline-info btn-sm">Yardım</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

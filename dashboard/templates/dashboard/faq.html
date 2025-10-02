@@ -1,0 +1,159 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}SSS - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-comments fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">Sıkça Sorulan Sorular</h1>
+            </div>
+            
+            <div class="accordion" id="faqAccordion">
+                <!-- Soru 1 -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            Ked-O tamamen ücretsiz mi?
+                        </button>
+                    </h2>
+                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Evet! Ked-O tamamen ücretsizdir. Temel özelliklerin tümünü ücretsiz kullanabilirsiniz.
+                            Hiçbir gizli ücret veya premium paket bulunmamaktadır.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Soru 2 -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            Verilerim güvende mi?
+                        </button>
+                    </h2>
+                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Kesinlikle! Verileriniz şifrelenmiş olarak saklanır ve gizliliğiniz bizim için önceliklidir.
+                            Verileriniz asla üçüncü şahıslarla paylaşılmaz. Detaylı bilgi için 
+                            <a href="{% url 'dashboard:privacy' %}">Gizlilik Politikası</a> sayfamızı inceleyebilirsiniz.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Soru 3 -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            Mobil uygulamanız var mı?
+                        </button>
+                    </h2>
+                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Şu an için web uygulaması mevcut. Mobil uygulama geliştirme çalışmalarımız devam ediyor.
+                            Web sitemiz mobil cihazlarda da mükemmel çalışacak şekilde responsive tasarıma sahiptir.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YENİ SORU 4: Görev Yönetimi -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            Görevlerimi nasıl kategorilere ayırabilirim?
+                        </button>
+                    </h2>
+                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Görevlerinizi kategorilere ayırmak için:
+                            <ol>
+                                <li>"Görevler" sayfasına gidin</li>
+                                <li>"Kategoriler" bölümünden yeni kategori oluşturun</li>
+                                <li>Görev oluştururken veya düzenlerken kategori seçin</li>
+                                <li>Kategorilere göre filtreleme yaparak görevlerinizi organize edin</li>
+                            </ol>
+                            Bu sayede benzer görevleri gruplayarak daha verimli çalışabilirsiniz.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YENİ SORU 5: Pomodoro -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                            Pomodoro tekniğini nasıl kullanmalıyım?
+                        </button>
+                    </h2>
+                    <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Pomodoro tekniği için önerilerimiz:
+                            <ul>
+                                <li><strong>25 dakika</strong> odaklanma + <strong>5 dakika</strong> mola döngüsünü takip edin</li>
+                                <li>Her 4 Pomodoro'dan sonra <strong>15-30 dakika</strong> uzun mola verin</li>
+                                <li>Çalışma süresini profil sayfanızdan kişiselleştirebilirsiniz</li>
+                                <li>Mola sırasında ekrandan uzaklaşın ve zihninizi dinlendirin</li>
+                            </ul>
+                            Bu teknik, odaklanmanızı artırır ve verimliliğinizi maksimuma çıkarır.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YENİ SORU 6: Takvim Entegrasyonu -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                            Takvimime nasıl etkinlik eklerim?
+                        </button>
+                    </h2>
+                    <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Takviminize etkinlik eklemek için:
+                            <ol>
+                                <li>"Takvim" sayfasına gidin</li>
+                                <li>Etkinlik eklemek istediğiniz tarihe tıklayın</li>
+                                <li>Açılan formda etkinlik bilgilerini doldurun</li>
+                                <li>Başlangıç ve bitiş saatlerini belirleyin</li>
+                                <li>Renk kodları ile etkinlik türünü belirtebilirsiniz</li>
+                            </ol>
+                            Takviminiz otomatik olarak güncellenecek ve bildirim alacaksınız.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- YENİ SORU 7: Not Alma -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-light text-dark fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                            Notlarımı nasıl daha etkili kullanabilirim?
+                        </button>
+                    </h2>
+                    <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">
+                            Notlarınızı etkili kullanmak için ipuçları:
+                            <ul>
+                                <li><strong>Zengin metin editörü</strong> ile notlarınızı biçimlendirin</li>
+                                <li>Notlarınızı <strong>kategorilere ayırarak</strong> organize edin</li>
+                                <li><strong>Görevlerle ilişkilendirerek</strong> bağlam oluşturun</li>
+                                <li><strong>Sabitleme özelliği</strong> ile önemli notları üstte tutun</li>
+                                <li><strong>Arama fonksiyonu</strong> ile hızlıca notlarınızı bulun</li>
+                            </ul>
+                            Notlarınızı düzenli tutarak bilgiye daha hızlı erişebilirsiniz.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5">
+                <p class="text-muted">Başka sorunuz mu var?</p>
+                <a href="{% url 'dashboard:contact' %}" class="btn btn-primary">
+                    <i class="fas fa-envelope me-2"></i>Bize Ulaşın
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 {% load static %}
-
+{% load cat_utils %}
 {% block title %}Hesap Makinesi - Araçlar{% endblock %}
 
 {% block extra_css %}
@@ -152,8 +152,8 @@
     .calculator-history {
         max-height: 150px;
         overflow-y: auto;
-        background: #000;
-        color: #888;
+        background: #545454;
+        color: #ffffff;
         padding: 10px;
         font-size: 0.9rem;
         border-bottom: 1px solid #333;
@@ -175,6 +175,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
     <div class="col-12 col-lg-8">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">Gelişmiş Hesap Makinesi</h2>

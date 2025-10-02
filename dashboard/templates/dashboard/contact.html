@@ -1,0 +1,60 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}İletişim - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-envelope fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">İletişim</h1>
+            </div>
+            
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <p class="lead text-muted mb-4">Sorularınız, önerileriniz veya geri bildirimleriniz için bize ulaşın. Size en kısa sürede dönüş yapacağız!</p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-envelope text-primary me-3 fa-lg"></i>
+                                <div>
+                                    <h6 class="mb-1">E-posta</h6>
+                                    <p class="text-muted mb-0">kedo.spprt@gmail.com</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-clock text-primary me-3 fa-lg"></i>
+                                <div>
+                                    <h6 class="mb-1">Yanıt Süresi</h6>
+                                    <p class="text-muted mb-0">24-48 saat</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h5 class="text-primary mb-3">Sık Görülen Sorunlar</h5>
+                    <div class="mb-3">
+                        <a href="{% url 'dashboard:faq' %}" class="text-decoration-none">
+                            <i class="fas fa-arrow-right text-primary me-2"></i>SSS sayfamızı ziyaret edin
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <a href="{% url 'dashboard:help' %}" class="text-decoration-none">
+                            <i class="fas fa-arrow-right text-primary me-2"></i>Yardım merkezimize göz atın
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

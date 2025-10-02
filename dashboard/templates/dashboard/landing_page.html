@@ -1,0 +1,767 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}Ked-O - Üretkenlik ve Görev Yönetim Platformu{% endblock %}
+
+{% block content %}
+<!-- Hero Section - Dalgalı Tasarım -->
+<section class="hero-section bg-soft-green text-white py-5" style="position: relative; overflow: hidden;">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <!-- Üst Dalga -->
+    <div class="wave wave-top">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                opacity=".25" class="shape-fill"></path>
+            <path
+                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                opacity=".5" class="shape-fill"></path>
+            <path
+                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+                class="shape-fill"></path>
+        </svg>
+    </div>
+
+    <!-- Hareketli Halkalar - Hero Section -->
+    <div class="floating-circles">
+        <div class="circle circle-1"></div>
+        <div class="circle circle-2"></div>
+        <div class="circle circle-3"></div>
+        <div class="circle circle-4"></div>
+        <div class="circle circle-5"></div>
+        <div class="circle circle-6"></div>
+        <div class="circle circle-7"></div>
+        <div class="circle circle-8"></div>
+    </div>
+
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row align-items-center min-vh-80">
+            <div class="col-lg-6">
+                <div class="kedo-brand mb-4">
+                    <img src="{% static 'images/ked-o.png' %}" alt="Ked-O Logo" class="kedo-logo-img me-3"
+                        style="height: 80px;">
+                    <h1 class="kedo-text display-4 fw-bold">Ked-O</h1>
+                </div>
+                <h2 class="display-5 fw-bold mb-4">Üretkenliğin Sevimli Yol Arkadaşı</h2>
+                <p class="lead mb-4">Ked-O ile görevlerini yönet, notlarını organize et, zamanını verimli kullan. Kedici
+                    dostun gibi sana rehberlik eden bir üretkenlik platformu!</p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{% url 'user_profile:register' %}" class="btn btn-light btn-lg px-4 py-3 fw-bold shadow">
+                        <i class="fas fa-paw me-2"></i>Hemen Başla - Ücretsiz
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-lg px-4 py-3">
+                        <i class="fas fa-play-circle me-2"></i>Özelliklere Göz At
+                    </a>
+                </div>
+                <div class="d-flex align-items-center text-white">
+                    <div class="me-4">
+                        <i class="fas fa-check-circle text-warning me-1"></i>
+                        <span>Tamamen Ücretsiz</span>
+                    </div>
+                    <div class="me-4">
+                        <i class="fas fa-check-circle text-warning me-1"></i>
+                        <span>Kolay Kullanım</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-check-circle text-warning me-1"></i>
+                        <span>Güvenli</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-dashboard-preview mt-5 mt-lg-0">
+                    <div class="mockup-browser border rounded-3 shadow-lg bg-white">
+                        <div class="mockup-browser-toolbar">
+                            <div class="d-flex align-items-center px-3 py-2">
+                                <div class="circles">
+                                    <span class="circle bg-danger"></span>
+                                    <span class="circle bg-warning"></span>
+                                    <span class="circle bg-success"></span>
+                                </div>
+                                <div class="ms-3 text-dark small">Ked-O Dashboard</div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-light rounded-bottom">
+                            <div class="row g-3">
+                                <div class="col-4">
+                                    <div class="bg-primary text-white rounded p-3 text-center">
+                                        <i class="fas fa-tasks mb-2"></i>
+                                        <small>Görevler</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="bg-success text-white rounded p-3 text-center">
+                                        <i class="fas fa-sticky-note mb-2"></i>
+                                        <small>Notlar</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="bg-info text-white rounded p-3 text-center">
+                                        <i class="fas fa-chart-bar mb-2"></i>
+                                        <small>Analiz</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alt Dalga -->
+    <div class="wave wave-bottom">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                opacity=".25" class="shape-fill"></path>
+            <path
+                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                opacity=".5" class="shape-fill"></path>
+            <path
+                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+                class="shape-fill"></path>
+        </svg>
+    </div>
+</section>
+
+<!-- Özellikler Section -->
+<section id="features" class="features-section py-5 bg-light">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-4 fw-bold text-dark mb-3">Neden Ked-O'yu Seçmelisin?</h2>
+                <p class="lead text-muted">Ked-O, üretkenlik ve kişisel organizasyon için ihtiyacınız olan tüm araçları
+                    sevimli bir arayüzde sunar</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Özellik 1 -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card feature-card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div
+                            class="feature-icon bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                            <i class="fas fa-tasks fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title text-dark">Akıllı Görev Yönetimi</h4>
+                        <p class="card-text text-muted">Görevlerini kolayca oluştur, kategorilere ayır ve önceliklerine
+                            göre sırala. Tamamlanan görevlerini kutla!</p>
+                        <ul class="list-unstyled text-start text-muted small">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Öncelik seviyeleri</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Kategori yönetimi</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Zaman takibi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellik 2 -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card feature-card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div
+                            class="feature-icon bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                            <i class="fas fa-sticky-note fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title text-dark">Zengin Not Alma</h4>
+                        <p class="card-text text-muted">TinyMCE editörü ile zengin metin notları oluştur. Fikirlerini,
+                            çalışma notlarını güvenle sakla.</p>
+                        <ul class="list-unstyled text-start text-muted small">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Zengin metin editörü</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Kategori desteği</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Hızlı arama</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellik 3 -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card feature-card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div
+                            class="feature-icon bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                            <i class="fas fa-clock fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title text-dark">Pomodoro Zamanlayıcı</h4>
+                        <p class="card-text text-muted">Odaklanma sürelerini Pomodoro tekniği ile yönet. Verimliliğini
+                            artır, molalarını düzenli al.</p>
+                        <ul class="list-unstyled text-start text-muted small">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>25/5 dakika döngüsü</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Oturum takibi</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Verimlilik analizi</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellik 4 -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card feature-card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div
+                            class="feature-icon bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                            <i class="fas fa-calendar-alt fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title text-dark">Etkileşimli Takvim</h4>
+                        <p class="card-text text-muted">Etkinliklerini ve görevlerini görsel takvimde planla. Tarihleri
+                            kolayca yönet, hiçbir şeyi unutma.</p>
+                        <ul class="list-unstyled text-start text-muted small">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Görsel planlama</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Otomatik hatırlatma</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Hızlı etkinlik ekleme</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellik 5 -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card feature-card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div
+                            class="feature-icon bg-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                            <i class="fas fa-chart-bar fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title text-dark">Detaylı Analizler</h4>
+                        <p class="card-text text-muted">İlerlemeni takip et, istatistiklerini gör. Başarılarını
+                            rozetlerle kutla, motivasyonunu yüksek tut.</p>
+                        <ul class="list-unstyled text-start text-muted small">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>İlerleme grafikleri</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Başarı rozetleri</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Performans metrikleri</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Özellik 6 -->
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card feature-card border-0 shadow-sm h-100 hover-lift">
+                    <div class="card-body text-center p-4">
+                        <div
+                            class="feature-icon bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                            <i class="fas fa-tools fa-2x text-white"></i>
+                        </div>
+                        <h4 class="card-title text-dark">Kullanışlı Araçlar</h4>
+                        <p class="card-text text-muted">Hesap makinesi, kronometre, zamanlayıcı ve daha birçok araç.
+                            Günlük ihtiyaçların için tek platform.</p>
+                        <ul class="list-unstyled text-start text-muted small">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Hesap makinesi</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Kronometre</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Zamanlayıcı</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Nasıl Çalışır? Section -->
+<section id="how-it-works" class="how-it-works py-5 bg-white">
+    <div class="container">
+        <div class="row text-center mb-5">
+        
+            <div class="col-12">
+                <h2 class="display-4 fw-bold text-dark mb-3">4 Adımda Başarı</h2>
+                
+                <p class="lead text-muted">Ked-O'yu kullanmak inanılmaz derecede kolay!</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="text-center">
+                    <div
+                        class="step-number bg-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                        <span class="text-white fw-bold fs-3">1</span>
+                    </div>
+                    <h4 class="text-dark mb-3">Hesap Oluştur</h4>
+                    <p class="text-muted">30 saniyende ücretsiz hesabını oluştur ve Ked-O ailesine katıl.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="text-center">
+                    <div
+                        class="step-number bg-success rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                        <span class="text-white fw-bold fs-3">2</span>
+                    </div>
+                    <h4 class="text-dark mb-3">Görevlerini Ekle</h4>
+                    <p class="text-muted">Yapılacaklar listeni oluştur, önceliklerini belirle ve organize ol.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="text-center">
+                    <div
+                        class="step-number bg-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                        <span class="text-white fw-bold fs-3">3</span>
+                    </div>
+                    <h4 class="text-dark mb-3">Planını Yap</h4>
+                    <p class="text-muted">Takvimini kullanarak etkinliklerini ve görevlerini verimli şekilde planla.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4">
+                <div class="text-center">
+                    <div
+                        class="step-number bg-info rounded-circle d-inline-flex align-items-center justify-content-center mb-4">
+                        <span class="text-white fw-bold fs-3">4</span>
+                    </div>
+                    <h4 class="text-dark mb-3">Başarını Keşfet</h4>
+                    <p class="text-muted">İlerlemeni takip et, başarılarını kutla ve daha verimli ol!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section - Dalgalı Tasarım -->
+<section class="cta-section py-5 bg-gradient-custom text-white" style="position: relative;">
+    <!-- Üst Dalga -->
+    <div class="wave wave-top">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                opacity=".25" class="shape-fill"></path>
+            <path
+                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                opacity=".5" class="shape-fill"></path>
+            <path
+                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+                class="shape-fill"></path>
+        </svg>
+    </div>
+
+    <!-- Hareketli Halkalar - CTA Section -->
+    <div class="floating-circles">
+        <div class="circle circle-9"></div>
+        <div class="circle circle-10"></div>
+        <div class="circle circle-11"></div>
+        <div class="circle circle-12"></div>
+        <div class="circle circle-13"></div>
+        <div class="circle circle-14"></div>
+    </div>
+
+    <div class="container" style="position: relative; z-index: 2;">
+        <div class="row text-center">
+            <div class="col-12">
+                <h2 class="display-4 fw-bold mb-4">Hedeflerine Ked-O ile Ulaş!</h2>
+                <p class="lead mb-4">Binlerce kullanıcı Ked-O ile daha organize ve üretken bir hayata adım attı. Sıra
+                    sende!</p>
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a href="{% url 'user_profile:register' %}" class="btn btn-light btn-lg px-5 py-3 fw-bold shadow">
+                        <i class="fas fa-paw me-2"></i>Ücretsiz Kayıt Ol
+                    </a>
+                    <a href="{% url 'user_profile:login' %}" class="btn btn-outline-light btn-lg px-5 py-3">
+                        <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                    </a>
+                </div>
+                <p class="mt-4 text-white">
+                    Zaten hesabın var mı?
+                    <a href="{% url 'user_profile:login' %}" class="text-warning fw-bold">Hemen giriş yap</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alt Dalga -->
+    <div class="wave wave-bottom">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path
+                d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"
+                opacity=".25" class="shape-fill"></path>
+            <path
+                d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"
+                opacity=".5" class="shape-fill"></path>
+            <path
+                d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z"
+                class="shape-fill"></path>
+        </svg>
+    </div>
+    
+</section>
+
+<style>
+    /* Genel scroll düzenlemeleri */
+    html,
+    body {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+
+    /* Container genişlik ayarı */
+    .container {
+        max-width: 100%;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    /* Dalga Stilleri */
+    .wave {
+        position: absolute;
+        left: 0;
+        width: 100%;
+        overflow: hidden;
+        line-height: 0;
+        z-index: 1;
+    }
+
+    .wave-top {
+        top: 0;
+    }
+
+    .wave-bottom {
+        bottom: 0;
+        transform: rotate(180deg);
+    }
+
+    .wave svg {
+        position: relative;
+        display: block;
+        width: calc(100% + 1.3px);
+        height: 80px;
+    }
+
+    .wave .shape-fill {
+        fill: #FFFFFF;
+    }
+
+    /* Hero Section için dalga ayarları */
+    .hero-section .wave-top svg {
+        height: 60px;
+    }
+
+    .hero-section .wave-bottom svg {
+        height: 80px;
+    }
+
+    /* CTA Section için dalga ayarları */
+    .cta-section .wave-top svg {
+        height: 80px;
+    }
+
+    .cta-section .wave-bottom svg {
+        height: 60px;
+    }
+
+    /* Mavi alanlar için genişlik düzenlemesi */
+    .hero-section,
+    .cta-section {
+        width: 100%;
+        left: 0;
+        right: 0;
+    }
+
+    /* Hareketli Halkalar için Stiller */
+    .floating-circles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .circle {
+        position: absolute;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        animation: float 6s ease-in-out infinite;
+    }
+
+    /* Hero Section için halkalar */
+    .hero-section .circle-1 {
+        width: 80px;
+        height: 80px;
+        top: 10%;
+        left: 5%;
+        animation-delay: 0s;
+    }
+
+    .hero-section .circle-2 {
+        width: 120px;
+        height: 120px;
+        top: 20%;
+        right: 10%;
+        animation-delay: 1s;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .hero-section .circle-3 {
+        width: 60px;
+        height: 60px;
+        top: 60%;
+        left: 15%;
+        animation-delay: 2s;
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .hero-section .circle-4 {
+        width: 100px;
+        height: 100px;
+        top: 30%;
+        right: 20%;
+        animation-delay: 3s;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .hero-section .circle-5 {
+        width: 70px;
+        height: 70px;
+        top: 70%;
+        left: 80%;
+        animation-delay: 4s;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .hero-section .circle-6 {
+        width: 90px;
+        height: 90px;
+        top: 40%;
+        left: 70%;
+        animation-delay: 5s;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .hero-section .circle-7 {
+        width: 110px;
+        height: 110px;
+        top: 80%;
+        right: 15%;
+        animation-delay: 1.5s;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .hero-section .circle-8 {
+        width: 50px;
+        height: 50px;
+        top: 15%;
+        left: 50%;
+        animation-delay: 2.5s;
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* CTA Section için halkalar */
+    .cta-section .circle-9 {
+        width: 80px;
+        height: 80px;
+        top: 20%;
+        left: 10%;
+        animation-delay: 0.5s;
+    }
+
+    .cta-section .circle-10 {
+        width: 120px;
+        height: 120px;
+        top: 60%;
+        right: 15%;
+        animation-delay: 1.5s;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .cta-section .circle-11 {
+        width: 60px;
+        height: 60px;
+        top: 30%;
+        left: 80%;
+        animation-delay: 2.5s;
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .cta-section .circle-12 {
+        width: 100px;
+        height: 100px;
+        top: 70%;
+        left: 20%;
+        animation-delay: 3.5s;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .cta-section .circle-13 {
+        width: 70px;
+        height: 70px;
+        top: 40%;
+        right: 25%;
+        animation-delay: 4.5s;
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    .cta-section .circle-14 {
+        width: 90px;
+        height: 90px;
+        top: 10%;
+        right: 5%;
+        animation-delay: 5.5s;
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0) rotate(0deg);
+        }
+
+        50% {
+            transform: translateY(-20px) rotate(180deg);
+        }
+    }
+
+
+    /* Hero Section Stilleri */
+    .hero-section {
+        background: linear-gradient(135deg, #1e9bff 0%, #00c6ff 100%) !important;
+        position: relative;
+    }
+
+    .bg-gradient-custom {
+        background: linear-gradient(135deg, #1e9bff 0%, #00c6ff 100%) !important;
+    }
+
+    .min-vh-80 {
+        min-height: 80vh;
+    }
+
+    .kedo-brand {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .kedo-logo-img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .kedo-text {
+        background: linear-gradient(45deg, #fff, #f0f8ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        transition: transform 0.3s ease;
+    }
+
+    .step-number {
+        width: 80px;
+        height: 80px;
+        transition: transform 0.3s ease;
+    }
+
+    .hover-lift {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .hover-lift:hover .feature-icon {
+        transform: scale(1.1);
+    }
+
+    .hover-lift:hover .step-number {
+        transform: scale(1.1);
+    }
+
+    .mockup-browser {
+        background: #fff;
+        max-width: 500px;
+        margin: 0 auto;
+    }
+
+    .mockup-browser-toolbar {
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .circles {
+        display: flex;
+        gap: 6px;
+    }
+
+    .circle {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .floating-circles .circle {
+            display: none;
+        }
+
+        .hero-section .circle-1,
+        .hero-section .circle-2,
+        .cta-section .circle-9,
+        .cta-section .circle-10 {
+            display: block;
+            width: 50px;
+            height: 50px;
+        }
+
+        .kedo-brand {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .display-4 {
+            font-size: 2.5rem;
+        }
+
+        .display-5 {
+            font-size: 2rem;
+        }
+
+        .kedo-logo-img {
+            width: 60px;
+        }
+
+        .container {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        /* Mobil için dalga yükseklikleri */
+        .wave svg {
+            height: 40px;
+        }
+
+        .hero-section .wave-top svg {
+            height: 30px;
+        }
+
+        .hero-section .wave-bottom svg {
+            height: 40px;
+        }
+
+        .cta-section .wave-top svg {
+            height: 40px;
+        }
+
+        .cta-section .wave-bottom svg {
+            height: 30px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .container {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .px-4 {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+        }
+    }
+</style>
+{% endblock %}

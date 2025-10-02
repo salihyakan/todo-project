@@ -1,18 +1,18 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% load cat_utils %}
 {% block title %}Pomodoro Zamanlayıcı - Üretkenlik Odaklı Çalışma{% endblock %}
 
 {% block extra_css %}
 <style>
     :root {
-        --primary: #2c3e50;
-        --secondary: #34495e;
+        --primary: #0d6efd;
+        --secondary: #6c757d;
         --accent: #e74c3c;
         --light: #f8f9fa;
-        --dark: #2c3e50;
-        --success: #27ae60;
-        --warning: #f39c12;
+        --dark: #212529;
+        --success: #198754;
+        --warning: #ffc107;
         --gray-50: #f9fafb;
         --gray-100: #f3f4f6;
         --gray-200: #e5e7eb;
@@ -35,13 +35,10 @@
     .pomodoro-container {
         max-width: 800px;
         margin: 2rem auto;
-        background: rgba(255, 255, 255, 0.95);
+        background: white;
         border-radius: 16px;
-        box-shadow: 
-            0 2px 4px rgba(0, 0, 0, 0.05),
-            0 8px 16px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
         overflow: hidden;
-        position: relative;
         border: 1px solid var(--gray-200);
     }
 
@@ -52,12 +49,12 @@
     }
 
     .card-header {
-        background: rgba(255, 255, 255, 0.9);
+        background: #0d6efd !important;
         border-bottom: 1px solid var(--gray-200);
         font-weight: 600;
         font-size: 1.3rem;
         padding: 1.5rem;
-        color: var(--gray-800);
+        color: white !important;
         text-align: center;
     }
 
@@ -104,7 +101,7 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
-    .btn-pomodoro:hover {
+    .btn-pomodoro:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
@@ -113,37 +110,43 @@
         transform: translateY(0);
     }
 
-    #start-pomodoro {
+    .btn-start {
         background: var(--gray-800);
         color: white;
         border-color: var(--gray-800);
     }
 
-    #start-pomodoro:hover {
+    .btn-start:hover:not(:disabled) {
         background: var(--gray-900);
         border-color: var(--gray-900);
     }
 
-    #pause-pomodoro {
+    .btn-pause {
         background: white;
         color: var(--gray-700);
         border-color: var(--gray-300);
     }
 
-    #pause-pomodoro:hover {
+    .btn-pause:hover:not(:disabled) {
         background: var(--gray-50);
         border-color: var(--gray-400);
     }
 
-    #reset-pomodoro {
+    .btn-reset {
         background: white;
         color: var(--gray-700);
         border-color: var(--gray-300);
     }
 
-    #reset-pomodoro:hover {
+    .btn-reset:hover:not(:disabled) {
         background: var(--gray-50);
         border-color: var(--gray-400);
+    }
+
+    .btn-pomodoro:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
     .form-group label {
@@ -370,6 +373,10 @@
         margin-bottom: 1rem;
     }
 
+    .timer-active {
+        color: #e74c3c;
+    }
+
     @media (max-width: 768px) {
         .pomodoro-timer {
             font-size: 3.2rem;
@@ -408,13 +415,31 @@
 
     /* Animation for timer */
     @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.02);
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 
     .timer-pulse {
         animation: pulse 1s ease-in-out;
+    }
+
+    /* Pomodoro sayfası için card-header rengi */
+    .pomodoro-container .card-header {
+        background: var(--gray-800) !important;
+        border-bottom: 1px solid var(--gray-700);
+    }
+
+    .pomodoro-container .card-header:hover {
+        background: var(--gray-900) !important;
     }
 </style>
 {% endblock %}
@@ -427,6 +452,7 @@
 </div>
 
 <div class="container py-4">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
     <div class="pomodoro-container">
         <div class="card">
             <div class="card-header text-center">
@@ -448,7 +474,18 @@
                 <div class="progress-container">
                     <div class="progress-bar" id="progress-bar" style="width: 100%"></div>
                 </div>
-
+                <!-- Kontrol butonları -->
+                <div class="d-flex justify-content-center flex-wrap btn-container">
+                    <button id="start-pomodoro" class="btn btn-pomodoro btn-start">
+                        <i class="fas fa-play me-2"></i> Başlat
+                    </button>
+                    <button id="pause-pomodoro" class="btn btn-pomodoro btn-pause" disabled>
+                        <i class="fas fa-pause me-2"></i> Duraklat
+                    </button>
+                    <button id="reset-pomodoro" class="btn btn-pomodoro btn-reset">
+                        <i class="fas fa-redo me-2"></i> Sıfırla
+                    </button>
+                </div>
                 <!-- Oturum kontrolü -->
                 <div class="session-control">
                     <div class="form-group">
@@ -483,32 +520,24 @@
                 <div class="stats-container">
                     <div class="row">
                         <div class="col-md-4 stat-item">
-                            <div class="stat-number" id="completed-pomodoros">{{ redis_stats.completed|default:"0" }}</div>
+                            <div class="stat-number" id="completed-pomodoros">{{ redis_stats.completed|default:"0" }}
+                            </div>
                             <div class="stat-label">Tamamlanan</div>
                         </div>
                         <div class="col-md-4 stat-item">
-                            <div class="stat-number" id="total-focus-time">{{ redis_stats.focus_time|default:"0" }}dk</div>
+                            <div class="stat-number" id="total-focus-time">{{ redis_stats.focus_time|default:"0" }}dk
+                            </div>
                             <div class="stat-label">Odak Süresi</div>
                         </div>
                         <div class="col-md-4 stat-item">
-                            <div class="stat-number" id="total-break-time">{{ redis_stats.break_time|default:"0" }}dk</div>
+                            <div class="stat-number" id="total-break-time">{{ redis_stats.break_time|default:"0" }}dk
+                            </div>
                             <div class="stat-label">Mola Süresi</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Kontrol butonları -->
-                <div class="d-flex justify-content-center flex-wrap btn-container">
-                    <button id="start-pomodoro" class="btn btn-pomodoro">
-                        <i class="fas fa-play me-2"></i> Başlat
-                    </button>
-                    <button id="pause-pomodoro" class="btn btn-pomodoro">
-                        <i class="fas fa-pause me-2"></i> Duraklat
-                    </button>
-                    <button id="reset-pomodoro" class="btn btn-pomodoro">
-                        <i class="fas fa-redo me-2"></i> Sıfırla
-                    </button>
-                </div>
+
 
                 <!-- Süre ayarları -->
                 <div class="row mt-4">
@@ -539,10 +568,17 @@
                     <div class="collapse show" id="historyCollapse">
                         <div class="history-content" id="pomodoro-history">
                             {% for session in redis_history %}
-                            <div class="history-item {% if session.type == 'work' %}work-item{% else %}break-item{% endif %}">
+                            <div
+                                class="history-item {% if session.type == 'work' %}work-item{% else %}break-item{% endif %}">
                                 <div>
                                     <span class="session-counter">{{ forloop.revcounter }}</span>
-                                    <strong>{% if session.type == 'work' %}Çalışma Oturumu{% else %}Mola{% endif %}</strong>
+                                    <strong>
+                                        {% if session.type == 'work' %}
+                                        Çalışma Oturumu
+                                        {% else %}
+                                        Mola
+                                        {% endif %}
+                                    </strong>
                                 </div>
                                 <span>{{ session.duration }} dakika</span>
                             </div>
@@ -561,7 +597,7 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
+{% block scripts %}
 <script>
     // DOM Elementleri
     const timerDisplay = document.getElementById('timer');
@@ -573,48 +609,16 @@
     const resetBtn = document.getElementById('reset-pomodoro');
     const workDurationInput = document.getElementById('work-duration');
     const breakDurationInput = document.getElementById('break-duration');
-    const pomodoroHistory = document.getElementById('pomodoro-history');
-    const completedPomodoros = document.getElementById('completed-pomodoros');
-    const totalFocusTime = document.getElementById('total-focus-time');
-    const totalBreakTime = document.getElementById('total-break-time');
-    const notification = document.getElementById('notification');
-    const notificationText = document.getElementById('notification-text');
     const sessionCountInput = document.getElementById('session-count');
     const completedSessionsElement = document.getElementById('completed-sessions');
     const remainingSessionsElement = document.getElementById('remaining-sessions');
     const sessionProgressBar = document.getElementById('session-progress-bar');
+    const notification = document.getElementById('notification');
+    const notificationText = document.getElementById('notification-text');
 
-    // Motivasyon mesajları
-    const workMessages = [
-        "Konsantrasyon, başarının anahtarıdır. Şimdi odaklanma zamanı!",
-        "Her dakika değerli, iyi kullan!",
-        "Hedeflerine bir adım daha yaklaşıyorsun.",
-        "Mükemmel iş çıkarıyorsun, devam et!",
-        "Zorluklar seni daha güçlü yapar. Pes etme!"
-    ];
-
-    const breakMessages = [
-        "Mola zamanı! Zihnini dinlendir.",
-        "Gözlerini dinlendirmeyi unutma.",
-        "Kısa bir mola, daha iyi odaklanmana yardımcı olur.",
-        "Ayağa kalk ve biraz hareket et.",
-        "Derin bir nefes al ve rahatla."
-    ];
-
-    // Değişkenler
-    let workTime = 25 * 60;
-    let breakTime = 5 * 60;
-    let timeLeft = workTime;
     let timerInterval = null;
-    let isRunning = false;
-    let isWorkPhase = true;
-    let completedSessions = 0;
-    let totalSessions = 4;
-    let currentSession = 1;
-    let totalFocusMinutes = parseInt('{{ redis_stats.focus_time|default:"0" }}');
-    let totalBreakMinutes = parseInt('{{ redis_stats.break_time|default:"0" }}');
 
-    // CSRF token
+    // CSRF token fonksiyonu
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -645,9 +649,7 @@
         })
         .then(response => response.json())
         .then(data => {
-            if(data.status === 'success') {
-                console.log('Pomodoro oturumu kaydedildi');
-            }
+            console.log('Pomodoro oturumu kaydedildi:', data);
         })
         .catch(error => {
             console.error('Oturum kaydedilemedi:', error);
@@ -662,7 +664,7 @@
     }
 
     // İlerleme çubuğunu güncelle
-    function updateProgressBar() {
+    function updateProgressBar(timeLeft, isWorkPhase, workTime, breakTime) {
         const totalTime = isWorkPhase ? workTime : breakTime;
         const percentage = (timeLeft / totalTime) * 100;
         progressBar.style.width = `${percentage}%`;
@@ -670,7 +672,7 @@
     }
 
     // Oturum ilerlemesini güncelle
-    function updateSessionProgress() {
+    function updateSessionProgress(completedSessions, totalSessions) {
         const progress = (completedSessions / totalSessions) * 100;
         sessionProgressBar.style.width = `${progress}%`;
         completedSessionsElement.textContent = completedSessions;
@@ -681,33 +683,56 @@
     function showNotification(text) {
         notificationText.textContent = text;
         notification.classList.add('show');
-
         setTimeout(() => {
             notification.classList.remove('show');
         }, 3000);
     }
 
     // Motivasyon mesajını güncelle
-    function updateMotivationMessage() {
+    function updateMotivationMessage(isWorkPhase) {
+        const workMessages = [
+            "Konsantrasyon, başarının anahtarıdır. Şimdi odaklanma zamanı!",
+            "Her dakika değerli, iyi kullan!",
+            "Hedeflerine bir adım daha yaklaşıyorsun.",
+            "Mükemmel iş çıkarıyorsun, devam et!",
+            "Zorluklar seni daha güçlü yapar. Pes etme!"
+        ];
+
+        const breakMessages = [
+            "Mola zamanı! Zihnini dinlendir.",
+            "Gözlerini dinlendirmeyi unutma.",
+            "Kısa bir mola, daha iyi odaklanmana yardımcı olur.",
+            "Ayağa kalk ve biraz hareket et.",
+            "Derin bir nefes al ve rahatla."
+        ];
+
         const messages = isWorkPhase ? workMessages : breakMessages;
         const randomIndex = Math.floor(Math.random() * messages.length);
         motivationMessage.textContent = `"${messages[randomIndex]}"`;
     }
 
     // Faz göstergesini güncelle
-    function updatePhaseDisplay() {
+    function updatePhaseDisplay(isWorkPhase, currentSession, totalSessions) {
         if (isWorkPhase) {
             phaseDisplay.innerHTML = `Çalışma Zamanı (Oturum ${currentSession}/${totalSessions}) <span class="phase-indicator work-phase">Çalışma</span>`;
+            timerDisplay.classList.remove('timer-active');
         } else {
             phaseDisplay.innerHTML = `Mola Zamanı (Oturum ${currentSession}/${totalSessions}) <span class="phase-indicator break-phase">Mola</span>`;
+            timerDisplay.classList.add('timer-active');
         }
     }
 
-    // İstatistikleri güncelle
-    function updateStats() {
-        completedPomodoros.textContent = completedSessions;
-        totalFocusTime.textContent = totalFocusMinutes + 'dk';
-        totalBreakTime.textContent = totalBreakMinutes + 'dk';
+    // Buton durumlarını güncelle
+    function updateButtonStates(isRunning) {
+        if (isRunning) {
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            resetBtn.disabled = true;
+        } else {
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            resetBtn.disabled = false;
+        }
     }
 
     // Timer animasyonu
@@ -718,126 +743,276 @@
         }, 1000);
     }
 
-    // Zamanlayıcıyı başlat
-    function startTimer() {
-        if (isRunning) return;
+    // State'i kaydet
+    function saveState(state) {
+        const stateToSave = {
+            ...state,
+            savedAt: Date.now()
+        };
+        localStorage.setItem('pomodoroTimerState', JSON.stringify(stateToSave));
+        
+        // Storage event'ini tetikle (diğer tablar için)
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: 'pomodoroTimerState',
+            newValue: JSON.stringify(stateToSave)
+        }));
+    }
 
-        isRunning = true;
-        startBtn.disabled = true;
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            timerDisplay.textContent = formatTime(timeLeft);
-            updateProgressBar();
-            animateTimer();
+    // State'i al
+    function getCurrentState() {
+        const savedState = localStorage.getItem('pomodoroTimerState');
+        return savedState ? JSON.parse(savedState) : null;
+    }
 
-            if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                startBtn.disabled = false;
+    // UI'ı güncelle
+    function updateUI(state) {
+        if (!state) return;
+        
+        timerDisplay.textContent = formatTime(state.timeLeft);
+        updatePhaseDisplay(state.isWorkPhase, state.currentSession, state.totalSessions);
+        updateProgressBar(state.timeLeft, state.isWorkPhase, state.workTime, state.breakTime);
+        updateSessionProgress(state.completedSessions, state.totalSessions);
+        updateButtonStates(state.isRunning);
+        updateMotivationMessage(state.isWorkPhase);
+    }
 
-                if (isWorkPhase) {
-                    showNotification(`✓ Oturum ${currentSession} tamamlandı! Mola zamanı.`);
-                    totalFocusMinutes += parseInt(workDurationInput.value);
-                    savePomodoroSession('work', parseInt(workDurationInput.value));
-                    isWorkPhase = false;
-                    timeLeft = breakTime;
+    // Sayfa yüklendiğinde timer durumunu yükle
+    function loadTimerState() {
+        const savedState = localStorage.getItem('pomodoroTimerState');
+        if (savedState) {
+            const stateData = JSON.parse(savedState);
+            
+            // Eğer timer çalışıyorsa, geçen süreyi hesapla
+            if (stateData.isRunning) {
+                const timeElapsed = Math.floor((Date.now() - stateData.savedAt) / 1000);
+                stateData.timeLeft = Math.max(0, stateData.timeLeft - timeElapsed);
+                
+                // Eğer süre dolmuşsa faz değiştir
+                if (stateData.timeLeft <= 0) {
+                    handleTimerComplete(stateData);
                 } else {
-                    showNotification(`✓ Mola bitti! Yeni çalışma oturumu başlıyor.`);
-                    totalBreakMinutes += parseInt(breakDurationInput.value);
-                    savePomodoroSession('break', parseInt(breakDurationInput.value));
-                    isWorkPhase = true;
-                    timeLeft = workTime;
-                    completedSessions++;
-                    currentSession++;
+                    // Timer'ı yeniden başlat
+                    startLocalTimer(stateData);
+                }
+            }
+            
+            updateUI(stateData);
+        } else {
+            // İlk yükleme için default state oluştur
+            const defaultState = {
+                workTime: parseInt(workDurationInput.value) * 60,
+                breakTime: parseInt(breakDurationInput.value) * 60,
+                timeLeft: parseInt(workDurationInput.value) * 60,
+                isRunning: false,
+                isWorkPhase: true,
+                completedSessions: 0,
+                totalSessions: parseInt(sessionCountInput.value),
+                currentSession: 1,
+                savedAt: Date.now()
+            };
+            saveState(defaultState);
+            updateUI(defaultState);
+        }
+    }
 
-                    if (completedSessions >= totalSessions) {
-                        showNotification('🎉 Tüm oturumlar tamamlandı! Tebrikler!');
-                        isRunning = false;
-                        updateSessionProgress();
-                        updateStats();
-                        return;
+    // Yerel timer'ı başlat
+    function startLocalTimer(state) {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        
+        timerInterval = setInterval(() => {
+            const currentState = getCurrentState();
+            if (currentState && currentState.isRunning) {
+                currentState.timeLeft--;
+                
+                if (currentState.timeLeft <= 0) {
+                    handleTimerComplete(currentState);
+                } else {
+                    saveState(currentState);
+                    updateUI(currentState);
+                    
+                    if (currentState.timeLeft % 10 === 0) {
+                        animateTimer();
                     }
                 }
-
-                updatePhaseDisplay();
-                updateMotivationMessage();
-                updateStats();
-                updateSessionProgress();
-                startTimer();
+            } else {
+                clearInterval(timerInterval);
+                timerInterval = null;
             }
         }, 1000);
     }
 
+    // Zamanlayıcıyı başlat
+    function startTimer() {
+        const currentState = getCurrentState();
+        if (!currentState) return;
+        
+        if (currentState.isRunning) return;
+
+        currentState.isRunning = true;
+        currentState.savedAt = Date.now();
+        saveState(currentState);
+        updateUI(currentState);
+        startLocalTimer(currentState);
+    }
+
     // Zamanlayıcıyı duraklat
     function pauseTimer() {
-        clearInterval(timerInterval);
-        isRunning = false;
-        startBtn.disabled = false;
+        const currentState = getCurrentState();
+        if (!currentState) return;
+        
+        if (!currentState.isRunning) return;
+
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
+        currentState.isRunning = false;
+        saveState(currentState);
+        updateUI(currentState);
         showNotification('⏸️ Zamanlayıcı duraklatıldı');
     }
 
     // Zamanlayıcıyı sıfırla
     function resetTimer() {
-        clearInterval(timerInterval);
-        isRunning = false;
-        startBtn.disabled = false;
-        isWorkPhase = true;
-        workTime = parseInt(workDurationInput.value) * 60;
-        breakTime = parseInt(breakDurationInput.value) * 60;
-        timeLeft = workTime;
-        timerDisplay.textContent = formatTime(timeLeft);
-        completedSessions = 0;
-        currentSession = 1;
-        updatePhaseDisplay();
-        updateProgressBar();
-        updateMotivationMessage();
-        updateSessionProgress();
-        updateStats();
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
+        const resetState = {
+            workTime: parseInt(workDurationInput.value) * 60,
+            breakTime: parseInt(breakDurationInput.value) * 60,
+            timeLeft: parseInt(workDurationInput.value) * 60,
+            isRunning: false,
+            isWorkPhase: true,
+            completedSessions: 0,
+            totalSessions: parseInt(sessionCountInput.value),
+            currentSession: 1,
+            savedAt: Date.now()
+        };
+        
+        saveState(resetState);
+        updateUI(resetState);
         showNotification('🔄 Zamanlayıcı sıfırlandı');
     }
 
-    // Event listeners
-    workDurationInput.addEventListener('change', function() {
-        if (!isRunning) {
-            workTime = parseInt(this.value) * 60;
-            if (isWorkPhase) {
-                timeLeft = workTime;
-                timerDisplay.textContent = formatTime(timeLeft);
-                updateProgressBar();
+    // Timer tamamlandığında
+    function handleTimerComplete(stateData) {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+        
+        stateData.isRunning = false;
+
+        if (stateData.isWorkPhase) {
+            // Çalışma oturumu tamamlandı
+            showNotification(`✓ Oturum ${stateData.currentSession} tamamlandı! Mola zamanı.`);
+            savePomodoroSession('work', parseInt(workDurationInput.value));
+            stateData.isWorkPhase = false;
+            stateData.timeLeft = stateData.breakTime;
+        } else {
+            // Mola tamamlandı
+            showNotification(`✓ Mola bitti! Yeni çalışma oturumu başlıyor.`);
+            savePomodoroSession('break', parseInt(breakDurationInput.value));
+            stateData.isWorkPhase = true;
+            stateData.timeLeft = stateData.workTime;
+            stateData.completedSessions++;
+            stateData.currentSession++;
+
+            if (stateData.completedSessions >= stateData.totalSessions) {
+                showNotification('🎉 Tüm oturumlar tamamlandı! Tebrikler!');
+                stateData.completedSessions = 0;
+                stateData.currentSession = 1;
             }
         }
-    });
 
-    breakDurationInput.addEventListener('change', function() {
-        if (!isRunning) {
-            breakTime = parseInt(this.value) * 60;
-            if (!isWorkPhase) {
-                timeLeft = breakTime;
-                timerDisplay.textContent = formatTime(timeLeft);
-                updateProgressBar();
+        saveState(stateData);
+        updateUI(stateData);
+        
+        // Otomatik olarak bir sonraki fazı başlat
+        setTimeout(() => {
+            stateData.isRunning = true;
+            stateData.savedAt = Date.now();
+            saveState(stateData);
+            startLocalTimer(stateData);
+        }, 2000);
+    }
+
+    // Input değişikliklerini dinle
+    function setupEventListeners() {
+        workDurationInput.addEventListener('change', function() {
+            const currentState = getCurrentState();
+            if (!currentState) return;
+            
+            if (!currentState.isRunning) {
+                currentState.workTime = parseInt(this.value) * 60;
+                if (currentState.isWorkPhase) {
+                    currentState.timeLeft = currentState.workTime;
+                }
+                saveState(currentState);
+                updateUI(currentState);
             }
-        }
-    });
+        });
 
-    sessionCountInput.addEventListener('change', function() {
-        totalSessions = parseInt(this.value);
-        totalSessions = Math.max(1, Math.min(20, totalSessions));
+        breakDurationInput.addEventListener('change', function() {
+            const currentState = getCurrentState();
+            if (!currentState) return;
+            
+            if (!currentState.isRunning) {
+                currentState.breakTime = parseInt(this.value) * 60;
+                if (!currentState.isWorkPhase) {
+                    currentState.timeLeft = currentState.breakTime;
+                }
+                saveState(currentState);
+                updateUI(currentState);
+            }
+        });
+
+        sessionCountInput.addEventListener('change', function() {
+            const currentState = getCurrentState();
+            if (!currentState) return;
+            
+            currentState.totalSessions = parseInt(this.value);
+            currentState.totalSessions = Math.max(1, Math.min(20, currentState.totalSessions));
+            
+            if (currentState.currentSession > currentState.totalSessions) {
+                currentState.currentSession = currentState.totalSessions;
+            }
+            if (currentState.completedSessions > currentState.totalSessions) {
+                currentState.completedSessions = currentState.totalSessions;
+            }
+            
+            saveState(currentState);
+            updateUI(currentState);
+        });
+
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+
+        // Storage değişikliklerini dinle (mini pomodoro'dan gelen değişiklikler için)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'pomodoroTimerState') {
+                loadTimerState();
+            }
+        });
+    }
+
+    // Global fonksiyonlar - mini pomodoro'dan erişilebilir olacak
+    window.startTimer = startTimer;
+    window.pauseTimer = pauseTimer;
+    window.resetTimer = resetTimer;
+
+    // Sayfa yüklendiğinde çalıştır
+    document.addEventListener('DOMContentLoaded', function() {
+        setupEventListeners();
+        loadTimerState();
         
-        if (currentSession > totalSessions) currentSession = totalSessions;
-        if (completedSessions > totalSessions) completedSessions = totalSessions;
-        
-        updatePhaseDisplay();
-        updateSessionProgress();
+        console.log('Pomodoro timer başarıyla yüklendi');
     });
-
-    startBtn.addEventListener('click', startTimer);
-    pauseBtn.addEventListener('click', pauseTimer);
-    resetBtn.addEventListener('click', resetTimer);
-
-    // Başlangıçta güncellemeler
-    updateProgressBar();
-    updateMotivationMessage();
-    updatePhaseDisplay();
-    updateSessionProgress();
-    updateStats();
 </script>
 {% endblock %}

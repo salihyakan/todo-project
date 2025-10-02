@@ -1,0 +1,44 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}Yardım - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-question-circle fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">Yardım Merkezi</h1>
+            </div>
+            
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h3 class="text-primary mb-4">Ked-O Kullanım Kılavuzu</h3>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-dark">📝 Görev Yönetimi</h5>
+                        <p class="text-muted">Görevlerinizi oluşturun, düzenleyin ve takip edin. Öncelik seviyeleri ile işlerinizi organize edin.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-dark">📅 Takvim Entegrasyonu</h5>
+                        <p class="text-muted">Etkinliklerinizi takvime ekleyin, tekrarlayan görevler oluşturun.</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-dark">⏰ Pomodoro Tekniği</h5>
+                        <p class="text-muted">25 dakika çalışma, 5 dakika mola döngüsü ile verimliliğinizi artırın.</p>
+                    </div>
+                    
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>İpucu:</strong> Daha fazla yardım için <a href="{% url 'dashboard:support' %}" class="alert-link">Destek</a> sayfamızı ziyaret edin.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

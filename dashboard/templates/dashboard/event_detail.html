@@ -1,9 +1,11 @@
 {% extends "core/base.html" %}
+{% load cat_utils %}
 {% block title %}Etkinlik Detayı{% endblock %}
 {% block content %}
 <div class="container my-4">
-    <a href="{% url 'dashboard:calendar' %}" class="btn btn-outline-success mb-3">
-        <i class="bi bi-arrow-left"></i> Takvime Dön
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <a href="{% url 'dashboard:calendar' %}" class="btn btn-outline-success mb-3">  <!-- DÜZELTİLDİ: dashboard: eklendi -->
+        <i class="fas fa-arrow-left me-2"></i> Takvime Dön
     </a>
     <div class="card shadow-sm border-0">
         <div class="card-body">
@@ -14,13 +16,13 @@
             <hr>
             <p class="mb-3 text-secondary fs-5">{{ event.description|default:"Açıklama yok." }}</p>
             <div class="mb-3">
-                <i class="bi bi-calendar-event text-success me-2"></i>
+                <i class="fas fa-calendar-start text-success me-2"></i>
                 <strong>Başlangıç:</strong>
                 {{ event.start_date|date:"d M Y H:i" }}
             </div>
             {% if event.end_date %}
             <div class="mb-3">
-                <i class="bi bi-calendar-event text-danger me-2"></i>
+                <i class="fas fa-calendar-times text-danger me-2"></i>
                 <strong>Bitiş:</strong>
                 {{ event.end_date|date:"d M Y H:i" }}
             </div>
@@ -29,7 +31,7 @@
             <!-- Hatırlatıcı bilgisi -->
             {% if event.reminder %}
             <div class="mb-3">
-                <i class="bi bi-alarm text-primary me-2"></i>
+                <i class="fas fa-bell text-primary me-2"></i>
                 <strong>Hatırlatıcı:</strong>
                 {{ event.get_reminder_display }} ({{ event.reminder_time|date:"d M Y H:i" }})
                 {% if event.reminder_sent %}
@@ -43,7 +45,7 @@
             <!-- İlgili görev/not bağlantısı -->
             {% if event.related_task %}
             <div class="mb-3">
-                <i class="bi bi-list-task text-info me-2"></i>
+                <i class="fas fa-tasks text-info me-2"></i>
                 <strong>İlgili Görev:</strong>
                 <a href="{% url 'todo:task_detail' event.related_task.id %}">
                     {{ event.related_task.title }}
@@ -53,7 +55,7 @@
             
             {% if event.related_note %}
             <div class="mb-3">
-                <i class="bi bi-sticky text-warning me-2"></i>
+                <i class="fas fa-sticky-note text-warning me-2"></i>
                 <strong>İlgili Not:</strong>
                 <a href="{% url 'notes:note_detail' event.related_note.id %}">
                     {{ event.related_note.title }}

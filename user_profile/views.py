@@ -13,6 +13,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import get_object_or_404
 from django.db.models import Count, Q
+from .utils import check_user_badges
 
 
 def user_login(request):
@@ -324,10 +325,6 @@ def notifications_view(request):
         created_at__gte=timezone.now()-timedelta(days=30)
     ).order_by('-created_at')
     
-    # Debug için konsola yazdır
-    print(f"Okunmamış bildirim sayısı: {unread_notifications.count()}")
-    print(f"Tüm bildirim sayısı: {all_notifications.count()}")
-    
     # Mark badge notifications as seen when page is loaded
     UserBadge.objects.filter(
         user_profile=request.user.profile,
@@ -415,3 +412,12 @@ def update_pomodoro(request):
         except (ValueError, TypeError):
             pass
     return JsonResponse({'success': False}, status=400)
+
+@login_required
+def force_badge_check(request):
+    """Rozet kontrolünü manuel tetikleme (test için)"""
+    profile = request.user.profile
+    check_user_badges(profile)
+    
+    messages.success(request, 'Rozet kontrolleri güncellendi!')
+    return redirect('user_profile:badge_list')

@@ -1,0 +1,53 @@
+{% extends "core/base.html" %}
+{% load static %}
+{% load cat_utils %}
+{% block title %}Destek - Ked-O{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-headset fa-2x text-primary me-3"></i>
+                <h1 class="display-5 fw-bold text-dark">Destek Merkezi</h1>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100 text-center">
+                        <div class="card-body p-4">
+                            <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Kullanım Kılavuzu</h5>
+                            <p class="card-text text-muted">Detaylı kullanım rehberimizi inceleyin</p>
+                            <a href="{% url 'dashboard:guide' %}" class="btn btn-outline-primary">İncele</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100 text-center">
+                        <div class="card-body p-4">
+                            <i class="fas fa-comments fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">SSS</h5>
+                            <p class="card-text text-muted">Sıkça sorulan sorular ve cevapları</p>
+                            <a href="{% url 'dashboard:faq' %}" class="btn btn-outline-success">Görüntüle</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-body p-4">
+                    <h4 class="text-primary mb-3">Hızlı Çözümler</h4>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Şifremi unuttum: Giriş sayfasındaki "Şifremi Unuttum" bağlantısını kullanın</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Görev ekleme: Görevler sayfasından "+ Yeni Görev" butonuna tıklayın</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Takvim entegrasyonu: Takvim sayfasından etkinlik ve hatırlatıcı ekleyebilirsiniz</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

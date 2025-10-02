@@ -1,153 +1,215 @@
 {% extends "core/base.html" %}
 {% load static %}
-
+{% load cat_utils %}
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    .note-detail-card {
-        border-radius: 10px;
-        overflow: hidden;
+    .note-detail-container {
         max-width: 900px;
         margin: 0 auto;
     }
     .note-header {
+        background: #6c757d !important; /* Gri arka plan */
         border-radius: 10px 10px 0 0;
         border: none;
+        padding: 25px;
+        color: white !important;
     }
-    .note-priority {
-        font-size: 0.9rem;
-        padding: 4px 10px;
-        border-radius: 20px;
+    
+    /* Başlık alanındaki tüm yazılar beyaz */
+    .note-header,
+    .note-header * {
+        color: white !important;
+    }
+    
+    .note-header h1,
+    .note-header .badge,
+    .note-header .text-end * {
+        color: white !important;
+    }
+
+    .note-content-card {
+        border-radius: 0 0 10px 10px;
+        border: 1px solid #dee2e6;
+        border-top: none;
     }
     .note-content {
-        line-height: 1.8;
+        line-height: 1.7;
         font-size: 1.05rem;
-        padding: 20px;
+        color: #333;
+        padding: 30px;
+        background: #fff;
     }
     .note-meta {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 20px;
+        background-color: #f8f9fa !important; /* Gri arkaplan */
+        border-top: 1px solid #dee2e6;
+        padding: 20px 30px;
     }
-    .note-actions .btn {
-        min-width: 100px;
+    .meta-item {
+        margin-bottom: 15px;
+    }
+    .meta-item:last-child {
+        margin-bottom: 0;
+    }
+    .note-actions {
+        background: #fff;
+        border-top: 1px solid #dee2e6;
+        padding: 20px 30px;
+        border-radius: 0 0 10px 10px;
     }
     .back-btn {
         transition: all 0.3s;
     }
     .back-btn:hover {
         transform: translateX(-3px);
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
     }
     .task-link {
         text-decoration: none;
         transition: all 0.3s;
     }
     .task-link:hover {
-        transform: translateY(-2px);
+        transform: translateY(-1px);
+    }
+    .priority-badge {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white !important;
+    }
+    
+    /* Kategori badge'i - kategori rengi kullanılacak */
+    .category-badge {
+        background: var(--category-color, #6c757d) !important; /* Dinamik kategori rengi */
+        color: white !important;
+        border: none;
+    }
+    
+    /* Başlık alanındaki badge'ler için */
+    .note-header .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+    }
+    
+    .note-header .badge.bg-info {
+        background-color: #0dcaf0 !important;
+        color: #000 !important;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="card shadow-sm border-0 note-detail-card">
-        <!-- Not Başlık Alanı - Öncelik rengine göre -->
-        <div class="card-header note-header text-white" style="background-color: {{ note.priority_color }};">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <div>
-                    <h1 class="h3 mb-2">{{ note.title }}</h1>
-                    <div class="d-flex flex-wrap gap-2 align-items-center">
-                        {% if note.category %}
-                        <span class="badge bg-white text-dark bg-opacity-75">
-                            <i class="fas fa-folder me-1"></i>{{ note.category.name }}
+    {% cat_image 'kedo-18.png' 'fixed-br' '80px' 'float' %}
+    <div class="note-detail-container">
+        <div class="card shadow-sm border-0">
+            <!-- Not Başlık Alanı - Gri renk -->
+            <div class="card-header note-header text-white">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div class="flex-grow-1">
+                        <h1 class="h3 mb-3 fw-bold">{{ note.title }}</h1>
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            {% if note.category %}
+                            <span class="badge category-badge">
+                                <i class="fas fa-folder me-1"></i>{{ note.category.name }}
+                            </span>
+                            {% endif %}
+                            {% if note.task %}
+                            <a href="{% url 'todo:task_detail' note.task.pk %}" class="task-link">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-tasks me-1"></i> {{ note.task.title|truncatechars:30 }}
+                                </span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column gap-2 text-end">
+                        {% if note.is_pinned %}
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-thumbtack me-1"></i>Sabitlenmiş
                         </span>
                         {% endif %}
-                        {% if note.task %}
-                        <a href="{% url 'todo:task_detail' note.task.pk %}" class="task-link">
-                            <span class="badge bg-info">
-                                <i class="fas fa-tasks me-1"></i> {{ note.task.title|truncatechars:30 }}
-                            </span>
+                        <span class="badge priority-badge">
+                            {{ note.get_priority_display }} Öncelik
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Not İçeriği -->
+            <div class="note-content-card">
+                <div class="note-content">
+                    <div class="content-text">
+                        {{ note.content|linebreaks }}
+                    </div>
+                </div>
+                
+                <!-- Not Meta Bilgileri -->
+                <div class="note-meta">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="meta-item">
+                                <p class="mb-1 text-muted small">
+                                    <i class="far fa-calendar-plus me-2"></i><strong>Oluşturulma:</strong>
+                                </p>
+                                <p class="mb-0">{{ note.created_at|date:"d M Y H:i" }}</p>
+                            </div>
+                            
+                            <div class="meta-item">
+                                <p class="mb-1 text-muted small">
+                                    <i class="fas fa-sync me-2"></i><strong>Son Güncelleme:</strong>
+                                </p>
+                                <p class="mb-0">{{ note.updated_at|date:"d M Y H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if note.related_date %}
+                            <div class="meta-item">
+                                <p class="mb-1 text-muted small">
+                                    <i class="far fa-calendar-check me-2"></i><strong>İlişkili Tarih:</strong>
+                                </p>
+                                <p class="mb-0">{{ note.related_date|date:"d M Y H:i" }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if note.task %}
+                            <div class="meta-item">
+                                <p class="mb-1 text-muted small">
+                                    <i class="fas fa-tasks me-2"></i><strong>İlişkili Görev:</strong>
+                                </p>
+                                <p class="mb-1">
+                                    <a href="{% url 'todo:task_detail' note.task.pk %}" class="text-decoration-none text-primary fw-medium">
+                                        {{ note.task.title }}
+                                    </a>
+                                </p>
+                                <small class="text-muted">
+                                    Durum: 
+                                    <span class="badge bg-{% if note.task.completed %}success{% else %}warning{% endif %}">
+                                        {% if note.task.completed %}Tamamlandı{% else %}Devam Ediyor{% endif %}
+                                    </span>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Not Aksiyon Butonları -->
+                <div class="note-actions">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <a href="{% url 'notes:note_list' %}" class="btn btn-outline-secondary back-btn">
+                            <i class="fas fa-arrow-left me-1"></i> Listeye Dön
                         </a>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="mt-2 mt-md-0">
-                    {% if note.is_pinned %}
-                    <span class="badge bg-warning bg-opacity-25 text-dark me-2">
-                        <i class="fas fa-thumbtack me-1"></i>Sabitlenmiş
-                    </span>
-                    {% endif %}
-                    <span class="note-priority bg-white bg-opacity-25">
-                        {{ note.get_priority_display }} Öncelik
-                    </span>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Not İçeriği -->
-        <div class="note-content">
-            <div class="mb-4">
-                {{ note.content|linebreaks }}
-            </div>
-        </div>
-        
-        <!-- Not Meta Bilgileri -->
-        <div class="note-meta">
-            <div class="row">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <div class="mb-3">
-                        <p class="mb-1"><strong><i class="far fa-calendar-plus me-2"></i>Oluşturulma Tarihi:</strong></p>
-                        <p class="text-muted">{{ note.created_at|date:"d M Y H:i" }}</p>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <p class="mb-1"><strong><i class="fas fa-sync me-2"></i>Son Güncelleme:</strong></p>
-                        <p class="text-muted">{{ note.updated_at|date:"d M Y H:i" }}</p>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    {% if note.related_date %}
-                    <div class="mb-3">
-                        <p class="mb-1"><strong><i class="far fa-calendar-check me-2"></i>İlişkili Tarih:</strong></p>
-                        <p class="text-muted">{{ note.related_date|date:"d M Y H:i" }}</p>
-                    </div>
-                    {% endif %}
-                    
-                    {% if note.task %}
-                    <div class="mb-3">
-                        <p class="mb-1"><strong><i class="fas fa-tasks me-2"></i>İlişkili Görev:</strong></p>
-                        <p class="text-muted">
-                            <a href="{% url 'todo:task_detail' note.task.pk %}" class="text-decoration-none text-info">
-                                <i class="fas fa-external-link-alt me-1"></i>{{ note.task.title }}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'notes:note_update' note.pk %}" class="btn btn-warning">
+                                <i class="fas fa-edit me-1"></i> Düzenle
                             </a>
-                        </p>
-                        <small class="text-muted">
-                            Durum: 
-                            <span class="badge bg-{% if note.task.completed %}success{% else %}warning{% endif %}">
-                                {% if note.task.completed %}Tamamlandı{% else %}Devam Ediyor{% endif %}
-                            </span>
-                        </small>
+                            <a href="{% url 'notes:note_delete' note.pk %}" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i> Sil
+                            </a>
+                        </div>
                     </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Not Aksiyon Butonları -->
-        <div class="card-footer bg-white py-3">
-            <div class="d-flex justify-content-between align-items-center flex-wrap">
-                <a href="{% url 'notes:note_list' %}" class="btn btn-outline-secondary back-btn">
-                    <i class="fas fa-arrow-left me-1"></i> Listeye Dön
-                </a>
-                <div class="mt-2 mt-md-0 note-actions">
-                    <a href="{% url 'notes:note_update' note.pk %}" class="btn btn-warning">
-                        <i class="fas fa-edit me-1"></i> Düzenle
-                    </a>
-                    <a href="{% url 'notes:note_delete' note.pk %}" class="btn btn-danger ms-2">
-                        <i class="fas fa-trash me-1"></i> Sil
-                    </a>
                 </div>
             </div>
         </div>

@@ -1,0 +1,15 @@
+/* main.css - Tüm CSS dosyalarını burada birleştiriyoruz */
+
+/* 1. styles.css içeriği */
+@import url('styles.css');
+
+/* 2. custom.css içeriği */
+@import url('custom.css');
+
+/* 3. cats.css içeriği */
+@import url('cats.css');
+
+/* 4. calendar.css içeriği */
+@import url('calendar.css');
+
+/* 5. Ek stiller buraya eklenebilir */

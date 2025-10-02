@@ -1,0 +1,124 @@
+/* KEDİ SİSTEMİ STİLLERİ - TAM KONTROL */
+
+/* FIXED POSITION - Sayfaya sabit kediler */
+.cat-fixed {
+    position: fixed !important;
+    z-index: 9999 !important;
+    pointer-events: none !important;
+}
+
+/* RELATIVE POSITION - Container içi kediler */
+.cat-relative {
+    position: absolute !important;
+    z-index: 10 !important;
+    pointer-events: none !important;
+}
+
+/* INLINE POSITION - Satır içi kediler */
+.cat-inline {
+    position: relative !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    pointer-events: none !important;
+}
+
+/* TEMEL KEDİ RESMİ */
+.cat-image {
+    display: block !important;
+    height: auto !important;
+    transition: all 0.3s ease !important;
+}
+
+/* BOYUT SİSTEMİ - CSS Class ile */
+.cat-size-xs { width: 40px !important; }
+.cat-size-sm { width: 60px !important; }
+.cat-size-md { width: 80px !important; }
+.cat-size-lg { width: 120px !important; }
+.cat-size-xl { width: 160px !important; }
+.cat-size-xxl { width: 200px !important; }
+
+/* FIXED KONUMLANDIRMA - Sayfa genelinde */
+.cat-fixed-top-left { top: 100px !important; left: 20px !important; }
+.cat-fixed-top-right { top: 100px !important; right: 20px !important; }
+.cat-fixed-top-center { top: 100px !important; left: 50% !important; transform: translateX(-50%) !important; }
+
+.cat-fixed-middle-left { top: 50% !important; left: 20px !important; transform: translateY(-50%) !important; }
+.cat-fixed-middle-right { top: 50% !important; right: 20px !important; transform: translateY(-50%) !important; }
+.cat-fixed-middle-center { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; }
+
+.cat-fixed-bottom-left { bottom: 20px !important; left: 20px !important; }
+.cat-fixed-bottom-right { bottom: 20px !important; right: 20px !important; }
+.cat-fixed-bottom-center { bottom: 20px !important; left: 50% !important; transform: translateX(-50%) !important; }
+
+/* RELATIVE KONUMLANDIRMA - Container içinde */
+.cat-relative-top-left { top: 10px !important; left: 10px !important; }
+.cat-relative-top-right { top: 10px !important; right: 10px !important; }
+.cat-relative-top-center { top: 10px !important; left: 50% !important; transform: translateX(-50%) !important; }
+
+.cat-relative-middle-left { top: 50% !important; left: 10px !important; transform: translateY(-50%) !important; }
+.cat-relative-middle-right { top: 50% !important; right: 10px !important; transform: translateY(-50%) !important; }
+.cat-relative-middle-center { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%) !important; }
+
+.cat-relative-bottom-left { bottom: 10px !important; left: 10px !important; }
+.cat-relative-bottom-right { bottom: 10px !important; right: 10px !important; }
+.cat-relative-bottom-center { bottom: 10px !important; left: 50% !important; transform: translateX(-50%) !important; }
+
+/* INLINE KONUMLANDIRMA - Satır içi hizalama */
+.cat-inline-before { margin-right: 8px !important; }
+.cat-inline-after { margin-left: 8px !important; }
+.cat-inline-top { vertical-align: top !important; margin: 0 5px !important; }
+.cat-inline-middle { vertical-align: middle !important; margin: 0 5px !important; }
+.cat-inline-bottom { vertical-align: bottom !important; margin: 0 5px !important; }
+
+/* EFEKTLER */
+.cat-float { animation: cat-float 3s ease-in-out infinite !important; }
+.cat-bounce { animation: cat-bounce 2s ease-in-out infinite !important; }
+.cat-pulse { animation: cat-pulse 2s ease-in-out infinite !important; }
+.cat-rotate { animation: cat-rotate 4s linear infinite !important; }
+.cat-shake { animation: cat-shake 0.5s ease-in-out infinite !important; }
+
+/* Animasyonlar */
+@keyframes cat-float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes cat-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+@keyframes cat-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes cat-rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes cat-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+
+/* HOVER EFEKTLERİ */
+.cat-hover-scale:hover { transform: scale(1.1) !important; }
+.cat-hover-lift:hover { transform: translateY(-5px) !important; }
+.cat-hover-rotate:hover { transform: rotate(10deg) !important; }
+
+/* ÖZEL DURUMLAR */
+.cat-clickable { pointer-events: auto !important; cursor: pointer !important; }
+.cat-hidden { display: none !important; }
+.cat-visible { display: block !important; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .cat-fixed { display: none !important; }
+    .cat-mobile-visible { display: block !important; }
+    .cat-responsive { width: 50px !important; }
+}
+
+/* KEDİ SİSTEMİ STİLLERİ END */

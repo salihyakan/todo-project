@@ -65,7 +65,17 @@ class TaskForm(forms.ModelForm):
             self.fields['category'].queryset = Category.objects.filter(user=self.user)
             
             if not self.instance.pk:
-                self.fields['due_date'].initial = timezone.now().strftime('%Y-%m-%dT%H:%M')
+                # SADECE BU SATIRI DEĞİŞTİRİYORUZ - Yerel saat için
+                now_local = timezone.localtime(timezone.now())
+                self.fields['due_date'].initial = now_local.strftime('%Y-%m-%dT%H:%M')
+    
+    def clean_due_date(self):
+        # YENİ METOT EKLİYORUZ - Timezone düzeltmesi için
+        due_date = self.cleaned_data.get('due_date')
+        if due_date and timezone.is_naive(due_date):
+            # Naive datetime'ı timezone-aware yap
+            due_date = timezone.make_aware(due_date, timezone.get_current_timezone())
+        return due_date
     
     def clean(self):
         cleaned_data = super().clean()
