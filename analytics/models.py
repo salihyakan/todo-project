@@ -16,6 +16,8 @@ class UserAnalytics(models.Model):
         verbose_name_plural = "User Analytics"
         indexes = [
             models.Index(fields=['user', 'last_updated']),
+            models.Index(fields=['productivity_score']),  # Yeni index
+            models.Index(fields=['last_updated']),  # Yeni index
         ]
     
     def __str__(self):

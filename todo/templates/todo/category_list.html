@@ -23,7 +23,7 @@
         <div class="col">
             <div class="card h-100 shadow-sm border-0">
                 <div class="card-header" style="background-color: {{ category.color }};">
-                    <h5 class="card-title text-white mb-0">{{ category.name }}</h5>
+                    <h5 class="card-title text-light mb-0">{{ category.name }}</h5>
                 </div>
                 <div class="card-body">
                     <p class="card-text">Bu kategorideki görev sayısı: {{ category.tasks.count }}</p>
@@ -62,4 +62,14 @@
     </div>
     {% endif %}
 </div>
+{% block extra_css %}
+<style>
+/* Kategori başlıkları için özel gri ton */
+.card-header .text-light {
+    color: #6c757d !important; /* Açık gri ton */
+    font-weight: 500;
+}
+</style>
+{% endblock %}
+
 {% endblock %}

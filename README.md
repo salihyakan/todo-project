@@ -6,6 +6,7 @@ TODO
 │  ├─ apps.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
+│  │  ├─ 0002_useranalytics_analytics_u_product_77ede4_idx_and_more.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ static
@@ -36,6 +37,7 @@ TODO
 │  │  ├─ 0001_initial.py
 │  │  ├─ 0002_pomodorosession.py
 │  │  ├─ 0003_alter_pomodorosession_options_and_more.py
+│  │  ├─ 0004_alter_calendarevent_options_and_more.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ templates
@@ -62,6 +64,7 @@ TODO
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ deploy.py
 ├─ manage.py
 ├─ notes
 │  ├─ admin.py
@@ -69,6 +72,7 @@ TODO
 │  ├─ forms.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
+│  │  ├─ 0002_category_notes_categ_user_id_f7e623_idx_and_more.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ templates
@@ -85,13 +89,19 @@ TODO
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
+├─ pytest.ini
+├─ quick_fix.bat
 ├─ README.md
 ├─ requirements.txt
+├─ run_fixed_tests.py
+├─ run_production.bat
+├─ run_tests.bat
 ├─ static
 │  ├─ css
 │  │  ├─ calendar.css
 │  │  ├─ cats.css
 │  │  ├─ custom.css
+│  │  ├─ main.css
 │  │  └─ styles.css
 │  ├─ images
 │  │  ├─ ked-o.png
@@ -133,6 +143,7 @@ TODO
 │     ├─ footer.html
 │     ├─ navbar.html
 │     └─ sidebar.html
+├─ test_factories.py
 ├─ todo
 │  ├─ admin.py
 │  ├─ apps.py
@@ -142,6 +153,8 @@ TODO
 │  │     └─ seed_todo.py
 │  ├─ migrations
 │  │  ├─ 0001_initial.py
+│  │  ├─ 0002_category_todo_catego_user_id_fb6e6b_idx_and_more.py
+│  │  ├─ 0003_alter_task_due_date.py
 │  │  └─ __init__.py
 │  ├─ models.py
 │  ├─ templates
@@ -181,44 +194,46 @@ TODO
 │  ├─ urls.py
 │  ├─ views.py
 │  └─ __init__.py
-└─ user_profile
-   ├─ admin.py
-   ├─ apps.py
-   ├─ backends.py
-   ├─ context_processors.py
-   ├─ forms.py
-   ├─ management
-   │  └─ commands
-   │     └─ check_all_badges.py
-   ├─ migrations
-   │  ├─ 0001_initial.py
-   │  ├─ 0002_alter_badge_options_alter_badgetype_options_and_more.py
-   │  └─ __init__.py
-   ├─ models.py
-   ├─ signals.py
-   ├─ templates
-   │  └─ user_profile
-   │     ├─ badge_detail.html
-   │     ├─ badge_list.html
-   │     ├─ login.html
-   │     ├─ notifications.html
-   │     ├─ password_change.html
-   │     ├─ password_change_done.html
-   │     ├─ password_reset.html
-   │     ├─ password_reset_complete.html
-   │     ├─ password_reset_confirm.html
-   │     ├─ password_reset_done.html
-   │     ├─ password_reset_email.html
-   │     ├─ password_reset_subject.txt
-   │     ├─ profile.html
-   │     ├─ profile_edit.html
-   │     └─ register.html
-   ├─ templatetags
-   │  └─ badge_utils.py
-   ├─ tests.py
-   ├─ urls.py
-   ├─ utils.py
-   ├─ views.py
-   └─ __init__.py
+├─ user_profile
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ backends.py
+│  ├─ context_processors.py
+│  ├─ forms.py
+│  ├─ management
+│  │  └─ commands
+│  │     └─ check_all_badges.py
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  ├─ 0002_alter_badge_options_alter_badgetype_options_and_more.py
+│  │  ├─ 0003_badge_user_profil_name_e40297_idx_and_more.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ signals.py
+│  ├─ templates
+│  │  └─ user_profile
+│  │     ├─ badge_detail.html
+│  │     ├─ badge_list.html
+│  │     ├─ login.html
+│  │     ├─ notifications.html
+│  │     ├─ password_change.html
+│  │     ├─ password_change_done.html
+│  │     ├─ password_reset.html
+│  │     ├─ password_reset_complete.html
+│  │     ├─ password_reset_confirm.html
+│  │     ├─ password_reset_done.html
+│  │     ├─ password_reset_email.html
+│  │     ├─ password_reset_subject.txt
+│  │     ├─ profile.html
+│  │     ├─ profile_edit.html
+│  │     └─ register.html
+│  ├─ templatetags
+│  │  └─ badge_utils.py
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ utils.py
+│  ├─ views.py
+│  └─ __init__.py
+└─ waitress.conf.py
 
 ```

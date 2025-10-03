@@ -18,6 +18,10 @@ class Category(models.Model):
         verbose_name_plural = 'Kategoriler'
         ordering = ['name']
         unique_together = ['user', 'name']
+        indexes = [
+            models.Index(fields=['user', 'name']),
+            models.Index(fields=['slug']),
+        ]
 
     def __str__(self):
         return self.name
@@ -47,7 +51,7 @@ class Task(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tasks')
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    due_date = models.DateTimeField()
+    due_date = models.DateTimeField(null=True, blank=True)  # NULL olabilir
     priority = models.CharField(max_length=1, choices=PRIORITY_CHOICES, default='M')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -64,6 +68,18 @@ class Task(models.Model):
     class Meta:
         ordering = ['-due_date']
         verbose_name_plural = 'Görevler'
+        indexes = [
+            models.Index(fields=['user', 'due_date']),
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['user', 'priority']),
+            models.Index(fields=['user', 'category']),
+            models.Index(fields=['due_date']),
+            models.Index(fields=['status']),
+            models.Index(fields=['priority']),
+            models.Index(fields=['completed_at']),
+            models.Index(fields=['user', 'status', 'due_date']),
+            models.Index(fields=['user', 'priority', 'due_date']),
+        ]
 
     def __str__(self):
         return self.title
@@ -72,8 +88,8 @@ class Task(models.Model):
         return reverse('todo:task_detail', args=[str(self.id)])
 
     def save(self, *args, **kwargs):
-        # Süresi geçmiş görevleri kontrol et
-        if self.due_date < timezone.now() and self.status not in ['completed', 'overdue']:
+        # CRITICAL DÜZELTME: due_date None kontrolü
+        if self.due_date and self.due_date < timezone.now() and self.status not in ['completed', 'overdue']:
             self.status = 'overdue'
         
         # Tamamlama tarihi kontrolü
@@ -90,11 +106,14 @@ class Task(models.Model):
 
     @property
     def is_overdue(self):
-        return self.due_date < timezone.now() and not self.is_completed
+        return self.due_date and self.due_date < timezone.now() and not self.is_completed
 
     @property
     def time_remaining(self):
         """Kalan süreyi hesapla"""
+        if not self.due_date:
+            return "Süre belirtilmemiş"
+            
         now = timezone.now()
         if self.due_date > now:
             delta = self.due_date - now
@@ -110,6 +129,9 @@ class Task(models.Model):
     @property
     def is_almost_due(self):
         """24 saat içinde bitecek mi?"""
+        if not self.due_date:
+            return False
+            
         now = timezone.now()
         return (self.due_date - now).total_seconds() < 86400 and not self.is_completed and not self.is_overdue
 

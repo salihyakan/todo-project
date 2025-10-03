@@ -10,6 +10,14 @@ class Category(models.Model):
     color = models.CharField(max_length=7, default='#6f42c1', verbose_name="Renk Kodu")
     slug = models.SlugField(max_length=100, unique=True, blank=True)
     
+    class Meta:
+        unique_together = ['user', 'name']
+        verbose_name_plural = "Kategoriler"
+        indexes = [
+            models.Index(fields=['user', 'name']),  # Yeni index
+            models.Index(fields=['slug']),  # Yeni index
+        ]
+
     def __str__(self):
         return self.name
     
@@ -23,10 +31,6 @@ class Category(models.Model):
                 counter += 1
             self.slug = slug
         super().save(*args, **kwargs)
-    
-    class Meta:
-        unique_together = ['user', 'name']
-        verbose_name_plural = "Kategoriler"
 
 class Note(models.Model):
     PRIORITY_CHOICES = [
@@ -49,6 +53,20 @@ class Note(models.Model):
     task = models.ForeignKey('todo.Task', on_delete=models.CASCADE, null=True, blank=True, 
                            verbose_name="İlişkili Görev", related_name='notes')
     
+    class Meta:
+        ordering = ['-is_pinned', '-updated_at']
+        verbose_name = 'Not'
+        verbose_name_plural = 'Notlar'
+        indexes = [
+            models.Index(fields=['user', 'created_at']),  # Yeni index
+            models.Index(fields=['user', 'updated_at']),  # Yeni index
+            models.Index(fields=['is_pinned']),  # Yeni index
+            models.Index(fields=['priority']),  # Yeni index
+            models.Index(fields=['user', 'category']),  # Yeni index
+            models.Index(fields=['user', 'task']),  # Yeni index
+            models.Index(fields=['user', 'is_pinned', 'updated_at']),  # Composite index
+        ]
+
     def __str__(self):
         return self.title
     
@@ -61,8 +79,3 @@ class Note(models.Model):
             'L': '#0dcaf0',  # Mavi
         }
         return colors.get(self.priority, '#6f42c1')
-    
-    class Meta:
-        ordering = ['-is_pinned', '-updated_at']
-        verbose_name = 'Not'
-        verbose_name_plural = 'Notlar'

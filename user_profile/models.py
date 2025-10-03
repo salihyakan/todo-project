@@ -54,6 +54,13 @@ class Profile(models.Model):
     total_pomodoro_minutes = models.PositiveIntegerField(default=0, verbose_name="Toplam Pomodoro Süresi (dakika)")
     last_pomodoro_date = models.DateField(null=True, blank=True, verbose_name="Son Pomodoro Tarihi")
     
+    class Meta:
+        indexes = [
+            models.Index(fields=['user']),  # OneToOneField için index
+            models.Index(fields=['slug']),  # Slug için index
+            models.Index(fields=['login_streak']),  # Giriş serisi için index
+        ]
+    
     def __str__(self):
         return f"{self.user.username} Profili"
     
@@ -113,12 +120,15 @@ class BadgeType(models.Model):
         default='fas fa-medal'
     )
     
-    def __str__(self):
-        return self.name
-    
     class Meta:
+        indexes = [
+            models.Index(fields=['name']),  # İsim ile arama için index
+        ]
         verbose_name = 'Rozet Tipi'
         verbose_name_plural = 'Rozet Tipleri'
+    
+    def __str__(self):
+        return self.name
 
 class Badge(models.Model):
     name = models.CharField(max_length=100, verbose_name="Rozet Adı")
@@ -142,6 +152,16 @@ class Badge(models.Model):
         default='#6c757d',
         validators=[RegexValidator(regex='^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$')]
     )
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['name']),  # İsim ile arama için index
+            models.Index(fields=['slug']),  # Slug ile arama için index
+            models.Index(fields=['badge_type']),  # Badge type ile filtreleme için index
+            models.Index(fields=['is_secret']),  # Gizli rozetler için index
+        ]
+        verbose_name = 'Rozet'
+        verbose_name_plural = 'Rozetler'
     
     def __str__(self):
         return self.name
@@ -185,10 +205,6 @@ class Badge(models.Model):
             criteria_list.append(f"{display_key}: {value}")
         
         return criteria_list
-    
-    class Meta:
-        verbose_name = 'Rozet'
-        verbose_name_plural = 'Rozetler'
 
 class UserBadge(models.Model):
     user_profile = models.ForeignKey(
@@ -207,6 +223,12 @@ class UserBadge(models.Model):
     class Meta:
         unique_together = ('user_profile', 'badge')
         ordering = ['-awarded_at']
+        indexes = [
+            models.Index(fields=['user_profile', 'awarded_at']),  # Kullanıcı ve tarih için composite index
+            models.Index(fields=['awarded_at']),  # Tarih sıralama için index
+            models.Index(fields=['is_seen']),  # Görülmemiş rozetler için index
+            models.Index(fields=['user_profile', 'is_seen']),  # Kullanıcıya özel görülmemiş rozetler için index
+        ]
         verbose_name = 'Kullanıcı Rozeti'
         verbose_name_plural = 'Kullanıcı Rozetleri'
     
@@ -234,13 +256,20 @@ class Notification(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     url = models.URLField(null=True, blank=True)
 
-    def __str__(self):
-        return f"{self.get_notification_type_display()} - {self.user.username}"
-    
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'created_at']),  # Kullanıcı ve tarih için composite index
+            models.Index(fields=['user', 'is_read']),  # Okunmamış bildirimler için index
+            models.Index(fields=['created_at']),  # Tarih sıralama için index
+            models.Index(fields=['is_read']),  # Okunma durumu için index
+            models.Index(fields=['notification_type']),  # Bildirim tipi için index
+        ]
         verbose_name = 'Bildirim'
         verbose_name_plural = 'Bildirimler'
+
+    def __str__(self):
+        return f"{self.get_notification_type_display()} - {self.user.username}"
 
 
 def create_badge_types():

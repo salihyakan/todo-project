@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from todo.models import Task
 from user_profile.models import Profile
-from .models import DashboardStats, CalendarEvent, PomodoroSession
+from .models import DashboardStats, CalendarEvent, PomodoroSession  # DÜZELTİLDİ: tools yerine dashboard
 from datetime import timedelta
 import json
 import pytz
@@ -16,6 +16,7 @@ from .forms import CalendarEventForm
 import random
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView
+from dashboard.models import PomodoroSession  # DÜZELTME: tools yerine dashboard
 
 # Motivasyon sözleri listesi (15 adet)
 MOTIVATION_QUOTES = [
@@ -118,24 +119,32 @@ def get_random_success_quotes(count=3):
     return random.sample(SUCCESS_QUOTES, min(count, len(SUCCESS_QUOTES)))
 
 def get_pomodoro_stats(user_id):
-    """Basit pomodoro istatistikleri - Redis yerine veritabanı kullan"""
+    """Basit pomodoro istatistikleri - Optimize edilmiş"""
     try:
-        from .models import PomodoroSession
+        # DÜZELTME: tools yerine dashboard - import kaldırıldı
         user_sessions = PomodoroSession.objects.filter(user_id=user_id, completed=True)
         
         total_sessions = user_sessions.count()
-        total_focus_time = sum(session.duration for session in user_sessions if session.session_type == 'work')
-        total_break_time = sum(session.duration for session in user_sessions if session.session_type == 'break')
+        
+        # Aggregate kullanarak toplam süreleri hesapla
+        from django.db.models import Sum
+        focus_time = user_sessions.filter(session_type='work').aggregate(
+            total=Sum('duration')
+        )['total'] or 0
+        
+        break_time = user_sessions.filter(session_type='break').aggregate(
+            total=Sum('duration')
+        )['total'] or 0
         
         # Günlük ortalama (son 7 gün)
         week_ago = timezone.now() - timedelta(days=7)
-        recent_sessions = user_sessions.filter(created_at__gte=week_ago)
-        daily_average = recent_sessions.count() / 7 if recent_sessions.exists() else 0
+        recent_count = user_sessions.filter(created_at__gte=week_ago).count()
+        daily_average = recent_count / 7 if recent_count > 0 else 0
         
         return {
             'total_sessions': total_sessions,
-            'total_focus_time': total_focus_time,
-            'total_break_time': total_break_time,
+            'total_focus_time': focus_time,
+            'total_break_time': break_time,
             'daily_average': round(daily_average, 1)
         }
     except Exception as e:
@@ -148,13 +157,14 @@ def get_pomodoro_stats(user_id):
         }
 
 def get_recent_sessions(user_id, limit=10):
-    """Son pomodoro oturumları"""
+    """Son pomodoro oturumları - Optimize edilmiş"""
     try:
-        from .models import PomodoroSession
+        # DÜZELTME: tools yerine dashboard
+        # Sadece gerekli alanları seçerek optimizasyon
         sessions = PomodoroSession.objects.filter(
             user_id=user_id, 
             completed=True
-        ).order_by('-created_at')[:limit]
+        ).only('session_type', 'duration', 'created_at').order_by('-created_at')[:limit]
         
         session_list = []
         for session in sessions:
@@ -172,7 +182,7 @@ def get_recent_sessions(user_id, limit=10):
 def store_pomodoro_session(user_id, session_type, duration):
     """Pomodoro oturumunu veritabanına kaydet"""
     try:
-        from .models import PomodoroSession
+        # DÜZELTME: tools yerine dashboard
         from django.contrib.auth import get_user_model
         
         User = get_user_model()
@@ -201,7 +211,8 @@ def get_event_color(event_type):
 @login_required
 def home(request):
     try:
-        stats, created = DashboardStats.objects.get_or_create(user=request.user)
+        # select_related ile optimizasyon
+        stats, created = DashboardStats.objects.select_related('user').get_or_create(user=request.user)
         stats.update_stats()
         stats.refresh_from_db()
         print(f"Home stats: tasks={stats.tasks_completed}, notes={stats.notes_created}, streak={stats.current_streak}")
@@ -214,13 +225,14 @@ def home(request):
             'current_streak': 0
         })()
 
-    # GERÇEK ZAMANLI VERİLERİ HESAPLA
+    # GERÇEK ZAMANLI VERİLERİ HESAPLA - Optimize edilmiş sorgular
     from todo.models import Task
     from notes.models import Note
     
+    # Tek sorguda count alarak optimizasyon
     total_tasks = Task.objects.filter(user=request.user).count()
     completed_tasks = Task.objects.filter(user=request.user, status='completed').count()
-    pending_tasks = Task.objects.filter(user=request.user).exclude(status='completed').count()
+    pending_tasks = total_tasks - completed_tasks
     
     today = timezone.now().date()
     overdue_tasks = Task.objects.filter(
@@ -235,16 +247,19 @@ def home(request):
     if total_tasks > 0:
         completion_rate = int((completed_tasks / total_tasks) * 100)
     
+    # Bugünün görevleri - select_related ile optimizasyon
     todays_tasks = Task.objects.filter(
         user=request.user,
         due_date__date=today,
         status__in=['todo', 'in_progress']
-    ).order_by('priority', 'due_date')[:5]
+    ).select_related('category').order_by('priority', 'due_date')[:5]
     
-    recent_notes = Note.objects.filter(user=request.user).order_by('-created_at')[:5]
+    # Son notlar - select_related ile optimizasyon
+    recent_notes = Note.objects.filter(user=request.user).select_related('category', 'task').order_by('-created_at')[:5]
     
     try:
-        profile = Profile.objects.get(user=request.user)
+        # select_related ile optimizasyon
+        profile = Profile.objects.select_related('user').get(user=request.user)
     except Profile.DoesNotExist:
         profile = type('obj', (object,), {
             'daily_goal': 0,
@@ -274,52 +289,16 @@ def home(request):
 @login_required
 def pomodoro_view(request):
     try:
-        profile = Profile.objects.get(user=request.user)
+        # select_related ile optimizasyon
+        profile = Profile.objects.select_related('user').get(user=request.user)
     except Profile.DoesNotExist:
         profile = Profile.objects.create(user=request.user)
     
-    # Basit istatistikler - Redis olmadan
-    stats = {
-        'completed': 0,
-        'focus_time': 0,
-        'break_time': 0,
-        'daily_average': 0
-    }
+    # Basit istatistikler - Optimize edilmiş
+    stats = get_pomodoro_stats(request.user.id)
     
-    # PomodoroSession modeli varsa istatistikleri al
-    try:
-        from .models import PomodoroSession
-        user_sessions = PomodoroSession.objects.filter(user=request.user, completed=True)
-        
-        if user_sessions.exists():
-            stats['completed'] = user_sessions.count()
-            stats['focus_time'] = sum(s.duration for s in user_sessions.filter(session_type='work'))
-            stats['break_time'] = sum(s.duration for s in user_sessions.filter(session_type='break'))
-            
-            # Son 7 günlük ortalama
-            week_ago = timezone.now() - timedelta(days=7)
-            recent_count = user_sessions.filter(created_at__gte=week_ago).count()
-            stats['daily_average'] = round(recent_count / 7, 1)
-    except Exception as e:
-        print(f"Pomodoro stats error: {e}")
-
-    # Son oturumlar
-    history = []
-    try:
-        from .models import PomodoroSession
-        recent_sessions = PomodoroSession.objects.filter(
-            user=request.user, 
-            completed=True
-        ).order_by('-created_at')[:10]
-        
-        for session in recent_sessions:
-            history.append({
-                'type': session.session_type,
-                'duration': session.duration,
-                'created_at': session.created_at.strftime('%d.%m.%Y %H:%M')
-            })
-    except Exception as e:
-        print(f"Pomodoro history error: {e}")
+    # Son oturumlar - Optimize edilmiş
+    history = get_recent_sessions(request.user.id, 10)
 
     return render(request, 'dashboard/pomodoro.html', {
         'pomodoro_duration': profile.pomodoro_duration,
@@ -335,11 +314,12 @@ def calendar_view(request):
     start_date = timezone.now() - timedelta(days=30)
     end_date = timezone.now() + timedelta(days=365)
     
+    # select_related ile optimizasyon
     events = CalendarEvent.objects.filter(
         user=request.user,
         start_date__gte=start_date,
         start_date__lte=end_date
-    )
+    ).select_related('related_note', 'related_task')
     
     events_data = []
     for event in events:
@@ -433,11 +413,12 @@ def get_calendar_events(request):
         start_date = timezone.now() - timedelta(days=30)
         end_date = timezone.now() + timedelta(days=365)
 
+    # select_related ile optimizasyon
     events = CalendarEvent.objects.filter(
         user=request.user,
         start_date__gte=start_date,
         start_date__lte=end_date
-    )
+    ).select_related('related_note', 'related_task')
 
     events_data = []
     for event in events:
@@ -485,12 +466,12 @@ def day_detail_view(request, year, month, day):
     start_datetime = timezone.make_aware(timezone.datetime.combine(date_obj, timezone.datetime.min.time()))
     end_datetime = timezone.make_aware(timezone.datetime.combine(date_obj, timezone.datetime.max.time()))
 
-    # Kullanıcının o güne ait etkinliklerini getir
+    # Kullanıcının o güne ait etkinliklerini getir - select_related ile optimizasyon
     events = CalendarEvent.objects.filter(
         user=request.user,
         start_date__gte=start_datetime,
         start_date__lte=end_datetime
-    ).order_by('start_date')
+    ).select_related('related_note', 'related_task').order_by('start_date')
 
     context = {
         'date': date_obj,
@@ -500,7 +481,12 @@ def day_detail_view(request, year, month, day):
 
 @login_required
 def event_detail_view(request, event_id):
-    event = get_object_or_404(CalendarEvent, id=event_id, user=request.user)
+    # select_related ile optimizasyon
+    event = get_object_or_404(
+        CalendarEvent.objects.select_related('related_note', 'related_task'), 
+        id=event_id, 
+        user=request.user
+    )
     return render(request, 'dashboard/event_detail.html', {'event': event})
 
 @csrf_exempt
@@ -522,7 +508,12 @@ def save_pomodoro_session(request):
 
 @login_required
 def event_detail_json(request, event_id):
-    event = get_object_or_404(CalendarEvent, id=event_id, user=request.user)
+    # select_related ile optimizasyon
+    event = get_object_or_404(
+        CalendarEvent.objects.select_related('related_note', 'related_task'), 
+        id=event_id, 
+        user=request.user
+    )
     return JsonResponse({
         'id': event.id,
         'title': event.title,

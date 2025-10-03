@@ -26,6 +26,7 @@ class StudyNoteListView(LoginRequiredMixin, ListView):
     context_object_name = 'notes'
     
     def get_queryset(self):
+        # Sadece kullanıcıya ait notları getir
         return StudyNote.objects.filter(user=self.request.user)
 
 class StudyNoteCreateView(LoginRequiredMixin, CreateView):
@@ -45,6 +46,7 @@ class StudyNoteUpdateView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('tools:study_notes_list')
     
     def get_queryset(self):
+        # Sadece kullanıcıya ait notları güncelleme izni ver
         return StudyNote.objects.filter(user=self.request.user)
 
 class StudyNoteDeleteView(LoginRequiredMixin, DeleteView):
@@ -53,6 +55,7 @@ class StudyNoteDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('tools:study_notes_list')
     
     def get_queryset(self):
+        # Sadece kullanıcıya ait notları silme izni ver
         return StudyNote.objects.filter(user=self.request.user)
     
 class StudyNoteDetailView(LoginRequiredMixin, DetailView):
@@ -61,4 +64,5 @@ class StudyNoteDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'note'
     
     def get_queryset(self):
+        # Sadece kullanıcıya ait notları görüntüleme izni ver
         return StudyNote.objects.filter(user=self.request.user)

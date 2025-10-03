@@ -20,8 +20,8 @@ def task_list(request):
     sort = request.GET.get('sort', '-due_date')
     due_date = request.GET.get('due_date', '')
     
-    # Temel sorgu - süresi geçmiş görevleri varsayılan olarak gösterme
-    tasks = Task.objects.filter(user=request.user)
+    # Temel sorgu - select_related ile optimizasyon
+    tasks = Task.objects.filter(user=request.user).select_related('category')
     
     # Özel durum filtreleri (hızlı filtre butonları)
     quick_filter = request.GET.get('filter', '')
@@ -31,7 +31,7 @@ def task_list(request):
         elif quick_filter == 'completed':
             tasks = tasks.filter(status='completed')
         elif quick_filter == 'overdue':
-            tasks = Task.objects.filter(user=request.user, status='overdue')
+            tasks = Task.objects.filter(user=request.user, status='overdue').select_related('category')
         elif quick_filter == 'today':
             today = timezone.now().date()
             tasks = tasks.filter(due_date__date=today)
@@ -50,7 +50,7 @@ def task_list(request):
         )
     if due_date:
         try:
-            filter_date = datetime.datetime.strptime(due_date, '%Y-%m-%d').date()
+            filter_date = datetime.strptime(due_date, '%Y-%m-%d').date()
             tasks = tasks.filter(due_date__date=filter_date)
         except ValueError:
             pass
@@ -63,10 +63,14 @@ def task_list(request):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
+    # Kategorileri getir - optimizasyon: sadece gerekli alanlar
+    categories = Category.objects.filter(user=request.user).only('id', 'name', 'color')
+    
     context = {
         'page_obj': page_obj,
         'status_choices': Task.STATUS_CHOICES,
         'priority_choices': Task.PRIORITY_CHOICES,
+        'categories': categories,
         'current_category': category_id,
         'current_status': status,
         'current_priority': priority,
@@ -91,7 +95,10 @@ def task_create(request):
             messages.success(request, 'Görev başarıyla oluşturuldu!')
             return redirect('todo:task_list')
         else:
-            messages.error(request, 'Lütfen formdaki hataları düzeltin.')
+            # Form hatalarını göster
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         initial = {}
         category_id = request.GET.get('category')
@@ -108,7 +115,8 @@ def task_create(request):
 
 @login_required
 def task_update(request, pk):
-    task = get_object_or_404(Task, pk=pk, user=request.user)
+    # select_related ile optimizasyon
+    task = get_object_or_404(Task.objects.select_related('category'), pk=pk, user=request.user)
     
     if request.method == 'POST':
         form = TaskForm(request.POST, instance=task, user=request.user)
@@ -122,7 +130,10 @@ def task_update(request, pk):
             messages.success(request, 'Görev başarıyla güncellendi!')
             return redirect('todo:task_detail', pk=task.pk)
         else:
-            messages.error(request, 'Lütfen formdaki hataları düzeltin.')
+            # Form hatalarını göster
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = TaskForm(instance=task, user=request.user)
     
@@ -130,11 +141,17 @@ def task_update(request, pk):
 
 @login_required
 def task_detail(request, pk):
-    task = get_object_or_404(Task, pk=pk, user=request.user)
+    # select_related ve prefetch_related ile optimizasyon
+    task = get_object_or_404(
+        Task.objects.select_related('category')
+                     .prefetch_related('notes'),
+        pk=pk, 
+        user=request.user
+    )
     
     # Notes app'inden task ile ilişkili notları al
     from notes.models import Note
-    notes = Note.objects.filter(task=task, user=request.user).order_by('-is_pinned', '-updated_at')[:3]  # Son 3 not
+    notes = task.notes.all().order_by('-is_pinned', '-updated_at')[:3]
     
     return render(request, 'todo/task_detail.html', {
         'task': task,
@@ -160,7 +177,7 @@ def task_delete(request, pk):
 def update_task_status(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     
-    if request.method == 'POST' and request.is_ajax():
+    if request.method == 'POST' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         new_status = request.POST.get('status')
         
         if new_status in ['todo', 'in_progress', 'completed']:
@@ -178,7 +195,8 @@ def update_task_status(request, pk):
 
 @login_required
 def category_list(request):
-    categories = Category.objects.filter(user=request.user).order_by('name')
+    # Sadece gerekli alanları seçerek optimizasyon
+    categories = Category.objects.filter(user=request.user).only('id', 'name', 'color', 'slug').order_by('name')
     return render(request, 'todo/category_list.html', {'categories': categories})
 
 @login_required
@@ -191,6 +209,11 @@ def category_create(request):
             category.save()
             messages.success(request, 'Kategori başarıyla oluşturuldu!')
             return redirect('todo:category_list')
+        else:
+            # Form hatalarını göster
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = CategoryForm(user=request.user)
     
@@ -206,6 +229,11 @@ def category_update(request, slug):
             form.save()
             messages.success(request, 'Kategori başarıyla güncellendi!')
             return redirect('todo:category_list')
+        else:
+            # Form hatalarını göster
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
     else:
         form = CategoryForm(instance=category, user=request.user)
     
@@ -215,7 +243,7 @@ def category_update(request, slug):
 def category_delete(request, slug):
     category = get_object_or_404(Category, slug=slug, user=request.user)
     if request.method == 'POST':
-        # Kategorinin kullanıldığı görevleri kontrol et
+        # Kategorinin kullanıldığı görevleri kontrol et - exists() ile optimizasyon
         if Task.objects.filter(category=category).exists():
             messages.warning(request, 'Bu kategori kullanılmakta olduğu için silinemez!')
             return redirect('todo:category_list')
@@ -227,8 +255,9 @@ def category_delete(request, slug):
 
 @login_required
 def category_detail(request, slug):
+    # select_related ile optimizasyon
     category = get_object_or_404(Category, slug=slug, user=request.user)
-    tasks = Task.objects.filter(user=request.user, category=category).order_by('-due_date')
+    tasks = Task.objects.filter(user=request.user, category=category).select_related('category').order_by('-due_date')
     return render(request, 'todo/category_detail.html', {
         'category': category,
         'tasks': tasks
@@ -241,30 +270,29 @@ def check_and_award_badges(user):
     # Örnek rozet kazanma mantığı
     badges_to_award = []
     if completed_tasks >= 10:
-        badges_to_award.append(Badge.objects.get_or_create(
-            name='Usta Planlayıcı',
-            defaults={
-                'description': '10 görev tamamlama başarısı',
-                'icon': 'fas fa-crown'
-            }
-        )[0])
+        try:
+            badges_to_award.append(Badge.objects.get(name='Görev Ustası'))
+        except Badge.DoesNotExist:
+            pass
     
     # Kullanıcıya rozetleri ata
+    profile = user.profile
     for badge in badges_to_award:
-        UserBadge.objects.get_or_create(user=user, badge=badge)
+        UserBadge.objects.get_or_create(user_profile=profile, badge=badge)
 
 @login_required
 def complete_task(request, pk):
     task = get_object_or_404(Task, pk=pk, user=request.user)
     if request.method == 'POST':
         task.status = 'completed'
+        task.completed_at = timezone.now()
         task.save()
         
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
                 'status': task.get_status_display(),
-                'completed_at': task.completed_at.strftime('%d.%m.%Y %H:%M')
+                'completed_at': task.completed_at.strftime('%d.%m.%Y %H:%M') if task.completed_at else ''
             })
         messages.success(request, 'Görev tamamlandı olarak işaretlendi!')
         return redirect('todo:task_detail', pk=task.pk)

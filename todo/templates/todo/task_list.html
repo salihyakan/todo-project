@@ -20,7 +20,7 @@
     <!-- Filtreleme Paneli -->
     <div class="card mb-4 shadow-sm">
         <div class="card-header bg-light">
-            <h5 class="mb-0">Filtrele ve Sırala</h5>
+            <h5 class="mb-0 text-muted">Filtrele ve Sırala</h5>
         </div>
         <div class="card-body">
             <form method="get" class="row g-3">
@@ -264,6 +264,11 @@
 
 {% block extra_css %}
 <style>
+    /* Filtrele ve Sırala başlığı için daha koyu gri */
+.card-header .text-muted {
+    color: #6c757d !important; /* Bootstrap'ın muted renginden daha koyu */
+}
+
 .task-card {
     transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     border-left: 4px solid !important;

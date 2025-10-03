@@ -102,11 +102,11 @@ def user_logout(request):
 
 @login_required
 def profile(request):
-    # Kullanıcının profilini al
+    # Kullanıcının profilini al - select_related ile optimizasyon
     profile = request.user.profile
     
-    # DÜZELTME: user_profile üzerinden filtreleme
-    badges = UserBadge.objects.filter(user_profile=profile).select_related('badge')
+    # DÜZELTME: user_profile üzerinden filtreleme - select_related ile optimizasyon
+    badges = UserBadge.objects.filter(user_profile=profile).select_related('badge', 'badge__badge_type')
 
     # DÜZELTME: user_profile üzerinden görüldü işaretleme
     UserBadge.objects.filter(
@@ -140,11 +140,12 @@ def profile(request):
     
     return render(request, 'user_profile/profile.html', context)
 
-login_required
+@login_required
 def profile_view(request):
     """Profil görüntüleme sayfası"""
-    profile = request.user.profile
-    badges = UserBadge.objects.filter(user_profile=profile).select_related('badge')
+    # select_related ile optimizasyon
+    profile = Profile.objects.select_related('user').get(user=request.user)
+    badges = UserBadge.objects.filter(user_profile=profile).select_related('badge', 'badge__badge_type')
     
     context = {
         'profile': profile,
@@ -166,6 +167,14 @@ def profile_edit(request):
             profile_form.save()
             messages.success(request, 'Profiliniz başarıyla güncellendi!')
             return redirect('user_profile:profile')
+        else:
+            # Form hatalarını göster
+            for field, errors in user_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Kullanıcı bilgileri: {error}")
+            for field, errors in profile_form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Profil bilgileri: {error}")
     else:
         user_form = UserUpdateForm(instance=request.user)
         profile_form = ProfileUpdateForm(instance=profile)
@@ -228,13 +237,14 @@ def badge_list(request):
         return redirect('user_profile:login')
     
     profile = request.user.profile
+    # select_related ve annotate ile optimizasyon
     badge_types = BadgeType.objects.annotate(
         total_badges=Count('badges'),
         earned_count=Count('badges__user_badges', filter=Q(badges__user_badges__user_profile=profile))
     )
     
-    # Tüm rozetleri ve kullanıcının kazandıklarını getir
-    all_badges = Badge.objects.all()
+    # Tüm rozetleri ve kullanıcının kazandıklarını getir - select_related ile optimizasyon
+    all_badges = Badge.objects.select_related('badge_type').all()
     earned_badges_ids = UserBadge.objects.filter(
         user_profile=profile
     ).values_list('badge_id', flat=True)
@@ -280,7 +290,8 @@ def badge_list(request):
 
 @login_required
 def badge_detail(request, slug):
-    badge = get_object_or_404(Badge, slug=slug)
+    # select_related ile optimizasyon
+    badge = get_object_or_404(Badge.objects.select_related('badge_type'), slug=slug)
     profile = request.user.profile
     
     # Kullanıcının bu rozeti kazanıp kazanmadığını kontrol et
@@ -289,10 +300,10 @@ def badge_detail(request, slug):
         badge=badge
     ).exists()
     
-    # Bu rozet türündeki diğer rozetler
+    # Bu rozet türündeki diğer rozetler - select_related ile optimizasyon
     similar_badges = Badge.objects.filter(
         badge_type=badge.badge_type
-    ).exclude(id=badge.id)[:4]
+    ).select_related('badge_type').exclude(id=badge.id)[:4]
     
     # Bu rozeti kazanan kullanıcı sayısı
     earned_count = UserBadge.objects.filter(badge=badge).count()
@@ -313,17 +324,17 @@ def badge_detail(request, slug):
 
 @login_required
 def notifications_view(request):
-    # Get unread notifications
+    # Get unread notifications - optimizasyon: sadece gerekli alanları seç
     unread_notifications = Notification.objects.filter(
         user=request.user, 
         is_read=False
-    ).order_by('-created_at')
+    ).only('id', 'message', 'notification_type', 'created_at', 'url').order_by('-created_at')
     
-    # Get all notifications (last 30 days)
+    # Get all notifications (last 30 days) - optimizasyon: sadece gerekli alanları seç
     all_notifications = Notification.objects.filter(
         user=request.user,
         created_at__gte=timezone.now()-timedelta(days=30)
-    ).order_by('-created_at')
+    ).only('id', 'message', 'notification_type', 'created_at', 'url', 'is_read').order_by('-created_at')
     
     # Mark badge notifications as seen when page is loaded
     UserBadge.objects.filter(
@@ -399,23 +410,9 @@ def check_new_notifications(request):
     return JsonResponse({'error': 'Geçersiz istek'}, status=400)
 
 @login_required
-def update_pomodoro(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            duration = int(data.get('duration'))
-            if 5 <= duration <= 60:
-                profile = request.user.profile
-                profile.pomodoro_duration = duration
-                profile.save()
-                return JsonResponse({'success': True})
-        except (ValueError, TypeError):
-            pass
-    return JsonResponse({'success': False}, status=400)
-
-@login_required
 def force_badge_check(request):
     """Rozet kontrolünü manuel tetikleme (test için)"""
+    from .utils import check_user_badges  # Eğer gerekliyse import et
     profile = request.user.profile
     check_user_badges(profile)
     

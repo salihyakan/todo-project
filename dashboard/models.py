@@ -15,64 +15,64 @@ class DashboardStats(models.Model):
     last_updated = models.DateTimeField(auto_now=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'last_updated']),
+            models.Index(fields=['current_streak']),  # Yeni index
+            models.Index(fields=['last_updated']),  # Yeni index
+        ]
+        verbose_name_plural = "Dashboard İstatistikleri"
+
+    # Mevcut metodlar aynı kalacak...
     def update_stats(self):
         from todo.models import Task
         from notes.models import Note
         
-        print(f"Updating stats for user: {self.user.username}")  # DEBUG
+        print(f"Updating stats for user: {self.user.username}")
         
-        # Not sayısını güncelle
+        # Not sayısını güncelle - optimizasyon: sadece count al
         notes_count = Note.objects.filter(user=self.user).count()
         self.notes_created = notes_count
-        print(f"Notes count: {notes_count}")  # DEBUG
         
-        # Tamamlanan görev sayısı
+        # Tamamlanan görev sayısı - optimizasyon: sadece count al
         completed_tasks_count = Task.objects.filter(user=self.user, status='completed').count()
         self.tasks_completed = completed_tasks_count
-        print(f"Completed tasks: {completed_tasks_count}")  # DEBUG
         
-        # Pomodoro sayısı
+        # Pomodoro sayısı - optimizasyon: sadece count al
         try:
-            from tools.models import PomodoroSession
+            # DÜZELTME: tools yerine dashboard
+            from dashboard.models import PomodoroSession
             pomodoro_count = PomodoroSession.objects.filter(user=self.user, completed=True).count()
             self.pomodoros_completed = pomodoro_count
-            print(f"Pomodoro sessions: {pomodoro_count}")  # DEBUG
         except Exception as e:
-            print(f"Pomodoro error: {e}")  # DEBUG
+            print(f"Pomodoro error: {e}")
             self.pomodoros_completed = 0
         
-        # GÜNLÜK SERİ HESAPLAMA - Basitleştirilmiş ve Debug Edilmiş
+        # GÜNLÜK SERİ HESAPLAMA - Optimize edilmiş versiyon
         today = timezone.now().date()
         streak = 0
         current_date = today
         
-        print(f"Calculating streak for {self.user.username}")  # DEBUG
-        
         # Bugün işlem yapılmış mı kontrol et
         today_activity = self._check_daily_activity(current_date)
-        print(f"Today activity: {today_activity}")  # DEBUG
         
-        # Dünden başlayarak geriye doğru kontrol et
-        day_count = 0
-        while day_count < 365:  # Maksimum 1 yıl
-            check_date = today - timedelta(days=day_count)
-            has_activity = self._check_daily_activity(check_date)
-            print(f"Date: {check_date}, Activity: {has_activity}")  # DEBUG
-            
-            if has_activity:
-                streak += 1
-                day_count += 1
-            else:
-                break
+        if today_activity:
+            streak = 1
+            # Dünden başlayarak geriye doğru kontrol et
+            for day_count in range(1, 365):  # Maksimum 1 yıl
+                check_date = today - timedelta(days=day_count)
+                has_activity = self._check_daily_activity(check_date)
+                
+                if has_activity:
+                    streak += 1
+                else:
+                    break
         
         self.current_streak = streak
-        print(f"Final streak: {streak}")  # DEBUG
-        
         self.save()
-        print(f"Stats saved: tasks={self.tasks_completed}, notes={self.notes_created}, streak={self.current_streak}")  # DEBUG
 
     def _check_daily_activity(self, date):
-        """Belirli bir tarihte kullanıcının işlem yapıp yapmadığını kontrol et"""
+        """Belirli bir tarihte kullanıcının işlem yapıp yapmadığını kontrol et - Optimize edilmiş"""
         from todo.models import Task
         from notes.models import Note
         
@@ -80,21 +80,25 @@ class DashboardStats(models.Model):
         start_of_day = timezone.make_aware(datetime.combine(date, datetime.min.time()))
         end_of_day = timezone.make_aware(datetime.combine(date, datetime.max.time()))
         
-        # Görev tamamlandı mı?
+        # EXISTS kullanarak performansı artır
         tasks_completed = Task.objects.filter(
             user=self.user,
             status='completed',
             completed_at__range=(start_of_day, end_of_day)
         ).exists()
         
-        # Not oluşturuldu mu?
+        if tasks_completed:
+            return True
+        
         notes_created = Note.objects.filter(
             user=self.user,
             created_at__range=(start_of_day, end_of_day)
         ).exists()
         
+        if notes_created:
+            return True
+        
         # Pomodoro tamamlandı mı?
-        pomodoro_completed = False
         try:
             from tools.models import PomodoroSession
             pomodoro_completed = PomodoroSession.objects.filter(
@@ -102,25 +106,13 @@ class DashboardStats(models.Model):
                 completed=True,
                 created_at__range=(start_of_day, end_of_day)
             ).exists()
+            return pomodoro_completed
         except:
-            pass
-        
-        # Herhangi bir işlem varsa True döndür
-        activity_found = tasks_completed or notes_created or pomodoro_completed
-        
-        # DEBUG: Hangi aktiviteler bulundu
-        if activity_found:
-            print(f"Activity found on {date}: tasks={tasks_completed}, notes={notes_created}, pomodoro={pomodoro_completed}")
-        
-        return activity_found
+            return False
 
     def __str__(self):
         return f"{self.user.username} - Dashboard Stats"
 
-    class Meta:
-        verbose_name_plural = "Dashboard İstatistikleri"
-
-# CalendarEvent modeli aynı kalabilir, sadece gerekli kısımları ekliyorum
 class CalendarEvent(models.Model):
     EVENT_TYPES = [
         ('reminder', 'Hatırlatıcı'),
@@ -157,6 +149,16 @@ class CalendarEvent(models.Model):
     )
     reminder_sent = models.BooleanField(default=False, verbose_name="Hatırlatıcı Gönderildi")
     
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'start_date']),  # Yeni index
+            models.Index(fields=['start_date', 'end_date']),  # Yeni index
+            models.Index(fields=['event_type']),  # Yeni index
+            models.Index(fields=['user', 'event_type', 'start_date']),  # Composite index
+        ]
+        ordering = ['-start_date']
+
+    # Mevcut property ve metodlar aynı kalacak...
     def __str__(self):
         return f"{self.title} ({self.get_event_type_display()})"
     
@@ -211,10 +213,16 @@ class PomodoroSession(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.user.username} - {self.get_session_type_display()} - {self.duration}dk"
-
     class Meta:
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'created_at']),  # Yeni index
+            models.Index(fields=['session_type']),  # Yeni index
+            models.Index(fields=['completed']),  # Yeni index
+            models.Index(fields=['user', 'session_type', 'created_at']),  # Composite index
+        ]
         verbose_name = 'Pomodoro Oturumu'
         verbose_name_plural = 'Pomodoro Oturumları'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_session_type_display()} - {self.duration}dk"
