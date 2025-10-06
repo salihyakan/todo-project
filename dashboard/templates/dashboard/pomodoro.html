@@ -599,6 +599,75 @@
 
 {% block scripts %}
 <script>
+    const MOTIVATION_MESSAGES = {
+        work: [
+            "Konsantrasyon, başarının anahtarıdır. Şimdi odaklanma zamanı!",
+            "Her dakika değerli, iyi kullan!",
+            "Hedeflerine bir adım daha yaklaşıyorsun.",
+            "Mükemmel iş çıkarıyorsun, devam et!",
+            "Zorluklar seni daha güçlü yapar. Pes etme!",
+            "Başarı, küçük çabaların tekrarlanmasıdır.",
+            "Bugünün işini yarına bırakma!",
+            "Odaklan, başaracaksın!",
+            "Her görev, seni hedefine biraz daha yaklaştırır.",
+            "Disiplin, özgürlüğün anahtarıdır.",
+            "Şimdi çalış, sonra rahatla.",
+            "Zamanın efendisi ol, kölesi değil!",
+            "Bu çalışma, senin geleceğini şekillendiriyor.",
+            "Kendine inan, yapabilirsin!",
+            "Küçük başlangıçlar, büyük bitişler getirir.",
+            "Azim, başarının temelidir.",
+            "Her şey seninle başlar, seninle biter.",
+            "Bugün yapacağın çalışma, yarınki başarının temelidir.",
+            "Hayallerine giden yolda bir adım daha at!",
+            "Çalışmak, başarının anahtarıdır.",
+            "Zor işler, seni güçlendirir.",
+            "Her zorluk bir fırsattır.",
+            "İlerleme, küçük adımlarla gelir.",
+            "Mükemmellik bir alışkanlıktır, tesadüf değil.",
+            "Bugün zorlanıyorsan, yarın daha güçlü olacaksın.",
+            "Hedeflerin, seni motive etsin!",
+            "Çalışma azmin takdir edilesi!",
+            "Zihnini odakla, gerisi gelecektir.",
+            "Her başarı hikayesi bir gün başladı.",
+            "Sen de başarabilirsin, yeter ki inan!"
+        ],
+        break: [
+            "Mola zamanı! Zihnini dinlendir.",
+            "Gözlerini dinlendirmeyi unutma.",
+            "Kısa bir mola, daha iyi odaklanmana yardımcı olur.",
+            "Ayağa kalk ve biraz hareket et.",
+            "Derin bir nefes al ve rahatla.",
+            "Mola, daha iyi odaklanmanı sağlar.",
+            "Zihnini boşalt, yeniden odaklan.",
+            "Bir şeyler atıştır ve enerji topla.",
+            "Gözlerini kapat ve biraz dinlen.",
+            "Mola, üretkenliğin bir parçasıdır.",
+            "Biraz esneme hareketleri yap.",
+            "Su içmeyi unutma!",
+            "Mola ver, zihnini tazele.",
+            "Kısa bir mola, uzun vadeli verimlilik getirir.",
+            "Dinlenmek, daha iyi performans demektir.",
+            "Mola, yeni bir başlangıçtır.",
+            "Zihnini topla, mola bitince devam et.",
+            "Biraz müzik dinle ve rahatla.",
+            "Gözlerini uzağa odakla ve dinlendir.",
+            "Mola, kendine yapacağın bir iyiliktir.",
+            "Dinlenmek de bir üretkenliktir.",
+            "Bedenini dinle, ihtiyaçlarını karşıla.",
+            "Mola, yaratıcılığını artırır.",
+            "Kısa bir yürüyüş yap, enerjin artsın.",
+            "Gözlerini kapatarak 1 dakika dinlen.",
+            "Derin nefes al, stresini azalt.",
+            "Mola, düşüncelerini organize etme zamanı.",
+            "Kendine zaman ayır, bu senin hakkın.",
+            "Dinlenmiş bir zihin daha iyi çalışır.",
+            "Mola bitince daha enerjik döneceksin!"
+        ]
+    };
+
+    let currentMotivationMessage = '';
+
     // DOM Elementleri
     const timerDisplay = document.getElementById('timer');
     const progressBar = document.getElementById('progress-bar');
@@ -647,13 +716,13 @@
                 duration: duration
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            console.log('Pomodoro oturumu kaydedildi:', data);
-        })
-        .catch(error => {
-            console.error('Oturum kaydedilemedi:', error);
-        });
+            .then(response => response.json())
+            .then(data => {
+                console.log('Pomodoro oturumu kaydedildi:', data);
+            })
+            .catch(error => {
+                console.error('Oturum kaydedilemedi:', error);
+            });
     }
 
     // Zamanı formatla
@@ -688,27 +757,17 @@
         }, 3000);
     }
 
-    // Motivasyon mesajını güncelle
+    // Motivasyon mesajını güncelle - SADECE gerektiğinde değiştir
     function updateMotivationMessage(isWorkPhase) {
-        const workMessages = [
-            "Konsantrasyon, başarının anahtarıdır. Şimdi odaklanma zamanı!",
-            "Her dakika değerli, iyi kullan!",
-            "Hedeflerine bir adım daha yaklaşıyorsun.",
-            "Mükemmel iş çıkarıyorsun, devam et!",
-            "Zorluklar seni daha güçlü yapar. Pes etme!"
-        ];
-
-        const breakMessages = [
-            "Mola zamanı! Zihnini dinlendir.",
-            "Gözlerini dinlendirmeyi unutma.",
-            "Kısa bir mola, daha iyi odaklanmana yardımcı olur.",
-            "Ayağa kalk ve biraz hareket et.",
-            "Derin bir nefes al ve rahatla."
-        ];
-
-        const messages = isWorkPhase ? workMessages : breakMessages;
+        const messages = isWorkPhase ? MOTIVATION_MESSAGES.work : MOTIVATION_MESSAGES.break;
         const randomIndex = Math.floor(Math.random() * messages.length);
-        motivationMessage.textContent = `"${messages[randomIndex]}"`;
+        const newMessage = `"${messages[randomIndex]}"`;
+
+        // Sadece mesaj değiştiyse veya hiç mesaj yoksa güncelle
+        if (newMessage !== currentMotivationMessage || !currentMotivationMessage) {
+            motivationMessage.textContent = newMessage;
+            currentMotivationMessage = newMessage;
+        }
     }
 
     // Faz göstergesini güncelle
@@ -750,7 +809,7 @@
             savedAt: Date.now()
         };
         localStorage.setItem('pomodoroTimerState', JSON.stringify(stateToSave));
-        
+
         // Storage event'ini tetikle (diğer tablar için)
         window.dispatchEvent(new StorageEvent('storage', {
             key: 'pomodoroTimerState',
@@ -764,16 +823,16 @@
         return savedState ? JSON.parse(savedState) : null;
     }
 
-    // UI'ı güncelle
+    // UI'ı güncelle (MOTIVASYON MESAJI BURADA ÇAĞRILMAYACAK)
     function updateUI(state) {
         if (!state) return;
-        
+
         timerDisplay.textContent = formatTime(state.timeLeft);
         updatePhaseDisplay(state.isWorkPhase, state.currentSession, state.totalSessions);
         updateProgressBar(state.timeLeft, state.isWorkPhase, state.workTime, state.breakTime);
         updateSessionProgress(state.completedSessions, state.totalSessions);
         updateButtonStates(state.isRunning);
-        updateMotivationMessage(state.isWorkPhase);
+        // updateMotivationMessage(state.isWorkPhase); // BU SATIR KALDIRILDI
     }
 
     // Sayfa yüklendiğinde timer durumunu yükle
@@ -781,12 +840,12 @@
         const savedState = localStorage.getItem('pomodoroTimerState');
         if (savedState) {
             const stateData = JSON.parse(savedState);
-            
+
             // Eğer timer çalışıyorsa, geçen süreyi hesapla
             if (stateData.isRunning) {
                 const timeElapsed = Math.floor((Date.now() - stateData.savedAt) / 1000);
                 stateData.timeLeft = Math.max(0, stateData.timeLeft - timeElapsed);
-                
+
                 // Eğer süre dolmuşsa faz değiştir
                 if (stateData.timeLeft <= 0) {
                     handleTimerComplete(stateData);
@@ -795,8 +854,13 @@
                     startLocalTimer(stateData);
                 }
             }
-            
+
             updateUI(stateData);
+
+            // Sayfa yüklendiğinde SADECE BİR KEZ motivasyon mesajını güncelle
+            if (!currentMotivationMessage) {
+                updateMotivationMessage(stateData.isWorkPhase);
+            }
         } else {
             // İlk yükleme için default state oluştur
             const defaultState = {
@@ -812,6 +876,10 @@
             };
             saveState(defaultState);
             updateUI(defaultState);
+
+            // Sayfa ilk yüklendiğinde motivasyon mesajını ayarla
+            currentMotivationMessage = '';
+            updateMotivationMessage(true);
         }
     }
 
@@ -820,18 +888,18 @@
         if (timerInterval) {
             clearInterval(timerInterval);
         }
-        
+
         timerInterval = setInterval(() => {
             const currentState = getCurrentState();
             if (currentState && currentState.isRunning) {
                 currentState.timeLeft--;
-                
+
                 if (currentState.timeLeft <= 0) {
                     handleTimerComplete(currentState);
                 } else {
                     saveState(currentState);
                     updateUI(currentState);
-                    
+
                     if (currentState.timeLeft % 10 === 0) {
                         animateTimer();
                     }
@@ -847,7 +915,7 @@
     function startTimer() {
         const currentState = getCurrentState();
         if (!currentState) return;
-        
+
         if (currentState.isRunning) return;
 
         currentState.isRunning = true;
@@ -861,14 +929,14 @@
     function pauseTimer() {
         const currentState = getCurrentState();
         if (!currentState) return;
-        
+
         if (!currentState.isRunning) return;
 
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        
+
         currentState.isRunning = false;
         saveState(currentState);
         updateUI(currentState);
@@ -881,7 +949,7 @@
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        
+
         const resetState = {
             workTime: parseInt(workDurationInput.value) * 60,
             breakTime: parseInt(breakDurationInput.value) * 60,
@@ -893,27 +961,36 @@
             currentSession: 1,
             savedAt: Date.now()
         };
-        
+
         saveState(resetState);
         updateUI(resetState);
+
+        // Reset sırasında yeni motivasyon mesajı
+        currentMotivationMessage = '';
+        updateMotivationMessage(true);
+
         showNotification('🔄 Zamanlayıcı sıfırlandı');
     }
 
+    // Timer tamamlandığında
     // Timer tamamlandığında
     function handleTimerComplete(stateData) {
         if (timerInterval) {
             clearInterval(timerInterval);
             timerInterval = null;
         }
-        
+
         stateData.isRunning = false;
 
         if (stateData.isWorkPhase) {
-            // Çalışma oturumu tamamlandı
-            showNotification(`✓ Oturum ${stateData.currentSession} tamamlandı! Mola zamanı.`);
+            // Çalışma oturumu tamamlandı - POMODORO SAYACINI ARTIR
+            showNotification(`✓ Oturum ${stateData.currentSession} tamamlandı! 🎉 1 Pomodoro tamamlandı.`);
             savePomodoroSession('work', parseInt(workDurationInput.value));
             stateData.isWorkPhase = false;
             stateData.timeLeft = stateData.breakTime;
+
+            // Mola için yeni motivasyon mesajı
+            currentMotivationMessage = '';
         } else {
             // Mola tamamlandı
             showNotification(`✓ Mola bitti! Yeni çalışma oturumu başlıyor.`);
@@ -928,11 +1005,14 @@
                 stateData.completedSessions = 0;
                 stateData.currentSession = 1;
             }
+
+            // Çalışma için yeni motivasyon mesajı
+            currentMotivationMessage = '';
         }
 
         saveState(stateData);
         updateUI(stateData);
-        
+
         // Otomatik olarak bir sonraki fazı başlat
         setTimeout(() => {
             stateData.isRunning = true;
@@ -942,12 +1022,13 @@
         }, 2000);
     }
 
+
     // Input değişikliklerini dinle
     function setupEventListeners() {
-        workDurationInput.addEventListener('change', function() {
+        workDurationInput.addEventListener('change', function () {
             const currentState = getCurrentState();
             if (!currentState) return;
-            
+
             if (!currentState.isRunning) {
                 currentState.workTime = parseInt(this.value) * 60;
                 if (currentState.isWorkPhase) {
@@ -958,10 +1039,10 @@
             }
         });
 
-        breakDurationInput.addEventListener('change', function() {
+        breakDurationInput.addEventListener('change', function () {
             const currentState = getCurrentState();
             if (!currentState) return;
-            
+
             if (!currentState.isRunning) {
                 currentState.breakTime = parseInt(this.value) * 60;
                 if (!currentState.isWorkPhase) {
@@ -972,20 +1053,20 @@
             }
         });
 
-        sessionCountInput.addEventListener('change', function() {
+        sessionCountInput.addEventListener('change', function () {
             const currentState = getCurrentState();
             if (!currentState) return;
-            
+
             currentState.totalSessions = parseInt(this.value);
             currentState.totalSessions = Math.max(1, Math.min(20, currentState.totalSessions));
-            
+
             if (currentState.currentSession > currentState.totalSessions) {
                 currentState.currentSession = currentState.totalSessions;
             }
             if (currentState.completedSessions > currentState.totalSessions) {
                 currentState.completedSessions = currentState.totalSessions;
             }
-            
+
             saveState(currentState);
             updateUI(currentState);
         });
@@ -1008,10 +1089,11 @@
     window.resetTimer = resetTimer;
 
     // Sayfa yüklendiğinde çalıştır
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         setupEventListeners();
         loadTimerState();
-        
+        addMotivationRefreshButton();
+
         console.log('Pomodoro timer başarıyla yüklendi');
     });
 </script>

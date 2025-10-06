@@ -180,20 +180,25 @@ def get_recent_sessions(user_id, limit=10):
         return []
 
 def store_pomodoro_session(user_id, session_type, duration):
-    """Pomodoro oturumunu veritabanına kaydet"""
+    """Pomodoro oturumunu veritabanına kaydet - Her çalışma oturumu için +1"""
     try:
-        # DÜZELTME: tools yerine dashboard
         from django.contrib.auth import get_user_model
         
         User = get_user_model()
         user = User.objects.get(id=user_id)
         
+        # Oturumu kaydet
         PomodoroSession.objects.create(
             user=user,
             session_type=session_type,
             duration=duration,
             completed=True
         )
+        
+        # Dashboard istatistiklerini güncelle
+        stats, created = DashboardStats.objects.get_or_create(user=user)
+        stats.update_stats()
+        
         print(f"Pomodoro session saved: user={user.username}, type={session_type}, duration={duration}")
     except Exception as e:
         print(f"Error saving pomodoro session: {e}")
@@ -211,11 +216,11 @@ def get_event_color(event_type):
 @login_required
 def home(request):
     try:
-        # select_related ile optimizasyon
+        # Dashboard istatistiklerini güncelle
         stats, created = DashboardStats.objects.select_related('user').get_or_create(user=request.user)
         stats.update_stats()
         stats.refresh_from_db()
-        print(f"Home stats: tasks={stats.tasks_completed}, notes={stats.notes_created}, streak={stats.current_streak}")
+        print(f"Home stats: tasks={stats.tasks_completed}, pomodoros={stats.pomodoros_completed}, streak={stats.current_streak}")
     except Exception as e:
         print(f"Dashboard stats error: {e}")
         stats = type('obj', (object,), {
@@ -225,11 +230,10 @@ def home(request):
             'current_streak': 0
         })()
 
-    # GERÇEK ZAMANLI VERİLERİ HESAPLA - Optimize edilmiş sorgular
+    # GERÇEK ZAMANLI VERİLERİ HESAPLA
     from todo.models import Task
     from notes.models import Note
     
-    # Tek sorguda count alarak optimizasyon
     total_tasks = Task.objects.filter(user=request.user).count()
     completed_tasks = Task.objects.filter(user=request.user, status='completed').count()
     pending_tasks = total_tasks - completed_tasks
@@ -247,18 +251,17 @@ def home(request):
     if total_tasks > 0:
         completion_rate = int((completed_tasks / total_tasks) * 100)
     
-    # Bugünün görevleri - select_related ile optimizasyon
+    # Bugünün görevleri
     todays_tasks = Task.objects.filter(
         user=request.user,
         due_date__date=today,
         status__in=['todo', 'in_progress']
     ).select_related('category').order_by('priority', 'due_date')[:5]
     
-    # Son notlar - select_related ile optimizasyon
+    # Son notlar
     recent_notes = Note.objects.filter(user=request.user).select_related('category', 'task').order_by('-created_at')[:5]
     
     try:
-        # select_related ile optimizasyon
         profile = Profile.objects.select_related('user').get(user=request.user)
     except Profile.DoesNotExist:
         profile = type('obj', (object,), {

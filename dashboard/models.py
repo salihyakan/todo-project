@@ -3,6 +3,9 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.urls import reverse
 from datetime import timedelta, datetime
+from todo.models import Task
+from notes.models import Note
+
 
 User = get_user_model()
 
@@ -25,30 +28,31 @@ class DashboardStats(models.Model):
 
     # Mevcut metodlar aynı kalacak...
     def update_stats(self):
-        from todo.models import Task
-        from notes.models import Note
-        
         print(f"Updating stats for user: {self.user.username}")
         
-        # Not sayısını güncelle - optimizasyon: sadece count al
+        # Not sayısını güncelle
         notes_count = Note.objects.filter(user=self.user).count()
         self.notes_created = notes_count
         
-        # Tamamlanan görev sayısı - optimizasyon: sadece count al
+        # Tamamlanan görev sayısı
         completed_tasks_count = Task.objects.filter(user=self.user, status='completed').count()
         self.tasks_completed = completed_tasks_count
         
-        # Pomodoro sayısı - optimizasyon: sadece count al
+        # Pomodoro sayısı - SADECE çalışma oturumlarını say
         try:
-            # DÜZELTME: tools yerine dashboard
             from dashboard.models import PomodoroSession
-            pomodoro_count = PomodoroSession.objects.filter(user=self.user, completed=True).count()
+            pomodoro_count = PomodoroSession.objects.filter(
+                user=self.user, 
+                completed=True,
+                session_type='work'  # Sadece çalışma oturumlarını say
+            ).count()
             self.pomodoros_completed = pomodoro_count
         except Exception as e:
             print(f"Pomodoro error: {e}")
             self.pomodoros_completed = 0
         
-        # GÜNLÜK SERİ HESAPLAMA - Optimize edilmiş versiyon
+        # YENİ SERİ HESAPLAMA MANTIĞI
+        # 2 gün kuralı: 1 gün boşluk seriyi bozmaz, 2 gün boşluk seriyi sıfırlar
         today = timezone.now().date()
         streak = 0
         current_date = today
@@ -66,10 +70,51 @@ class DashboardStats(models.Model):
                 if has_activity:
                     streak += 1
                 else:
-                    break
+                    # Bir gün boşluk bulduk, bir gün daha kontrol et
+                    if day_count + 1 < 365:
+                        next_check_date = today - timedelta(days=day_count + 1)
+                        next_has_activity = self._check_daily_activity(next_check_date)
+                        
+                        if next_has_activity:
+                            # İkinci gün de aktivite varsa devam et
+                            streak += 1
+                            day_count += 1  # Bir gün daha atla
+                        else:
+                            # İki gün üst üste aktivite yok, seriyi bitir
+                            break
+                    else:
+                        break
+        else:
+            # Bugün aktivite yok, dün kontrol et
+            yesterday = today - timedelta(days=1)
+            yesterday_activity = self._check_daily_activity(yesterday)
+            
+            if yesterday_activity:
+                streak = 1
+                # Dünden geriye doğru kontrol et
+                for day_count in range(2, 365):
+                    check_date = today - timedelta(days=day_count)
+                    has_activity = self._check_daily_activity(check_date)
+                    
+                    if has_activity:
+                        streak += 1
+                    else:
+                        # Bir gün boşluk bulduk, bir gün daha kontrol et
+                        if day_count + 1 < 365:
+                            next_check_date = today - timedelta(days=day_count + 1)
+                            next_has_activity = self._check_daily_activity(next_check_date)
+                            
+                            if next_has_activity:
+                                streak += 1
+                                day_count += 1
+                            else:
+                                break
+                        else:
+                            break
         
         self.current_streak = streak
         self.save()
+        print(f"Updated streak: {streak} days")
 
     def _check_daily_activity(self, date):
         """Belirli bir tarihte kullanıcının işlem yapıp yapmadığını kontrol et - Optimize edilmiş"""
@@ -80,7 +125,9 @@ class DashboardStats(models.Model):
         start_of_day = timezone.make_aware(datetime.combine(date, datetime.min.time()))
         end_of_day = timezone.make_aware(datetime.combine(date, datetime.max.time()))
         
-        # EXISTS kullanarak performansı artır
+        print(f"Checking activity for {date}: {start_of_day} to {end_of_day}")
+        
+        # Görev tamamlandı mı?
         tasks_completed = Task.objects.filter(
             user=self.user,
             status='completed',
@@ -88,27 +135,36 @@ class DashboardStats(models.Model):
         ).exists()
         
         if tasks_completed:
+            print(f"✓ Task completed on {date}")
             return True
         
+        # Not oluşturuldu mu?
         notes_created = Note.objects.filter(
             user=self.user,
             created_at__range=(start_of_day, end_of_day)
         ).exists()
         
         if notes_created:
+            print(f"✓ Note created on {date}")
             return True
         
         # Pomodoro tamamlandı mı?
         try:
-            from tools.models import PomodoroSession
+            from dashboard.models import PomodoroSession
             pomodoro_completed = PomodoroSession.objects.filter(
                 user=self.user,
                 completed=True,
                 created_at__range=(start_of_day, end_of_day)
             ).exists()
-            return pomodoro_completed
-        except:
-            return False
+            
+            if pomodoro_completed:
+                print(f"✓ Pomodoro completed on {date}")
+                return True
+        except Exception as e:
+            print(f"Pomodoro check error: {e}")
+        
+        print(f"✗ No activity found on {date}")
+        return False
 
     def __str__(self):
         return f"{self.user.username} - Dashboard Stats"

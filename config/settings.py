@@ -25,6 +25,7 @@ INSTALLED_APPS = [
     'notes',
     'analytics',
     'tools',
+    'lists',
     'tinymce',
 ]
 

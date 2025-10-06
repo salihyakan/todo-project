@@ -65,6 +65,24 @@ TODO
 │  ├─ views.py
 │  └─ __init__.py
 ├─ deploy.py
+├─ lists
+│  ├─ admin.py
+│  ├─ apps.py
+│  ├─ forms.py
+│  ├─ migrations
+│  │  ├─ 0001_initial.py
+│  │  └─ __init__.py
+│  ├─ models.py
+│  ├─ templates
+│  │  └─ lists
+│  │     ├─ list_confirm_delete.html
+│  │     ├─ list_detail.html
+│  │     ├─ list_form.html
+│  │     └─ list_list.html
+│  ├─ tests.py
+│  ├─ urls.py
+│  ├─ views.py
+│  └─ __init__.py
 ├─ manage.py
 ├─ notes
 │  ├─ admin.py

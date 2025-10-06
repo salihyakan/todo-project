@@ -1,0 +1,108 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Listelerim - Ked-o{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 text-gray-800">Listelerim</h1>
+                <a href="{% url 'lists:list_create' %}" class="btn btn-warning">
+                    <i class="fas fa-plus"></i> Yeni Liste
+                </a>
+            </div>
+
+            <!-- Liste Türü Filtreleri -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="btn-group" role="group">
+                        <a href="?type=all"
+                            class="btn btn-outline-secondary {% if not request.GET.type or request.GET.type == 'all' %}active{% endif %}">
+                            Tümü
+                        </a>
+                        {% for type_key, type_name in list_types.items %}
+                        <a href="?type={{ type_key }}"
+                            class="btn btn-outline-secondary {% if request.GET.type == type_key %}active{% endif %}">
+                            {{ type_name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Liste Grid -->
+            <div class="row">
+                {% for list in lists %}
+                <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2"
+                        style="border-left-color: {{ list.color }} !important;">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1"
+                                            style="color: {{ list.color }} !important;">
+                                            {{ list.get_list_type_display }}
+                                        </div>
+                                        {% if list.is_pinned %}
+                                        <i class="fas fa-thumbtack text-warning" title="Sabitlenmiş"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                        <a href="{% url 'lists:list_detail' list.pk %}"
+                                            class="text-decoration-none text-gray-800">
+                                            {{ list.title }}
+                                        </a>
+                                    </div>
+                                    {% if list.description %}
+                                    <div class="text-xs text-muted mt-1">{{ list.description|truncatewords:10 }}</div>
+                                    {% endif %}
+
+                                    <!-- İlerleme Çubuğu -->
+                                    <div class="progress mt-2" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" role="progressbar"
+                                            style="width: {{ list.progress_percentage }}%; background-color: {{ list.color }} !important;"
+                                            aria-valuenow="{{ list.progress_percentage }}" aria-valuemin="0"
+                                            aria-valuemax="100">
+                                        </div>
+                                    </div>
+
+                                    <div class="text-xs text-muted mt-1">
+                                        {{ list.completed_items_count }}/{{ list.total_items_count }} tamamlandı
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <small class="text-muted">{{ list.updated_at|timesince }} önce</small>
+                            <div>
+                                <a href="{% url 'lists:list_detail' list.pk %}" class="btn btn-sm btn-warning"
+                                    title="Listeyi Düzenle">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-3x text-gray-300 mb-3"></i>
+                        <h4 class="text-gray-500">Henüz liste oluşturmadınız</h4>
+                        <p class="text-gray-400">İlk listenizi oluşturarak başlayın!</p>
+                        <a href="{% url 'lists:list_create' %}" class="btn btn-warning">
+                            <i class="fas fa-plus"></i> İlk Listeni Oluştur
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
